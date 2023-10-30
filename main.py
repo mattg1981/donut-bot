@@ -10,7 +10,8 @@ from logging.handlers import RotatingFileHandler
 
 if __name__ == '__main__':
     # load config
-    config = json.load(open("config.json"))
+    with open(os.path.normpath("config.json"), 'r') as f:
+        config = json.load(f)
 
     # set up logging
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -37,9 +38,16 @@ if __name__ == '__main__':
                          user_agent=user_agent)
 
     subs = ""
-    for sub in config["subreddits"][:-1]:
-        subs += sub + "+"
-    subs += config["subreddits"][-1]
+    for idx, community_token in enumerate(config["community_tokens"]):
+        community = community_token["community"]
+        if "r/" in community:
+            community=community[2:]
+        subs += community
+        if idx < len(config["community_tokens"]) - 1:
+            subs += '+'
+
+    # todo remove after testing
+    subs = "ethtrader_test"
     subreddits = reddit.subreddit(subs)
 
     commands = []
@@ -50,7 +58,7 @@ if __name__ == '__main__':
             commands.append(obj())
 
     for cls in Command.__subclasses__():
-        commands.append(cls())
+        commands.append(cls(config))
 
     # for testing
     # for command in commands:
@@ -59,6 +67,7 @@ if __name__ == '__main__':
     #         break
 
     while True:
+
         for comment in subreddits.stream.comments(pause_after=-1):
             if comment is None:
                 time.sleep(6)
@@ -69,6 +78,5 @@ if __name__ == '__main__':
                             command.process_command(comment)
                         except Exception as e:
                             logger.error(e)
-                        break
 
 

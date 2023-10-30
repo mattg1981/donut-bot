@@ -37,7 +37,7 @@ class Test(TestCase):
     def test_get_addresses_for_users_author_not_registered(self):
         author_name = "NonRegisteredUser#1981"
         commenter_name = "mattg1981"
-        users_result = db.get_address_for_users([author_name, commenter_name])
+        users_result = db.get_addresses_for_users([author_name, commenter_name])
         expected_output = [
             {'address': '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC', 'username': 'mattg1981'}
         ]
