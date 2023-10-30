@@ -77,6 +77,7 @@ if __name__ == '__main__':
                         try:
                             command.process_command(comment)
                         except Exception as e:
-                            logger.error(e)
+                            logger.error(f'Error with comment: {comment.fullname}')
+                            logger.error(f'  Exception: {e}')
 
 
