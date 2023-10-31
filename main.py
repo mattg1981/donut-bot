@@ -60,12 +60,6 @@ if __name__ == '__main__':
     for cls in Command.__subclasses__():
         commands.append(cls(config))
 
-    # for testing
-    # for command in commands:
-    #     if command.can_handle("!tip 10 donut"):
-    #         command.process_command("!tip 10 donut")
-    #         break
-
     while True:
 
         # for comment in subreddits.stream.comments(pause_after=-1):

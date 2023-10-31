@@ -13,17 +13,25 @@ class TipCommand(Command):
         self.command_text = "!tip"
 
     def normalize_amount(self, amount):
-        if amount[-1] == '.':
-            amount = amount[0:-1]
+        """
+        Checks the amount to make sure it is a valid input
+        :param amount: the amount parsed from the regex
+        :return: a float number of the amount, -1 if it is not able to be parsed
+        """
 
-        int_value = int(float(amount))
-        if len(str(int_value).lstrip("0")) > 10:
-            raise Exception("Number too large")
+        try:
+            result = float(amount)
+            result = round(float(result), 5)
 
-        if "." in amount:
-            amount = round(float(amount), 5)
+            int_value = int(float(result))
+            if len(str(int_value)) > 10:
+                raise Exception("Number too large")
 
-        return amount
+            return result
+        except Exception as e:
+            self.logger.error(f"invalid amount specified: {amount}")
+            self.logger.error(e)
+            return -1
 
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_SIGNATURE
@@ -40,10 +48,6 @@ class TipCommand(Command):
         if database.has_processed_content(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
-
-        # if comment.saved:
-        #     self.logger.info("  previously processed...")
-        #     return
 
         # handle '!tip status' command
         p = re.compile(f'{self.command_text}\\s+status')
@@ -94,16 +98,16 @@ class TipCommand(Command):
             self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, you cannot tip yourself!")
             return
 
-        self.logger.debug("getting community tokens")
         # find all the configured tokens for this sub
+        self.logger.debug("getting community tokens")
         valid_tokens = {}
         community_tokens = self.config["community_tokens"]
         for ct in community_tokens:
             if ct["community"].lower() == f"r/{comment.subreddit.display_name.lower()}":
                 valid_tokens = ct["tokens"]
 
-        self.logger.debug("getting community default token")
         # find default token for this sub
+        self.logger.debug("getting community default token")
         default_token_meta = {}
         for t in valid_tokens:
             if t["is_default"]:
@@ -116,10 +120,9 @@ class TipCommand(Command):
         re_result = p.match(comment.body.lower())
         if re_result:
             self.logger.info("  default tipping")
-            try:
-                amount = self.normalize_amount(re_result.group(1))
-            except Exception as e:
-                self.logger.warn(e)
+
+            amount = self.normalize_amount(re_result.group(1))
+            if amount == -1:
                 self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, I could not process that number")
                 return
 
@@ -142,10 +145,8 @@ class TipCommand(Command):
         re_result = p.match(comment.body.lower())
         if re_result:
             self.logger.info("  default tipping")
-            try:
-                amount = self.normalize_amount(re_result.group(1))
-            except Exception as e:
-                self.logger.warn(e)
+            amount = self.normalize_amount(re_result.group(1))
+            if amount == -1:
                 self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, I could not process that number")
                 return
 
@@ -167,10 +168,8 @@ class TipCommand(Command):
         re_result = p.match(comment.body.lower())
         if re_result:
             self.logger.info("  specify tipping")
-            try:
-                amount = self.normalize_amount(re_result.group(1))
-            except Exception as e:
-                self.logger.warn(e)
+            amount = self.normalize_amount(re_result.group(1))
+            if amount == -1:
                 self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, I could not process that number")
                 return
             parsed_token = re_result.group(2)
