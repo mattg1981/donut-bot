@@ -27,7 +27,7 @@ class TipCommand(Command):
             if len(str(int_value)) > 10:
                 raise Exception("Number too large")
 
-            return result
+            return result if result > 0 else -1
         except Exception as e:
             self.logger.error(f"invalid amount specified: {amount}")
             self.logger.error(e)
@@ -92,7 +92,6 @@ class TipCommand(Command):
             self.leave_comment_reply(comment, f"Cannot tip u/{author} - that user is not registered")
             return
 
-        # todo uncomment after testing
         if user_address == author_address:
             self.logger.info("attempted self tipping")
             self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, you cannot tip yourself!")

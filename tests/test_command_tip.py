@@ -54,3 +54,19 @@ class TestTipCommand(TestCase):
         amount11 = "99999999999"
         result11 = tip.normalize_amount(amount11)
         self.assertTrue(result11 == -1)
+
+        amount11 = "-420.1"
+        result11 = tip.normalize_amount(amount11)
+        self.assertTrue(result11 == -1)
+
+        amount12 = "0"
+        result12 = tip.normalize_amount(amount12)
+        self.assertTrue(result12 == -1)
+
+        amount13 = "0.0"
+        result13 = tip.normalize_amount(amount13)
+        self.assertTrue(result13 == -1)
+
+        amount14 = "0.01"
+        result14 = tip.normalize_amount(amount14)
+        self.assertEqual(0.01, result14)

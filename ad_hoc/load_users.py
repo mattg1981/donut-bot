@@ -1,8 +1,9 @@
-import datetime
 import json
 import os.path
 import urllib.request
 import sqlite3
+
+from datetime import datetime
 
 if __name__ == '__main__':
     user_json = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
@@ -17,6 +18,6 @@ if __name__ == '__main__':
         for user in user_json:
             print(f'user: {user["username"]} -- address: {user["address"]}')
             cursor.execute("INSERT INTO registered_users (username, address, last_updated) VALUES (?, ?, ?)",
-                           (user["username"], user["address"], datetime.datetime.now()))
+                           (user["username"], user["address"], datetime.now()))
 
 
