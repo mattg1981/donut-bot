@@ -11,6 +11,29 @@ def get_address_for_user(author):
         return cur.fetchone()
 
 
+def has_processed_content(content_id):
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute('SELECT id FROM history WHERE content_id = ?', [content_id])
+        return cur.fetchone()
+
+
+def set_processed_content(content_id):
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute('INSERT INTO history (content_id) VALUES(?) RETURNING *', [content_id])
+        return cur.fetchone()
+
+
+def remove_processed_content(content_id):
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute("DELETE FROM history WHERE content_id = ?", [content_id])
+
+
 def get_addresses_for_users(authors):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))

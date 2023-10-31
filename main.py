@@ -68,16 +68,25 @@ if __name__ == '__main__':
 
     while True:
 
-        for comment in subreddits.stream.comments(pause_after=-1):
-            if comment is None:
-                time.sleep(6)
-            else:
-                for command in commands:
-                    if command.can_handle(comment):
-                        try:
-                            command.process_command(comment)
-                        except Exception as e:
-                            logger.error(f'Error with comment: {comment.fullname}')
-                            logger.error(f'  Exception: {e}')
+        # for comment in subreddits.stream.comments(pause_after=-1):
+        #     if comment is None:
+        #         time.sleep(6)
+        #     else:
+        #         for command in commands:
+        #             if command.can_handle(comment):
+        #                 try:
+        #                     command.process_command(comment)
+        #                 except Exception as e:
+        #                     logger.error(f'Error with comment: {comment.fullname}')
+        #                     logger.error(f'  Exception: {e}')
+
+        for comment in subreddits.stream.comments():
+            for command in commands:
+                if command.can_handle(comment):
+                    try:
+                        command.process_command(comment)
+                    except Exception as e:
+                        logger.error(f'Error with comment: {comment.fullname}')
+                        logger.error(f'  Exception: {e}')
 
 

@@ -10,15 +10,36 @@ class Test(TestCase):
         self.assertEqual(user["address"], '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC')
         self.assertEqual(user["username"], 'mattg1981')
 
+    def test_has_processed_content(self):
+        result = db.has_processed_content("t1_k782jvi")
+        self.assertIsNotNone(result)
+
+        result = db.has_processed_content("t1_NOT-IN-DB")
+        self.assertIsNone(result)
+
+    def test_set_processed_content(self):
+        content_id = "SOME_ID_NOT_IN_DB"
+
+        # cleanup (in case a prior test failed and failed to cleanup)
+        db.remove_processed_content(content_id)
+
+        result = db.set_processed_content(content_id)
+
+        self.assertIsNotNone(result)
+        self.assertIsNotNone(db.has_processed_content(content_id))
+
+        # cleanup
+        db.remove_processed_content(content_id)
+
 
     def test_get_address_for_unregistered_user(self):
-        user = db.get_address_for_user("NonRegisteredUser#1981")
+        user = db.get_address_for_user("@Non.Registered.User#1981")
         self.assertEqual(user, None)
 
     def test_get_addresses_for_registered_users(self):
         author_name = "carlslarson"
         commenter_name = "mattg1981"
-        users_result = db.get_address_for_users([author_name, commenter_name])
+        users_result = db.get_addresses_for_users([author_name, commenter_name])
         expected_output = [
             {'address': '0x95D9bED31423eb7d5B68511E0352Eae39a3CDD20', 'username': 'carlslarson'},
             {'address': '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC', 'username': 'mattg1981'}

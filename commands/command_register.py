@@ -18,9 +18,13 @@ class RegisterCommand(Command):
 
         self.logger.info(f"process reg command - content_id: {comment.fullname} | author: {comment.author.name}")
 
-        if comment.saved:
+        if database.has_processed_content(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
+
+        # if comment.saved:
+        #     self.logger.info("  previously processed...")
+        #     return
 
         user = comment.author.name
 
@@ -61,4 +65,5 @@ class RegisterCommand(Command):
 
         reply_comment += self.COMMENT_SIGNATURE
         comment.reply(reply_comment)
-        comment.save()
+        # comment.save()
+        database.set_processed_content(comment.fullname)

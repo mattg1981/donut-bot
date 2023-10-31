@@ -28,7 +28,8 @@ class TipCommand(Command):
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_SIGNATURE
         comment.reply(reply)
-        comment.save()
+        # comment.save()
+        database.set_processed_content(comment.fullname)
 
     def process_command(self, comment):
         if comment.author.name.lower() == shared.Me:
@@ -36,9 +37,13 @@ class TipCommand(Command):
 
         self.logger.info(f"process tip command - content_id: {comment.fullname} | author: {comment.author.name}")
 
-        if comment.saved:
+        if database.has_processed_content(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
+
+        # if comment.saved:
+        #     self.logger.info("  previously processed...")
+        #     return
 
         # handle '!tip status' command
         p = re.compile(f'{self.command_text}\\s+status')
