@@ -1,3 +1,5 @@
+from web3 import Web3
+
 from commands import shared, database
 from commands.command import Command
 import re
@@ -58,10 +60,28 @@ class RegisterCommand(Command):
                 else:
                     self.logger.error("  unable to register wallet at this time.")
                     reply_comment = f'Unable to register at this time.  Please try again later.'
+
             else:
-                self.logger.warn(f"  invalid address or not address was supplied")
-                reply_comment = (f"Invalid address.  Please ensure the address is in the format '0x' followed by 40 "
-                                 f"hexadecimal characters")
+                p = re.compile(f'{self.command_text}\\s+([\\w+.]+.eth)')
+                re_result = p.match(comment.body)
+                if re_result:
+                    self.logger.error("ENS address")
+                    ens_address = re_result.group(1)
+                    w3 = Web3(Web3.HTTPProvider('https://ethereum.publicnode.com'))
+                    if w3.is_connected():
+                        eth_address = w3.ens.address(ens_address)
+                        result = database.insert_or_update_address(user, eth_address, comment.fullname)
+
+                        if result:
+                            self.logger.error("  success...")
+                            reply_comment = f'u/{user} successfully registered with {ens_address} -> `{eth_address}`'
+                        else:
+                            self.logger.error("  unable to register wallet at this time.")
+                            reply_comment = f'Unable to register ENS address this time.  Please ensure you typed the correct address or try again later.'
+                else:
+                    self.logger.warn(f"  invalid address or not address was supplied")
+                    reply_comment = (f"Invalid address.  Please ensure the address is in the format '0x' followed by 40 "
+                                     f"hexadecimal characters")
 
         reply_comment += self.COMMENT_SIGNATURE
         comment.reply(reply_comment)

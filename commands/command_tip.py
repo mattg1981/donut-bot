@@ -46,7 +46,7 @@ class TipCommand(Command):
         tip_text = f"u/{comment.author.name} has earn2tipped the following this round:\n\n"
         for tip in result:
             amount = round(float(tip["amount"]), 5)
-            tip_text += f"&ensp;&ensp;{amount} {tip["token"]} ({tip["count"]} tip(s) total)\n\n"
+            tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} tip(s) total)\n\n"
 
         self.leave_comment_reply(comment, tip_text)
 
@@ -59,6 +59,8 @@ class TipCommand(Command):
                                      f"Nobody has earn2tipped in r/{comment.subreddit.display_name} this round")
             return
 
+        # todo pull this logic out into a def
+        #  it is repeated in another place and it will also make the code testable
         community_tokens = self.config["community_tokens"]
         for ct in community_tokens:
             if ct["community"].lower() == f"r/{comment.subreddit.display_name.lower()}":
@@ -66,12 +68,12 @@ class TipCommand(Command):
 
         token_reply = f"Valid tokens for r/{comment.subreddit.display_name} are:\n\n"
         for token in valid_tokens:
-            token_reply += f"&ensp;&ensp;{token["name"]} {" (default)" if token["is_default"] else "" }\n\n"
+            token_reply += f"&ensp;&ensp;{token['name']} {' (default)' if token['is_default'] else '' }\n\n"
 
         tip_text = f"r/{comment.subreddit.display_name} has had the following earn2tip tips this round:\n\n"
         for tip in result:
             amount = round(float(tip["amount"]), 5)
-            tip_text += f"&ensp;&ensp;{amount} {tip["token"]} ({tip["tip_count"]} tips total)\n\n"
+            tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total)\n\n"
 
         self.leave_comment_reply(comment, tip_text + token_reply)
 
@@ -172,7 +174,7 @@ class TipCommand(Command):
 
             self.logger.info(f"  to: {author} - amount: {amount}")
             self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta["name"]}")
+                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta['name']}")
             return
 
         # handles comments on a new line after default token
@@ -197,7 +199,7 @@ class TipCommand(Command):
 
             self.logger.info(f"  to: {author} - amount: {amount}")
             self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta["name"]}")
+                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta['name']}")
             return
 
         # otherwise grab the token after the amount
@@ -236,7 +238,7 @@ class TipCommand(Command):
                                          f"Sorry u/{comment.author.name}, {parsed_token} is not a valid token!")
                 return
 
-            self.logger.debug(f"  valid token: {token_meta["name"]}")
+            self.logger.debug(f"  valid token: {token_meta['name']}")
 
             database.process_earn2tip(user_address,
                                       author_address,
@@ -246,7 +248,7 @@ class TipCommand(Command):
                                       comment.subreddit.display_name)
 
             self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {token_meta["name"]}")
+                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {token_meta['name']}")
             return
 
         # just !tip (or some sort of edge case that fell through and will

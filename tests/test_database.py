@@ -72,15 +72,15 @@ class Test(TestCase):
 
         self.assertEqual(author, None)
 
-    def test_get_tip_status_for_current_round_new(self):
+    def test_get_tip_status_for_current_round(self):
         author = "Honey_-_Badger"
         result = db.get_tip_status_for_current_round_new(author)
-        pass
+        self.assertIsNotNone(result)
 
     def test_get_sub_status_for_current_round(self):
         community = "EthTrader_Test"
         result = db.get_sub_status_for_current_round(community)
-        pass
+        self.assertIsNotNone(result)
 
     def test_process_earn2tip(self):
         user_address = "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC"

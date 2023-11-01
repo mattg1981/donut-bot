@@ -76,16 +76,6 @@ def process_earn2tip(user_address, author_address, amount, token, content_id, co
                                                               content_id, community])
         return cur.fetchone()
 
-def get_tip_status_for_current_round_new(user):
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute(
-            "SELECT from_address, token, count(tip.id) 'count', sum(amount) 'amount' FROM earn2tip tip 	inner join "
-            "distribution_rounds dr WHERE tip.created_at > dr.from_date and tip.created_at < dr.to_date and "
-            "from_address = (SELECT address from registered_users where username = ?) GROUP BY from_address, token"
-            , [user])
-        return cur.fetchall()
 
 def get_sub_status_for_current_round(subreddit):
     with sqlite3.connect(get_db_path()) as db:
@@ -95,19 +85,32 @@ def get_sub_status_for_current_round(subreddit):
             "select * from main.sub_distribution_tips where community = ?", [subreddit])
         return cur.fetchall()
 
+
 def get_tip_status_for_current_round(user):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("SELECT distribution_round from main.distribution_rounds where DATE() > from_date and "
-                    "DATE() < to_date")
-        dist_round = cur.fetchone()["distribution_round"]
         cur.execute(
-            "SELECT from_address, token, count(id) 'count', sum(amount) 'amount' FROM earn2tip WHERE "
-            "distribution_round = ? and from_address = (SELECT address from registered_users where username = ?)"
-            "GROUP BY from_address, token", [dist_round, user])
-
+            "SELECT from_address, token, count(tip.id) 'count', sum(amount) 'amount' FROM earn2tip tip 	inner join "
+            "distribution_rounds dr WHERE tip.created_at BETWEEN dr.from_date and dr.to_date and "
+            "from_address = (SELECT address from registered_users where username = ?) GROUP BY from_address, token"
+            , [user])
         return cur.fetchall()
+
+
+# def get_tip_status_for_current_round(user):
+#     with sqlite3.connect(get_db_path()) as db:
+#         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+#         cur = db.cursor()
+#         cur.execute("SELECT distribution_round from main.distribution_rounds where DATE() > from_date and "
+#                     "DATE() < to_date")
+#         dist_round = cur.fetchone()["distribution_round"]
+#         cur.execute(
+#             "SELECT from_address, token, count(id) 'count', sum(amount) 'amount' FROM earn2tip WHERE "
+#             "distribution_round = ? and from_address = (SELECT address from registered_users where username = ?)"
+#             "GROUP BY from_address, token", [dist_round, user])
+#
+#         return cur.fetchall()
 
 
 def get_db_path():
