@@ -1,9 +1,19 @@
+import re
 from unittest import TestCase
 
 from commands.command_tip import TipCommand
 
 
 class TestTipCommand(TestCase):
+
+    def test_something(self):
+        token = "donuts"
+
+        if token[-1] == 's':
+            token = token[:-1]
+
+        pass
+
     def test_normalize_amount(self):
         tip = TipCommand("config")
 

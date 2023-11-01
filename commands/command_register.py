@@ -65,5 +65,4 @@ class RegisterCommand(Command):
 
         reply_comment += self.COMMENT_SIGNATURE
         comment.reply(reply_comment)
-        # comment.save()
         database.set_processed_content(comment.fullname)

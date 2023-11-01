@@ -71,3 +71,15 @@ class Test(TestCase):
             author = None
 
         self.assertEqual(author, None)
+
+    def test_get_tip_status_for_current_round_new(self):
+        author = "Honey_-_Badger"
+        result = db.get_tip_status_for_current_round_new(author)
+        pass
+
+    def test_process_earn2tip(self):
+        user_address = "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC"
+        author_address = "0xa8C8c9e18C763805c91bcB720B2320aDe16a0BBf"
+        amount = 10
+        token = 'donut'
+        content_id = 't1_kajdfkaj'
