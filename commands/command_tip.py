@@ -34,6 +34,47 @@ class TipCommand(Command):
             self.logger.error(e)
             return -1
 
+    def handle_tip_status(self, comment):
+        self.logger.info("  user checking status")
+        result = database.get_tip_status_for_current_round(comment.author.name)
+
+        if len(result) == 0:
+            self.leave_comment_reply(comment,
+                                     f"u/{comment.author.name} has not earn2tipped anyone this round")
+            return
+
+        tip_text = f"u/{comment.author.name} has earn2tipped the following this round:\n\n"
+        for tip in result:
+            amount = round(float(tip["amount"]), 5)
+            tip_text += f"&ensp;&ensp;{amount} {tip["token"]} ({tip["count"]} tip(s) total)\n\n"
+
+        self.leave_comment_reply(comment, tip_text)
+
+    def handle_tip_sub(self, comment):
+        self.logger.info("  sub status")
+        result = database.get_sub_status_for_current_round(comment.subreddit.display_name)
+
+        if len(result) == 0:
+            self.leave_comment_reply(comment,
+                                     f"Nobody has earn2tipped in r/{comment.subreddit.display_name} this round")
+            return
+
+        community_tokens = self.config["community_tokens"]
+        for ct in community_tokens:
+            if ct["community"].lower() == f"r/{comment.subreddit.display_name.lower()}":
+                valid_tokens = ct["tokens"]
+
+        token_reply = f"Valid tokens for r/{comment.subreddit.display_name} are:\n\n"
+        for token in valid_tokens:
+            token_reply += f"&ensp;&ensp;{token["name"]} {" (default)" if token["is_default"] else "" }\n\n"
+
+        tip_text = f"r/{comment.subreddit.display_name} has had the following earn2tip tips this round:\n\n"
+        for tip in result:
+            amount = round(float(tip["amount"]), 5)
+            tip_text += f"&ensp;&ensp;{amount} {tip["token"]} ({tip["tip_count"]} tips total)\n\n"
+
+        self.leave_comment_reply(comment, tip_text + token_reply)
+
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_TEST_TX
         reply += self.COMMENT_SIGNATURE
@@ -54,20 +95,14 @@ class TipCommand(Command):
         p = re.compile(f'{self.command_text}\\s+status')
         re_result = p.match(comment.body.lower())
         if re_result:
-            self.logger.info("  user checking status")
-            result = database.get_tip_status_for_current_round(comment.author.name)
+            self.handle_tip_status(comment)
+            return
 
-            if len(result) == 0:
-                self.leave_comment_reply(comment,
-                                         f"u/{comment.author.name} has not earn2tipped anyone this round")
-                return
-
-            tip_text = f"u/{comment.author.name} has earn2tipped the following this round:\n\n"
-            for tip in result:
-                amount = round(float(tip["amount"]), 5)
-                tip_text += f"&ensp;&ensp;{amount} {tip["token"]} ({tip["count"]} tip(s) total)\n\n"
-
-            self.leave_comment_reply(comment, tip_text)
+        # handle '!tip sub' command
+        p = re.compile(f'{self.command_text}\\s+sub')
+        re_result = p.match(comment.body.lower())
+        if re_result:
+            self.handle_tip_sub(comment)
             return
 
         parent = comment.parent()

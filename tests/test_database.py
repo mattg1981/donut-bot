@@ -77,6 +77,11 @@ class Test(TestCase):
         result = db.get_tip_status_for_current_round_new(author)
         pass
 
+    def test_get_sub_status_for_current_round(self):
+        community = "EthTrader_Test"
+        result = db.get_sub_status_for_current_round(community)
+        pass
+
     def test_process_earn2tip(self):
         user_address = "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC"
         author_address = "0xa8C8c9e18C763805c91bcB720B2320aDe16a0BBf"

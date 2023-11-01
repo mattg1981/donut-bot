@@ -87,6 +87,14 @@ def get_tip_status_for_current_round_new(user):
             , [user])
         return cur.fetchall()
 
+def get_sub_status_for_current_round(subreddit):
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(
+            "select * from main.sub_distribution_tips where community = ?", [subreddit])
+        return cur.fetchall()
+
 def get_tip_status_for_current_round(user):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
