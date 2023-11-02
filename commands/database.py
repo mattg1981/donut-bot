@@ -109,15 +109,31 @@ def get_sub_status_for_current_round(subreddit):
         return cur.fetchall()
 
 
-def get_tip_status_for_current_round(user):
+def get_tips_sent_for_current_round_by_user(user):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
         cur.execute(
             "SELECT from_address, token, count(tip.id) 'count', sum(amount) 'amount' FROM earn2tip tip 	inner join "
-            "distribution_rounds dr WHERE tip.created_at BETWEEN dr.from_date and dr.to_date and "
+            "distribution_rounds dr WHERE tip.created_date BETWEEN dr.from_date and dr.to_date and "
             "from_address = (SELECT address from users where username = ?) GROUP BY from_address, token"
             , [user])
+        return cur.fetchall()
+
+def get_tips_received_for_current_round_by_user(user):
+    sql = """
+    SELECT to_address, token, count(tip.id) 'count', sum(amount) 'amount' 
+    FROM earn2tip tip 	
+    inner join 
+        distribution_rounds dr WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
+        and to_address = (SELECT address from users where username = ?) 
+    GROUP BY to_address, token
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(sql, [user])
         return cur.fetchall()
 
 

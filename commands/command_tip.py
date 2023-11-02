@@ -6,7 +6,7 @@ from commands.command_register import RegisterCommand
 
 
 class TipCommand(Command):
-    VERSION = 'v0.1.20231030-tip'
+    VERSION = 'v0.1.20231102-tip'
     COMMENT_TEST_TX = (f'\n\n^(THIS IS A TEST TRANSACTION)')
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION} | Learn more about [Earn2Tip](https://www.reddit.com/r/EthTrader_Test/comments/17l2imp/introducing_earn2tip_and_the_new_tipping_bot/?utm_source=share&utm_medium=web2x&context=3))'
 
@@ -37,19 +37,37 @@ class TipCommand(Command):
 
     def handle_tip_status(self, comment):
         self.logger.info("  user checking status")
-        result = database.get_tip_status_for_current_round(comment.author.name)
 
-        if len(result) == 0:
+        result = database.get_user_by_name(comment.author.name)
+
+        if not result or not result["address"]:
+            self.logger.info("  user not registered")
+            reg = RegisterCommand()
             self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has not earn2tipped anyone this round")
+                                     f"Sorry u/{comment.author.name}, you are not registered.  Please use the {reg.command_text} command to register!")
             return
 
-        tip_text = f"u/{comment.author.name} has earn2tipped the following this round:\n\n"
-        for tip in result:
-            amount = round(float(tip["amount"]), 5)
-            tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} tip(s) total)\n\n"
+        sent_result = database.get_tips_sent_for_current_round_by_user(comment.author.name)
+        received_result = database.get_tips_received_for_current_round_by_user(comment.author.name)
 
-        self.leave_comment_reply(comment, tip_text)
+        reply = ""
+        if len(sent_result) == 0:
+            reply = f"u/{comment.author.name} has not **sent** any earn2tips this round"
+        else:
+            reply = f"u/{comment.author.name} has **sent** the following earn2tips this round:\n\n"
+            for tip in sent_result:
+                amount = round(float(tip["amount"]), 5)
+                reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
+
+        if len(received_result) == 0:
+            reply += f"\n\nu/{comment.author.name} has not **received** any earn2tips this round"
+        else:
+            reply += f"\n\nu/{comment.author.name} has **received** the following earn2tips this round:\n\n"
+            for tip in received_result:
+                amount = round(float(tip["amount"]), 5)
+                reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
+
+        self.leave_comment_reply(comment, reply)
 
     def handle_tip_sub(self, comment):
         self.logger.info("  sub status")

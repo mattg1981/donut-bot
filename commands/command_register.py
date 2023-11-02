@@ -6,7 +6,7 @@ import re
 
 
 class RegisterCommand(Command):
-    VERSION = 'v0.1.20231030-reg'
+    VERSION = 'v0.1.20231102-reg'
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION})'
 
     def __init__(self, config):
