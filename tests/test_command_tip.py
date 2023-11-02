@@ -6,6 +6,39 @@ from commands.command_tip import TipCommand
 
 class TestTipCommand(TestCase):
 
+    def test_regex_for_tips(self):
+        comment = "!tip 10 donut this is a great comment"
+
+        default_token = False
+        parsed_token = ""
+        is_handled = False
+
+        p = re.compile('!tip\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
+        re_result = p.match(comment.lower())
+        if re_result:
+            # default tip and a new line
+            amount = re_result.group(1)
+            default_token = True
+            is_handled = True
+
+        if not is_handled:
+            p = re.compile('!tip\\s+([0-9]*\\.*[0-9]*)\\s+(\\w*)[\r\n]+')
+            re_result2 = p.match(comment.lower())
+            if re_result2:
+                amount = re_result2.group(1)
+                default_token = False
+                parsed_token = re_result2.group(2)
+                is_handled = True
+
+        if not is_handled:
+            p = re.compile('!tip\\s+([0-9]*\\.*[0-9]*)\\s*([\r\n]*)?(\\w*)(?:[\r\n]*)?')
+            re_result3 = p.match(comment.lower())
+            if re_result3:
+                amount = re_result3.group(1)
+                default_token = False
+                parsed_token = re_result3.group(2)
+                is_handled = True
+
     def test_normalize_amount(self):
         tip = TipCommand("config")
 

@@ -185,100 +185,71 @@ class TipCommand(Command):
                 default_token_meta = t
                 break
 
-        # handles default token
-        # !tip 10
-        p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*$')
+        # earn2tip scenarios
+        #  !tip
+        #  !tip 10 donut
+        #  !tip 10donut
+        #  "This is a good article and deserves !tip 10"
+        #  also handles multi line comments as well
+
+        is_handled = False
+        parsed_token = ""
+        amount = 0
+
+        #  !tip 10\n\nComment on new line
+        #  !tip 10\nSingle return (mobile)
+        #  !tip 10\n\nSingle return (mobile)
+        p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
         re_result = p.match(comment.body.lower())
         if re_result:
-            self.logger.info("  default tipping")
+            amount = re_result.group(1)
+            is_handled = True
 
-            amount = self.normalize_amount(re_result.group(1))
-            if amount == -1:
-                self.leave_comment_reply(comment,
-                                         f"Sorry u/{comment.author.name}, I could not process that number")
-                return
+        if not is_handled:
+            #  !tip 10 donut
+            #  !tip 10 donut with a comment after the tip
+            #  !tip 10 donut/n/nWith new lines after the tip
+            p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)')
+            re_result = p.match(comment.body.lower())
+            if re_result:
+                amount = re_result.group(1)
+                parsed_token = re_result.group(2)
+                is_handled = True
 
-            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {default_token_meta['name']}")
-            self.process_earn2tip(comment,
-                                  user_address,
-                                  parent_address,
-                                  parent_result["username"],
-                                  amount,
-                                  default_token_meta["name"],
-                                  comment.fullname,
-                                  comment.subreddit.display_name)
+        if not is_handled:
+            #  !tip 10
+            p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*')
+            re_result = p.match(comment.body.lower())
+            if re_result:
+                amount = re_result.group(1)
+                is_handled = True
 
-            # self.leave_comment_reply(comment,
-            #                          f"u/{comment.author.name} has tipped u/{parent_author} {amount} {default_token_meta['name']}")
-            return
-
-        # handles comments on a new line after default token
-        # !tip 10
-        # I think this comment deserves ...
-        p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*\n\n')
-        re_result = p.match(comment.body.lower())
-        if re_result:
-            self.logger.info("  default tipping")
-            amount = self.normalize_amount(re_result.group(1))
-            if amount == -1:
-                self.leave_comment_reply(comment,
-                                         f"Sorry u/{comment.author.name}, I could not process that number")
-                return
-
-            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {default_token_meta['name']}")
-            self.process_earn2tip(comment,
-                                  user_address,
-                                  parent_address,
-                                  parent_result["username"],
-                                  amount,
-                                  default_token_meta["name"],
-                                  comment.fullname,
-                                  comment.subreddit.display_name)
-
-            # self.leave_comment_reply(comment,
-            #                          f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta['name']}")
-            return
-
-        # otherwise grab the token after the amount
-        # !tip 10 donut ....
-        p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)\\b')
-        re_result = p.match(comment.body.lower())
-        if re_result:
-            self.logger.info("  specify tipping")
-            amount = self.normalize_amount(re_result.group(1))
-            if amount == -1:
-                self.leave_comment_reply(comment,
-                                         f"Sorry u/{comment.author.name}, I could not process that number")
-                return
-
-            parsed_token = re_result.group(2)
-
-            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {parsed_token}")
-
+        if is_handled:
+            self.logger.info("  earn2tip")
             token_meta = {}
 
-            # determine if the specified token is valid in this sub
-            for t in valid_tokens:
-                if t["name"].lower() == parsed_token.lower():
-                    token_meta = t
-                    break
-
-                # handle plural case.  e.g. 'donuts' was supplied but the token is 'donut'
-                if parsed_token.lower()[-1] == 's':
-                    if t["name"].lower() == parsed_token.lower()[:-1]:
+            if not parsed_token:
+                self.logger.info("  default token")
+                token_meta = default_token_meta
+            else:
+                for t in valid_tokens:
+                    if t["name"].lower() == parsed_token.lower():
                         token_meta = t
                         break
+
+                    # handle plural case.  e.g. 'donuts' was supplied but the token is 'donut'
+                    if parsed_token.lower()[-1] == 's':
+                        if t["name"].lower() == parsed_token.lower()[:-1]:
+                            token_meta = t
+                            break
 
             if not token_meta:
                 self.logger.info(f"  not a valid token!")
                 self.leave_comment_reply(comment,
-                                         f"Sorry u/{comment.author.name}, {parsed_token} is not a valid token!")
+                                         f"Sorry u/{comment.author.name}, `{parsed_token}` is not a valid token!")
                 return
 
-            self.logger.debug(f"  valid token: {token_meta['name']}")
-
             self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {token_meta['name']}")
-
             self.process_earn2tip(comment,
                                   user_address,
                                   parent_address,
@@ -287,15 +258,12 @@ class TipCommand(Command):
                                   token_meta["name"],
                                   comment.fullname,
                                   comment.subreddit.display_name)
-
-            # self.leave_comment_reply(comment,
-            #                          f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {token_meta['name']}")
             return
 
         # just !tip (or some sort of edge case that fell through and will
         # get a default comment)
         self.logger.info("  on-chain tipping (or fallback)")
-        content_id = parent.fullname
+        content_id = comment.parent().fullname
         desktop_link = f"https://www.donut.finance/tip/?action=tip&contentId={content_id}"
 
         if content_id[:3] == "t1_":
