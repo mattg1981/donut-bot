@@ -52,6 +52,7 @@ class RegisterCommand(Command):
         if re_result:
             address = re_result.group(1)
 
+            self.logger.info("  checking address uniqueness")
             address_exists = database.get_user_by_address(address)
             if address_exists is None:
 
@@ -60,11 +61,11 @@ class RegisterCommand(Command):
                 result = database.insert_or_update_address(user, address, comment.fullname)
 
                 if result:
-                    self.logger.error("  success...")
+                    self.logger.info("  success...")
                     self.leave_comment_reply(comment,
                                              f'u/{user} successfully registered with the following address: `{address}`')
                 else:
-                    self.logger.error("  unable to register wallet at this time.")
+                    self.logger.info("  unable to register wallet at this time.")
                     self.leave_comment_reply(comment, f'Unable to register at this time.  Please try again later.')
                 return
             else:
@@ -79,12 +80,13 @@ class RegisterCommand(Command):
                 return
 
         # handle `!register <ENS address>` command
-        p = re.compile(f'{self.command_text}\\s+([\\w+.]+.eth)')
+        p = re.compile(f'{self.command_text}\\s+([\\w+.-]+.eth)')
         re_result = p.match(comment.body)
         if re_result:
-            self.logger.error("ENS address")
+            self.logger.info("  ENS address")
             ens_address = re_result.group(1)
 
+            self.logger.info("  checking address uniqueness")
             address_exists = database.get_user_by_address(ens_address)
             if address_exists is not None:
                 self.logger.warning("  address exists")
@@ -97,14 +99,16 @@ class RegisterCommand(Command):
                 return
 
             try:
+                self.logger.info("  attempting to resolve ENS...")
                 # todo parameterize this call
                 w3 = Web3(Web3.HTTPProvider('https://ethereum.publicnode.com'))
                 if w3.is_connected():
+                    self.logger.info("  connected to public node...")
                     # check to verify the ENS address resolves
                     eth_address = w3.ens.address(ens_address)
 
                     if eth_address is None:
-                        self.logger.error("  ENS did not resolve...")
+                        self.logger.warn("  ENS did not resolve...")
                         self.leave_comment_reply(comment,
                                                  f'The ENS name specified `{ens_address}` does not currently resolve '
                                                  f'to an address. Unable to register ENS address at this time.  '
@@ -114,10 +118,10 @@ class RegisterCommand(Command):
                     result = database.insert_or_update_address(user, ens_address, comment.fullname)
 
                     if result:
-                        self.logger.error("  success...")
+                        self.logger.info("  success...")
                         self.leave_comment_reply(comment, f'u/{user} successfully registered with `{ens_address}`')
                     else:
-                        self.logger.error("  unable to register wallet at this time.")
+                        self.logger.warn("  unable to register wallet at this time.")
                         self.leave_comment_reply(comment, f'Unable to register ENS address at this time.  Please '
                                                           f'ensure you typed the correct address or try again later.')
 
@@ -129,6 +133,6 @@ class RegisterCommand(Command):
                                                   f' you typed the correct address or try again later.')
                 return
 
-        self.logger.warn(f"  invalid address or not address was supplied")
+        self.logger.warn(f"  invalid address format or no address was supplied")
         self.leave_comment_reply(comment, f"Invalid address.  Please ensure the address is in the format '0x' "
                                               f"followed by 40 hexadecimal characters or a valid ENS address.")
