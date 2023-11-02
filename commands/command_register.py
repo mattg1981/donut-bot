@@ -33,7 +33,7 @@ class RegisterCommand(Command):
         # handle `!register status` command
         if f'{self.command_text} status' in comment.body.lower():
             self.logger.info("  checking status")
-            result = database.get_address_for_user(user)
+            result = database.get_user_by_name(user)
 
             if result is None or len(result) == 0:
                 self.logger.info("    not registered")

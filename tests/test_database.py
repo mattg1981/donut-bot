@@ -4,6 +4,14 @@ import commands.database as db
 
 class Test(TestCase):
 
+    def test_add_unregistered_user(self):
+        user="def_not_a_valid_user";
+        content_id = "some_id"
+        result = db.add_unregistered_user(user, content_id)
+        if result:
+            return
+        self.fail()
+
     def test_get_user_by_address(self):
         address = "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC"
         result = db.get_user_by_address(address)
@@ -16,7 +24,7 @@ class Test(TestCase):
             self.fail()
 
     def test_get_address_for_registered_user(self):
-        user = db.get_address_for_user("mattg1981")
+        user = db.get_user_by_name("mattg1981")
         expected_output = {'address': '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC', 'username': 'mattg1981'}
         self.assertEqual(user, expected_output)
         self.assertEqual(user["address"], '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC')
@@ -45,13 +53,13 @@ class Test(TestCase):
 
 
     def test_get_address_for_unregistered_user(self):
-        user = db.get_address_for_user("@Non.Registered.User#1981")
+        user = db.get_user_by_name("@Non.Registered.User#1981")
         self.assertEqual(user, None)
 
     def test_get_addresses_for_registered_users(self):
         author_name = "carlslarson"
         commenter_name = "mattg1981"
-        users_result = db.get_addresses_for_users([author_name, commenter_name])
+        users_result = db.get_users_by_name([author_name, commenter_name])
         expected_output = [
             {'address': '0x95D9bED31423eb7d5B68511E0352Eae39a3CDD20', 'username': 'carlslarson'},
             {'address': '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC', 'username': 'mattg1981'}
@@ -70,7 +78,7 @@ class Test(TestCase):
     def test_get_addresses_for_users_author_not_registered(self):
         author_name = "NonRegisteredUser#1981"
         commenter_name = "mattg1981"
-        users_result = db.get_addresses_for_users([author_name, commenter_name])
+        users_result = db.get_users_by_name([author_name, commenter_name])
         expected_output = [
             {'address': '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC', 'username': 'mattg1981'}
         ]

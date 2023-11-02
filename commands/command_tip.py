@@ -2,6 +2,7 @@ import re
 
 from commands import shared, database
 from commands.command import Command
+from commands.command_register import RegisterCommand
 
 
 class TipCommand(Command):
@@ -68,7 +69,7 @@ class TipCommand(Command):
 
         token_reply = f"Valid tokens for r/{comment.subreddit.display_name} are:\n\n"
         for token in valid_tokens:
-            token_reply += f"&ensp;&ensp;{token['name']} {' (default)' if token['is_default'] else '' }\n\n"
+            token_reply += f"&ensp;&ensp;{token['name']} {' (default)' if token['is_default'] else ''}\n\n"
 
         tip_text = f"r/{comment.subreddit.display_name} has had the following earn2tip tips this round:\n\n"
         for tip in result:
@@ -76,6 +77,25 @@ class TipCommand(Command):
             tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total)\n\n"
 
         self.leave_comment_reply(comment, tip_text + token_reply)
+
+    def process_earn2tip(self, comment, user_address, parent_address, parent_username, amount, token, content_id,
+                         community):
+        result = database.process_earn2tip(user_address,
+                                           parent_address,
+                                           parent_username,
+                                           amount,
+                                           token,
+                                           content_id,
+                                           community)
+
+        if not result:
+            reply = "Error saving tip to the database.  Please try again later."
+        else:
+            reply = f"u/{comment.author.name} has tipped u/{parent_username} {amount} {token}"
+            if not parent_address:
+                reply += f"\n\nNOTE: u/{parent_username} is not currently registered and will not receive the tip until they do so."
+
+        self.leave_comment_reply(comment, reply)
 
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_TEST_TX
@@ -107,31 +127,44 @@ class TipCommand(Command):
             self.handle_tip_sub(comment)
             return
 
-        parent = comment.parent()
-        author = parent.author.name
+        parent_author = comment.parent().author.name
+        parent_result = None
         user_address = None
-        author_address = None
+        parent_address = None
 
-        self.logger.info("getting user addresses")
-        result = database.get_addresses_for_users([comment.author.name, author])
+        self.logger.info(f"getting user addresses for {comment.author.name} and {parent_author}")
+        result = database.get_users_by_name([comment.author.name, parent_author])
 
-        for user in result:
-            if user["username"].lower() == comment.author.name.lower():
-                user_address = user["address"]
-            if user["username"].lower() == author.lower():
-                author_address = user["address"]
+        for r in result:
+            if r["username"].lower() == comment.author.name.lower():
+                user_address = r["address"]
+            if r["username"].lower() == parent_author.lower():
+                parent_result = r
+                parent_address = r["address"]
 
         if not user_address:
             self.logger.info("user not registered")
-            self.leave_comment_reply(comment, f"Cannot tip u/{author} - you are not registered")
+            reg = RegisterCommand()
+            self.leave_comment_reply(comment,
+                                     f"Cannot tip u/{parent_author} - you are not registered.  Please use the {reg.command_text} command to register!")
             return
 
-        if not author_address:
-            self.logger.info("author not registered")
-            self.leave_comment_reply(comment, f"Cannot tip u/{author} - that user is not registered")
-            return
+        if not parent_address:
+            self.logger.info("  parent is not registered")
+            if not parent_result:
+                self.logger.info("  parent not in db .. adding")
+                parent_result = database.add_unregistered_user(parent_author, comment.fullname)
+                if not result:
+                    self.logger.info("  failed to add to db")
+                    self.leave_comment_reply(comment,
+                                             f"Cannot tip u/{parent_author} at this time.  Please try again later.")
+                    return
 
-        if user_address == author_address:
+            # self.logger.info("author not registered")
+            # self.leave_comment_reply(comment, f"Cannot tip u/{parent_author} - that user is not registered")
+            # return
+
+        if user_address == parent_address:
             self.logger.info("attempted self tipping")
             self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, you cannot tip yourself!")
             return
@@ -165,16 +198,18 @@ class TipCommand(Command):
                                          f"Sorry u/{comment.author.name}, I could not process that number")
                 return
 
-            database.process_earn2tip(user_address,
-                                      author_address,
-                                      amount,
-                                      default_token_meta["name"],
-                                      comment.fullname,
-                                      comment.subreddit.display_name)
+            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {default_token_meta['name']}")
+            self.process_earn2tip(comment,
+                                  user_address,
+                                  parent_address,
+                                  parent_result["username"],
+                                  amount,
+                                  default_token_meta["name"],
+                                  comment.fullname,
+                                  comment.subreddit.display_name)
 
-            self.logger.info(f"  to: {author} - amount: {amount}")
-            self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta['name']}")
+            # self.leave_comment_reply(comment,
+            #                          f"u/{comment.author.name} has tipped u/{parent_author} {amount} {default_token_meta['name']}")
             return
 
         # handles comments on a new line after default token
@@ -190,16 +225,18 @@ class TipCommand(Command):
                                          f"Sorry u/{comment.author.name}, I could not process that number")
                 return
 
-            database.process_earn2tip(user_address,
-                                      author_address,
-                                      amount,
-                                      default_token_meta["name"],
-                                      comment.fullname,
-                                      comment.subreddit.display_name)
+            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {default_token_meta['name']}")
+            self.process_earn2tip(comment,
+                                  user_address,
+                                  parent_address,
+                                  parent_result["username"],
+                                  amount,
+                                  default_token_meta["name"],
+                                  comment.fullname,
+                                  comment.subreddit.display_name)
 
-            self.logger.info(f"  to: {author} - amount: {amount}")
-            self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta['name']}")
+            # self.leave_comment_reply(comment,
+            #                          f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {default_token_meta['name']}")
             return
 
         # otherwise grab the token after the amount
@@ -216,7 +253,7 @@ class TipCommand(Command):
 
             parsed_token = re_result.group(2)
 
-            self.logger.info(f"  to: {author} - amount: {amount} - token: {parsed_token}")
+            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {parsed_token}")
 
             token_meta = {}
 
@@ -240,15 +277,19 @@ class TipCommand(Command):
 
             self.logger.debug(f"  valid token: {token_meta['name']}")
 
-            database.process_earn2tip(user_address,
-                                      author_address,
-                                      amount,
-                                      token_meta["name"],
-                                      comment.fullname,
-                                      comment.subreddit.display_name)
+            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {token_meta['name']}")
 
-            self.leave_comment_reply(comment,
-                                     f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {token_meta['name']}")
+            self.process_earn2tip(comment,
+                                  user_address,
+                                  parent_address,
+                                  parent_result["username"],
+                                  amount,
+                                  token_meta["name"],
+                                  comment.fullname,
+                                  comment.subreddit.display_name)
+
+            # self.leave_comment_reply(comment,
+            #                          f"u/{comment.author.name} has tipped u/{parent.author.name} {amount} {token_meta['name']}")
             return
 
         # just !tip (or some sort of edge case that fell through and will
@@ -258,7 +299,7 @@ class TipCommand(Command):
         desktop_link = f"https://www.donut.finance/tip/?action=tip&contentId={content_id}"
 
         if content_id[:3] == "t1_":
-            desktop_link += f"&recipient={author}&address={author_address}"
+            desktop_link += f"&recipient={parent_author}&address={parent_address}"
 
         mobile_link = f"https://metamask.app.link/dapp/{desktop_link}"
 

@@ -12,12 +12,14 @@ if __name__ == '__main__':
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
     db_path = os.path.normpath(db_path)
 
+    query = """
+    update earn2tip
+    set to_address = (select address from users u where to_user = u.username)
+    where to_address is NULL 
+    """
+
     with sqlite3.connect(db_path) as db:
         cursor = db.cursor()
-
-        for user in user_json:
-            print(f'user: {user["username"]} -- address: {user["address"]}')
-            cursor.execute("INSERT INTO users (username, address, last_updated) VALUES (?, ?, ?)",
-                           (user["username"], user["address"], datetime.now()))
+        cursor.execute(query)
 
 
