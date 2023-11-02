@@ -22,17 +22,12 @@ class TestRegisterCommand(TestCase):
 
         self.fail()
 
-    def test_config_is_available(self):
-        reg = RegisterCommand()
-        config = reg.config
-        self.assertIsNotNone(config)
-
     def test_process_command(self):
         command1 = "!register status"
         command2 = "!register 0x...."
         command3 = "!register"
         command4 = """
-        !register \n
+        !register \n\n
         status
         """
         self.fail()

@@ -11,6 +11,14 @@ def get_address_for_user(author):
         return cur.fetchone()
 
 
+def get_user_by_address(address):
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute("SELECT * FROM registered_users WHERE address=?", [address])
+        return cur.fetchone()
+
+
 def has_processed_content(content_id):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))

@@ -3,6 +3,18 @@ import commands.database as db
 
 
 class Test(TestCase):
+
+    def test_get_user_by_address(self):
+        address = "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC"
+        result = db.get_user_by_address(address)
+        if not result:
+            self.fail()
+
+        address2 = "not_in_database"
+        result2 = db.get_user_by_address(address2)
+        if result2:
+            self.fail()
+
     def test_get_address_for_registered_user(self):
         user = db.get_address_for_user("mattg1981")
         expected_output = {'address': '0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC', 'username': 'mattg1981'}
