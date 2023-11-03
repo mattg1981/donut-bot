@@ -2,6 +2,7 @@ import os
 import sqlite3
 from datetime import datetime
 
+
 def get_user_by_name(user):
     with sqlite3.connect(get_db_path(), isolation_level=None) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -93,9 +94,10 @@ def process_earn2tip(user_address, parent_address, parent_name, amount, token, c
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, community, created_date) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *", [user_address, parent_address, parent_name, amount, token,
-                                                              content_id, community, datetime.now()])
+        cur.execute(
+            "INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, community, created_date) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *", [user_address, parent_address, parent_name, amount, token,
+                                                            content_id, community, datetime.now()])
         return cur.fetchone()
 
 
@@ -119,6 +121,7 @@ def get_tips_sent_for_current_round_by_user(user):
             , [user])
         return cur.fetchall()
 
+
 def get_tips_received_for_current_round_by_user(user):
     sql = """
     SELECT to_address, token, count(tip.id) 'count', sum(amount) 'amount' 
@@ -134,21 +137,6 @@ def get_tips_received_for_current_round_by_user(user):
         cur = db.cursor()
         cur.execute(sql, [user])
         return cur.fetchall()
-
-
-# def get_tip_status_for_current_round(user):
-#     with sqlite3.connect(get_db_path()) as db:
-#         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-#         cur = db.cursor()
-#         cur.execute("SELECT distribution_round from main.distribution_rounds where DATE() > from_date and "
-#                     "DATE() < to_date")
-#         dist_round = cur.fetchone()["distribution_round"]
-#         cur.execute(
-#             "SELECT from_address, token, count(id) 'count', sum(amount) 'amount' FROM earn2tip WHERE "
-#             "distribution_round = ? and from_address = (SELECT address from registered_users where username = ?)"
-#             "GROUP BY from_address, token", [dist_round, user])
-#
-#         return cur.fetchall()
 
 
 def get_db_path():

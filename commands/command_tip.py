@@ -147,7 +147,7 @@ class TipCommand(Command):
         user_address = None
         parent_address = None
 
-        self.logger.info(f"getting user addresses for {comment.author.name} and {parent_author}")
+        self.logger.info(f"  getting user addresses for {comment.author.name} and {parent_author}")
         result = database.get_users_by_name([comment.author.name, parent_author])
 
         for r in result:
