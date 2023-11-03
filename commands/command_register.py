@@ -97,10 +97,10 @@ class RegisterCommand(Command):
 
             try:
                 self.logger.info("  attempting to resolve ENS...")
-                # todo parameterize this call
-                w3 = Web3(Web3.HTTPProvider('https://ethereum.publicnode.com'))
+                w3 = Web3(Web3.HTTPProvider(self.config["eth-public-node"]))
                 if w3.is_connected():
                     self.logger.info("  connected to public node...")
+
                     # check to verify the ENS address resolves
                     eth_address = w3.ens.address(ens_address)
 

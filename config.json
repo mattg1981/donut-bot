@@ -1,7 +1,8 @@
 {
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
-  "praw_user_agent": "ethtrader-donut-bot (by u/mattg1981)",
+  "praw_user_agent": "donut-bot (by u/mattg1981)",
+  "eth-public-node": "https://ethereum.publicnode.com",
   "community_tokens": [
     {
       "community": "r/ethtrader",
