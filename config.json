@@ -1,0 +1,27 @@
+{
+  "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
+  "log_path": "logs/donut-bot.log",
+  "praw_user_agent": "ethtrader-donut-bot (by u/mattg1981)",
+  "community_tokens": [
+    {
+      "community": "r/ethtrader",
+      "tokens": [
+        {
+          "name": "donut",
+          "icon": ":donut:",
+          "is_default": true
+        }
+      ]
+    },
+    {
+      "community": "r/ethtrader_test",
+      "tokens": [
+        {
+          "name": "donut",
+          "icon": ":donut:",
+          "is_default": true
+        }
+      ]
+    }
+  ]
+}

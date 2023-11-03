@@ -2,9 +2,8 @@ import os
 import sqlite3
 from datetime import datetime
 
-
 def get_user_by_name(user):
-    with sqlite3.connect(get_db_path()) as db:
+    with sqlite3.connect(get_db_path(), isolation_level=None) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
         cur.execute("SELECT * FROM users WHERE username=?", [user])

@@ -1,13 +1,13 @@
 import re
 
-from commands import shared, database
+from commands import database
 from commands.command import Command
 from commands.command_register import RegisterCommand
 
 
 class TipCommand(Command):
     VERSION = 'v0.1.20231102-tip'
-    COMMENT_TEST_TX = (f'\n\n^(THIS IS A TEST TRANSACTION)')
+    COMMENT_TEST_TX = f'\n\n^(THIS IS A TEST TRANSACTION)'
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION} | Learn more about [Earn2Tip](https://www.reddit.com/r/EthTrader_Test/comments/17l2imp/introducing_earn2tip_and_the_new_tipping_bot/?utm_source=share&utm_medium=web2x&context=3))'
 
     def __init__(self, config):
@@ -121,10 +121,7 @@ class TipCommand(Command):
         comment.reply(reply)
         database.set_processed_content(comment.fullname)
 
-    def process_command(self, comment):
-        if comment.author.name.lower() == shared.Me:
-            return
-
+    def process_comment(self, comment):
         self.logger.info(f"process tip command - content_id: {comment.fullname} | author: {comment.author.name}")
 
         if database.has_processed_content(comment.fullname) is not None:
@@ -178,10 +175,6 @@ class TipCommand(Command):
                                              f"Cannot tip u/{parent_author} at this time.  Please try again later.")
                     return
 
-            # self.logger.info("author not registered")
-            # self.leave_comment_reply(comment, f"Cannot tip u/{parent_author} - that user is not registered")
-            # return
-
         if user_address == parent_address:
             self.logger.info("attempted self tipping")
             self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, you cannot tip yourself!")
@@ -203,14 +196,7 @@ class TipCommand(Command):
                 default_token_meta = t
                 break
 
-        # earn2tip scenarios
-        #  !tip
-        #  !tip 10 donut
-        #  !tip 10donut
-        #  "This is a good article and deserves !tip 10"
-        #  also handles multi line comments as well
-
-        is_handled = False
+        is_earn2tip = False
         parsed_token = ""
         amount = 0
 
@@ -221,9 +207,9 @@ class TipCommand(Command):
         re_result = p.match(comment.body.lower())
         if re_result:
             amount = re_result.group(1)
-            is_handled = True
+            is_earn2tip = True
 
-        if not is_handled:
+        if not is_earn2tip:
             #  !tip 10 donut
             #  !tip 10 donut with a comment after the tip
             #  !tip 10 donut/n/nWith new lines after the tip
@@ -232,17 +218,17 @@ class TipCommand(Command):
             if re_result:
                 amount = re_result.group(1)
                 parsed_token = re_result.group(2)
-                is_handled = True
+                is_earn2tip = True
 
-        if not is_handled:
+        if not is_earn2tip:
             #  !tip 10
             p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*')
             re_result = p.match(comment.body.lower())
             if re_result:
                 amount = re_result.group(1)
-                is_handled = True
+                is_earn2tip = True
 
-        if is_handled:
+        if is_earn2tip:
             self.logger.info("  earn2tip")
             token_meta = {}
 
@@ -290,7 +276,7 @@ class TipCommand(Command):
         mobile_link = f"https://metamask.app.link/dapp/{desktop_link}"
 
         comment_reply = f"**[Leave a tip]** [Desktop]({desktop_link}) | [Mobile (Metamask Only)]({mobile_link})"
-        comment_reply += ("\n\n*The mobile link works best if you use the "
+        comment_reply += ("\n\n*The mobile link works best on iOS if you use the "
                           "System Default Browser in the Reddit Client (Settings > Open Links > Default Browser)*")
 
         self.leave_comment_reply(comment, comment_reply)

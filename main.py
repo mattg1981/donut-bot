@@ -1,14 +1,17 @@
 import json
 import logging
-import time
-import praw
 import os
+import praw
 
 from commands import *
 from commands.command import Command
 from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
 
 if __name__ == '__main__':
+    # load environment variables
+    load_dotenv()
+
     # load config
     with open(os.path.normpath("config.json"), 'r') as f:
         config = json.load(f)
@@ -24,18 +27,14 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    client_id = config["reddit_config"]["client_id"]
-    client_secret = config["reddit_config"]["client_secret"]
-    username = config["reddit_config"]["username"]
-    password = config["reddit_config"]["password"]
-    user_agent = config["reddit_config"]["user_agent"]
+    username = os.getenv('REDDIT_USERNAME')
 
     # creating an authorized reddit instance
-    reddit = praw.Reddit(client_id=client_id,
-                         client_secret=client_secret,
+    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
+                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
                          username=username,
-                         password=password,
-                         user_agent=user_agent)
+                         password=os.getenv('REDDIT_PASSWORD'),
+                         user_agent=config["praw_user_agent"])
 
     subs = ""
     for idx, community_token in enumerate(config["community_tokens"]):
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     commands = []
     global_objs = list(globals().items())
 
-    for name, obj in global_objs:
+    for obj in global_objs:
         if obj is not Command and isinstance(obj, type) and issubclass(obj, Command):
             commands.append(obj())
 
@@ -61,26 +60,22 @@ if __name__ == '__main__':
         commands.append(cls(config))
 
     while True:
-
         # for comment in subreddits.stream.comments(pause_after=-1):
-        #     if comment is None:
-        #         time.sleep(6)
-        #     else:
-        #         for command in commands:
-        #             if command.can_handle(comment):
-        #                 try:
-        #                     command.process_command(comment)
-        #                 except Exception as e:
-        #                     logger.error(f'Error with comment: {comment.fullname}')
-        #                     logger.error(f'  Exception: {e}')
-
         for comment in subreddits.stream.comments():
+            if comment.author.name == username:
+                continue
+
+            # if using pause_after, uncomment the code below
+            # if comment is None:
+            #     time.sleep(5)
+
+            # find any command that can handle this comment and then process that comment
             for command in commands:
                 if command.can_handle(comment):
                     try:
-                        command.process_command(comment)
+                        command.process_comment(comment)
+
+                        # no point trying the other commands to handle this comment
+                        break
                     except Exception as e:
-                        logger.error(f'Error with comment: {comment.fullname}')
                         logger.error(f'  Exception: {e}')
-
-

@@ -1,6 +1,6 @@
 from web3 import Web3
 
-from commands import shared, database
+from commands import database
 from commands.command import Command
 import re
 
@@ -18,10 +18,7 @@ class RegisterCommand(Command):
         comment.reply(reply)
         database.set_processed_content(comment.fullname)
 
-    def process_command(self, comment):
-        if comment.author.name.lower() == shared.Me:
-            return
-
+    def process_comment(self, comment):
         self.logger.info(f"process reg command - content_id: {comment.fullname} | author: {comment.author.name}")
 
         if database.has_processed_content(comment.fullname) is not None:

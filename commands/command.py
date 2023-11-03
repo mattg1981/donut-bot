@@ -25,6 +25,6 @@ class Command:
         return os.path.normpath(db_path)
 
     @abc.abstractmethod
-    def process_command(self, comment):
+    def process_comment(self, comment):
         """Method documentation"""
         return
