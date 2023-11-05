@@ -253,7 +253,11 @@ class TipCommand(Command):
                                          f"Sorry u/{comment.author.name}, `{parsed_token}` is not a valid token!")
                 return
 
-            self.logger.info(f"  to: {parent_author} - amount: {amount} - token: {token_meta['name']}")
+            amount = self.normalize_amount(amount)
+            if amount >= 0:
+                self.logger.info(f"  invalid amount {amount}!")
+                self.leave_comment_reply(comment, f"Sorry {comment.author.name}, that amount is invalid!")
+
             self.process_earn2tip(comment,
                                   user_address,
                                   parent_address,
