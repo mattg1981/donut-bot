@@ -20,15 +20,13 @@ git reset --hard
 git pull
 
 echo "restoring donut-bot from replicated database..."
-cd database
-rm donut-bot.db
-litestream restore -o donut-bot.db home/ubu/donut-bot/database/donut-bot.db
+rm database/donut-bot.db
+litestream restore -o database/donut-bot.db home/ubu/donut-bot/database/donut-bot.db
 
 echo "restarting database replication..."
 sudo systemctl start litestream
 
 echo "marking donut-bot.sh as executable..."
-cd ..
 chmod +x donut-bot.sh
 
 echo "completed successfully"
