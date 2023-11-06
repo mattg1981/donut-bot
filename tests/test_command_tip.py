@@ -6,6 +6,18 @@ from commands.command_tip import TipCommand
 
 class TestTipCommand(TestCase):
 
+    def test_can_handle(self):
+        tip = TipCommand("config")
+        if not tip.can_handle("!tip"):
+            self.fail()
+
+        if not tip.can_handle("!tip "):
+            self.fail()
+
+        if tip.can_handle("!tipExtra"):
+            self.fail()
+
+
     def test_regex_for_tips(self):
         comment = "!tip 10 donut this is a great comment"
 

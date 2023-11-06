@@ -15,8 +15,8 @@ class Command:
         self.config = config
 
     def can_handle(self, comment):
-        p = re.compile(f'{self.command_text}(?:$|\\s)')
-        p.match(comment.body.lower())
+        p = re.compile(f'{self.command_text}($|\\s)')
+        return p.match(comment.lower())
 
     @abc.abstractmethod
     def process_comment(self, comment):

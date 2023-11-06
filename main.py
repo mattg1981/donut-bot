@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
             # find any command that can handle this comment and then process that comment
             for command in commands:
-                if command.can_handle(comment):
+                if command.can_handle(comment.body):
                     try:
                         command.process_comment(comment)
 
