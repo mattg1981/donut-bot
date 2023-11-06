@@ -118,8 +118,8 @@ class TipCommand(Command):
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_TEST_TX
         reply += self.COMMENT_SIGNATURE
-        comment.reply(reply)
         database.set_processed_content(comment.fullname)
+        comment.reply(reply)
 
     def process_comment(self, comment):
         self.logger.info(f"process tip command - content_id: {comment.fullname} | author: {comment.author.name}")
