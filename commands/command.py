@@ -2,6 +2,7 @@ import abc
 import json
 import os
 import logging
+import re
 
 
 class Command:
@@ -14,7 +15,8 @@ class Command:
         self.config = config
 
     def can_handle(self, comment):
-        return f'{self.command_text.lower()} ' in comment.body.lower()
+        p = re.compile(f'{self.command_text}\\s*\\w*$')
+        return p.match(comment.body.lower())
 
     @abc.abstractmethod
     def process_comment(self, comment):
