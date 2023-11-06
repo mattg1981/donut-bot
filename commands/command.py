@@ -3,6 +3,7 @@ import json
 import os
 import logging
 
+
 class Command:
     __metaclass__ = abc.ABCMeta
     command_text = ''

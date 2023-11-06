@@ -254,7 +254,7 @@ class TipCommand(Command):
                 return
 
             amount = self.normalize_amount(amount)
-            if amount >= 0:
+            if amount <= 0:
                 self.logger.info(f"  invalid amount {amount}!")
                 self.leave_comment_reply(comment, f"Sorry {comment.author.name}, that amount is invalid!")
 
