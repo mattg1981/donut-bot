@@ -5,21 +5,7 @@ import sqlite3
 from datetime import datetime, timedelta
 
 
-def save_distribution_round(round, start_date, end_date):
-    sql = """
-    INSERT INTO distribution_rounds (from_date, to_date, community, distribution_round) VALUES (?, ?, ?, ?)
-    """
-    with sqlite3.connect(db_path) as db:
-        cursor = db.cursor()
-        cursor.execute(sql,[start_date, end_date, "ethtrader", round])
-
-
-if __name__ == '__main__':
-
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
-    db_path = os.path.normpath(db_path)
-
+def build_ethtrader_rounds():
     dist_round = 0
     start_date = None
     end_date = None
@@ -37,3 +23,20 @@ if __name__ == '__main__':
 
         save_distribution_round(dist_round, start_date, end_date)
         dist_round += 1
+
+
+def save_distribution_round(round, start_date, end_date):
+    sql = """
+    INSERT INTO distribution_rounds (from_date, to_date, community, distribution_round) VALUES (?, ?, ?, ?)
+    """
+    with sqlite3.connect(db_path) as db:
+        cursor = db.cursor()
+        cursor.execute(sql, [start_date, end_date, "ethtrader", round])
+
+
+if __name__ == '__main__':
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
+    db_path = os.path.normpath(db_path)
+
+    build_ethtrader_rounds()
