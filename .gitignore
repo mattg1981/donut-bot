@@ -1,3 +1,4 @@
 /.env
 /logs/donut-bot.log
 /venv/
+/database/donut-bot.db
