@@ -86,7 +86,7 @@ class TipCommand(Command):
             if ct["community"].lower() == f"r/{comment.subreddit.display_name.lower()}":
                 valid_tokens = ct["tokens"]
 
-        token_reply = f"Valid tokens for r/{comment.subreddit.display_name} are:\n\n"
+        token_reply = f"\n\nValid tokens for r/{comment.subreddit.display_name} are:\n\n"
         for token in valid_tokens:
             token_reply += f"&ensp;&ensp;{token['name']} {' (default)' if token['is_default'] else ''}\n\n"
 
