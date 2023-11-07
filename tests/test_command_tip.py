@@ -5,13 +5,41 @@ from commands.command_tip import TipCommand
 
 
 class TestTipCommand(TestCase):
-
     def test_can_handle(self):
         tip = TipCommand("config")
         if not tip.can_handle("!tip"):
             self.fail()
 
         if not tip.can_handle("!tip "):
+            self.fail()
+
+        comment = "Let me test\r \n\r \n!tip 1"
+        # comment = comment.replace("\r", "")
+        # comment = comment.replace("\n", "")
+
+        if "!tip" in comment:
+            pass
+
+        if not tip.can_handle(comment):
+            self.fail()
+
+        p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
+        re_result = p.search(comment.lower())
+        if re_result:
+            pass
+
+        p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)')
+        re_result = p.search(comment.lower())
+        if re_result:
+            pass
+
+        p2 = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*')
+        re_result2 = p2.search(comment.lower())
+        if re_result2:
+            amount = re_result2.group(1)
+            pass
+
+        if not tip.can_handle("Let me test\r \n\r \n!tip 1"):
             self.fail()
 
         if tip.can_handle("!tipExtra"):
@@ -26,7 +54,7 @@ class TestTipCommand(TestCase):
         is_handled = False
 
         p = re.compile('!tip\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
-        re_result = p.match(comment.lower())
+        re_result = p.search(comment.lower())
         if re_result:
             # default tip and a new line
             amount = re_result.group(1)
@@ -35,7 +63,7 @@ class TestTipCommand(TestCase):
 
         if not is_handled:
             p = re.compile('!tip\\s+([0-9]*\\.*[0-9]*)\\s+(\\w*)[\r\n]+')
-            re_result2 = p.match(comment.lower())
+            re_result2 = p.search(comment.lower())
             if re_result2:
                 amount = re_result2.group(1)
                 default_token = False
@@ -44,7 +72,7 @@ class TestTipCommand(TestCase):
 
         if not is_handled:
             p = re.compile('!tip\\s+([0-9]*\\.*[0-9]*)\\s*([\r\n]*)?(\\w*)(?:[\r\n]*)?')
-            re_result3 = p.match(comment.lower())
+            re_result3 = p.search(comment.lower())
             if re_result3:
                 amount = re_result3.group(1)
                 default_token = False

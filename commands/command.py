@@ -14,7 +14,7 @@ class Command:
 
     def can_handle(self, comment):
         p = re.compile(f'{self.command_text}($|\\s)')
-        return p.match(comment.lower())
+        return p.search(comment.lower())
 
     @abc.abstractmethod
     def process_comment(self, comment):

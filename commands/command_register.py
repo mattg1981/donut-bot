@@ -45,7 +45,7 @@ class RegisterCommand(Command):
 
         # handle `!register <address>` command
         p = re.compile(f'{self.command_text}\\s+(0x[a-fA-F0-9]{{40}})\\b')
-        re_result = p.match(comment.body)
+        re_result = p.search(comment.body)
         if re_result:
             address = re_result.group(1)
 
@@ -78,7 +78,7 @@ class RegisterCommand(Command):
 
         # handle `!register <ENS address>` command
         p = re.compile(f'{self.command_text}\\s+([\\w+.-]+.eth)')
-        re_result = p.match(comment.body)
+        re_result = p.search(comment.body)
         if re_result:
             self.logger.info("  ENS address")
             ens_address = re_result.group(1)

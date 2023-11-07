@@ -127,14 +127,14 @@ class TipCommand(Command):
 
         # handle '!tip status' command
         p = re.compile(f'{self.command_text}\\s+status')
-        re_result = p.match(comment.body.lower())
+        re_result = p.search(comment.body.lower())
         if re_result:
             self.handle_tip_status(comment)
             return
 
         # handle '!tip sub' command
         p = re.compile(f'{self.command_text}\\s+sub')
-        re_result = p.match(comment.body.lower())
+        re_result = p.search(comment.body.lower())
         if re_result:
             self.handle_tip_sub(comment)
             return
@@ -201,7 +201,7 @@ class TipCommand(Command):
         #  !tip 10\nSingle return (mobile)
         #  !tip 10\n\nSingle return (mobile)
         p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
-        re_result = p.match(comment.body.lower())
+        re_result = p.search(comment.body.lower())
         if re_result:
             amount = re_result.group(1)
             is_earn2tip = True
@@ -211,7 +211,7 @@ class TipCommand(Command):
             #  !tip 10 donut with a comment after the tip
             #  !tip 10 donut/n/nWith new lines after the tip
             p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)')
-            re_result = p.match(comment.body.lower())
+            re_result = p.search(comment.body.lower())
             if re_result:
                 amount = re_result.group(1)
                 parsed_token = re_result.group(2)
@@ -220,7 +220,7 @@ class TipCommand(Command):
         if not is_earn2tip:
             #  !tip 10
             p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*')
-            re_result = p.match(comment.body.lower())
+            re_result = p.search(comment.body.lower())
             if re_result:
                 amount = re_result.group(1)
                 is_earn2tip = True
