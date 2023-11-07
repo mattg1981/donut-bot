@@ -33,12 +33,12 @@ class RegisterCommand(Command):
             result = database.get_user_by_name(user)
 
             if result is None or len(result) == 0:
-                self.logger.info("    not registered")
+                self.logger.info("  not registered")
                 self.leave_comment_reply(comment,
                                          f'u/{user} is not registered.  Please use the `{self.command_text} <address'
                                          f'>` command to register your wallet address.')
             else:
-                self.logger.info("    registered")
+                self.logger.info("  registered")
                 self.leave_comment_reply(comment,
                                          f'u/{user} is registered with the following address: `{result["address"]}`')
             return

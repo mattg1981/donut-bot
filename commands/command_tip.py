@@ -157,7 +157,7 @@ class TipCommand(Command):
                 parent_address = r["address"]
 
         if not user_address:
-            self.logger.info("user not registered")
+            self.logger.info("  user not registered")
             reg = RegisterCommand(None)
             self.leave_comment_reply(comment,
                                      f"Cannot tip u/{parent_author} - you are not registered.  Please use the {reg.command_text} command to register!")
@@ -175,12 +175,12 @@ class TipCommand(Command):
                     return
 
         if user_address == parent_address:
-            self.logger.info("attempted self tipping")
+            self.logger.info("  attempted self tipping")
             self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, you cannot tip yourself!")
             return
 
         # find all the configured tokens for this sub
-        self.logger.debug("getting community tokens")
+        self.logger.debug("  getting community tokens")
         valid_tokens = {}
         community_tokens = self.config["community_tokens"]
         for ct in community_tokens:
@@ -188,7 +188,7 @@ class TipCommand(Command):
                 valid_tokens = ct["tokens"]
 
         # find default token for this sub
-        self.logger.debug("getting community default token")
+        self.logger.debug("  getting community default token")
         default_token_meta = {}
         for t in valid_tokens:
             if t["is_default"]:
