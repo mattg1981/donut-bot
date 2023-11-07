@@ -17,10 +17,11 @@ else
   echo "litestream replication not running, ok ..."
 fi
 
+echo "creating database backup..."
 ./backup_db.sh
 
 echo "pulling down new application code..."
-#git reset --hard
+git reset --hard
 git pull
 
 if [ -e ../database/donut-bot.db ]; then
@@ -38,6 +39,6 @@ sudo systemctl start litestream
 
 #echo "chmoding scripts to executable..."
 chmod +x donut-bot.sh
-chmod +x utils/update.sh
+chmod +x utils/*
 
 #echo "completed successfully"
