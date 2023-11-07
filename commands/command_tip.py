@@ -72,9 +72,12 @@ class TipCommand(Command):
         result = database.get_sub_status_for_current_round(comment.subreddit.display_name)
 
         if len(result) == 0:
-            self.leave_comment_reply(comment,
-                                     f"Nobody has earn2tipped in r/{comment.subreddit.display_name} this round")
-            return
+            tip_text = f"Nobody has earn2tipped in r/{comment.subreddit.display_name} this round"
+        else:
+            tip_text = f"r/{comment.subreddit.display_name} has had the following earn2tip tips this round:\n\n"
+            for tip in result:
+                amount = round(float(tip["amount"]), 5)
+                tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total)\n\n"
 
         # todo pull this logic out into a def
         #  it is repeated in another place and it will also make the code testable
@@ -86,11 +89,6 @@ class TipCommand(Command):
         token_reply = f"Valid tokens for r/{comment.subreddit.display_name} are:\n\n"
         for token in valid_tokens:
             token_reply += f"&ensp;&ensp;{token['name']} {' (default)' if token['is_default'] else ''}\n\n"
-
-        tip_text = f"r/{comment.subreddit.display_name} has had the following earn2tip tips this round:\n\n"
-        for tip in result:
-            amount = round(float(tip["amount"]), 5)
-            tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total)\n\n"
 
         self.leave_comment_reply(comment, tip_text + token_reply)
 
