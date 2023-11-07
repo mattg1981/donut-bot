@@ -158,7 +158,7 @@ class TipCommand(Command):
 
         if not user_address:
             self.logger.info("user not registered")
-            reg = RegisterCommand()
+            reg = RegisterCommand(None)
             self.leave_comment_reply(comment,
                                      f"Cannot tip u/{parent_author} - you are not registered.  Please use the {reg.command_text} command to register!")
             return
