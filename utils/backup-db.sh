@@ -12,4 +12,4 @@ if [ -e ../database/donut-bot.db ]; then
   sqlite3 ../database/donut-bot.db ".backup '${BACKUP_PATH}/donut-bot_${TIMESTAMP}.db'"
 fi
 
-#echo "completed successfully"
+echo "completed successfully"
