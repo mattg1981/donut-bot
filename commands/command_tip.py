@@ -40,7 +40,7 @@ class TipCommand(Command):
 
         if not result or not result["address"]:
             self.logger.info("  user not registered")
-            reg = RegisterCommand()
+            reg = RegisterCommand(None)
             self.leave_comment_reply(comment,
                                      f"Sorry u/{comment.author.name}, you are not registered.  Please use the {reg.command_text} command to register!")
             return
@@ -168,7 +168,7 @@ class TipCommand(Command):
             if not parent_result:
                 self.logger.info("  parent not in db .. adding")
                 parent_result = database.add_unregistered_user(parent_author, comment.fullname)
-                if not result:
+                if not parent_result:
                     self.logger.info("  failed to add to db")
                     self.leave_comment_reply(comment,
                                              f"Cannot tip u/{parent_author} at this time.  Please try again later.")
