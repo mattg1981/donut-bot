@@ -7,8 +7,6 @@ from commands.command_register import RegisterCommand
 
 class TipCommand(Command):
     VERSION = 'v0.1.20231102-tip'
-    COMMENT_TEST_TX = f'\n\n^(THIS IS A TEST TRANSACTION)'
-    COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION} | Learn more about [Earn2Tip](https://www.reddit.com/r/EthTrader_Test/comments/17l2imp/introducing_earn2tip_and_the_new_tipping_bot/?utm_source=share&utm_medium=web2x&context=3))'
 
     def __init__(self, config):
         super(TipCommand, self).__init__(config)
@@ -116,8 +114,9 @@ class TipCommand(Command):
         self.leave_comment_reply(comment, reply)
 
     def leave_comment_reply(self, comment, reply):
-        reply += self.COMMENT_TEST_TX
-        reply += self.COMMENT_SIGNATURE
+        COMMENT_SIGNATURE = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
+
+        reply += COMMENT_SIGNATURE
         database.set_processed_content(comment.fullname)
         comment.reply(reply)
 

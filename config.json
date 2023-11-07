@@ -3,19 +3,10 @@
   "log_path": "logs/donut-bot.log",
   "praw_user_agent": "donut-bot (by u/mattg1981)",
   "eth-public-node": "https://ethereum.publicnode.com",
+  "e2t_post": "https://www.google.com",
   "community_tokens": [
     {
       "community": "r/ethtrader",
-      "tokens": [
-        {
-          "name": "donut",
-          "icon": ":donut:",
-          "is_default": true
-        }
-      ]
-    },
-    {
-      "community": "r/ethtrader_test",
       "tokens": [
         {
           "name": "donut",
