@@ -18,7 +18,7 @@ else
 fi
 
 echo "creating database backup..."
-./backup_db.sh
+./backup-db.sh
 
 echo "pulling down new application code..."
 git reset --hard
