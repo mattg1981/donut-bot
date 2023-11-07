@@ -95,13 +95,14 @@ class TipCommand(Command):
         self.leave_comment_reply(comment, tip_text + token_reply)
 
     def process_earn2tip(self, comment, user_address, parent_address, parent_username, amount, token, content_id,
-                         community):
+                         parent_content_id, community):
         result = database.process_earn2tip(user_address,
                                            parent_address,
                                            parent_username,
                                            amount,
                                            token,
                                            content_id,
+                                           parent_content_id,
                                            community)
 
         if not result:
@@ -265,6 +266,7 @@ class TipCommand(Command):
                                   normalized_amount,
                                   token_meta["name"],
                                   comment.fullname,
+                                  comment.parent().fullname,
                                   comment.subreddit.display_name)
             return
 
