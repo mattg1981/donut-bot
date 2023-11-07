@@ -91,13 +91,17 @@ def insert_or_update_address(user, address, content_id):
 
 
 def process_earn2tip(user_address, parent_address, parent_name, amount, token, content_id, parent_content_id, community):
+    sql = """
+    INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, 
+                          parent_content_id, community, created_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    RETURNING *
+    """
+
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(
-            "INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, parent_content_id, community, created_date) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *", [user_address, parent_address, parent_name, amount, token,
-                                                            content_id, parent_content_id, community, datetime.now()])
+        cur.execute(sql, [user_address, parent_address, parent_name, amount, token, content_id, parent_content_id, community, datetime.now()])
         return cur.fetchone()
 
 

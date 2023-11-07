@@ -261,7 +261,7 @@ class TipCommand(Command):
             self.process_earn2tip(comment,
                                   user_address,
                                   parent_address,
-                                  parent_result["username"],
+                                  parent_author,
                                   normalized_amount,
                                   token_meta["name"],
                                   comment.fullname,
