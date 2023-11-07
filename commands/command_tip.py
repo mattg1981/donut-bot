@@ -115,9 +115,8 @@ class TipCommand(Command):
         self.leave_comment_reply(comment, reply)
 
     def leave_comment_reply(self, comment, reply):
-        COMMENT_SIGNATURE = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
-
-        reply += COMMENT_SIGNATURE
+        sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
+        reply += sig
         database.set_processed_content(comment.fullname)
         comment.reply(reply)
 
