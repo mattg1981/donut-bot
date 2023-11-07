@@ -45,10 +45,6 @@ if __name__ == '__main__':
         if idx < len(config["community_tokens"]) - 1:
             subs += '+'
 
-    # todo remove after testing
-    subs = "ethtrader_test"
-    subreddits = reddit.subreddit(subs)
-
     commands = []
     global_objs = list(globals().items())
 
