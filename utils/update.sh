@@ -25,7 +25,7 @@ git pull
 
 if [ -e ../database/donut-bot.db ]; then
   #echo removing existing donut-bot.db
-  rm database/donut-bot.db
+  rm ..database/donut-bot.db
 fi
 
 #echo "restoring donut-bot from replicated database..."
