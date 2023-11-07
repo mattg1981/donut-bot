@@ -32,7 +32,7 @@ class RegisterCommand(Command):
             self.logger.info("  checking status")
             result = database.get_user_by_name(user)
 
-            if result is None or len(result) == 0:
+            if result is None or len(result) == 0 or not result["address"]:
                 self.logger.info("  not registered")
                 self.leave_comment_reply(comment,
                                          f'u/{user} is not registered.  Please use the `{self.command_text} <address'

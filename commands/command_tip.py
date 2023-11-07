@@ -142,7 +142,7 @@ class TipCommand(Command):
             return
 
         parent_author = comment.parent().author.name
-        parent_result = None
+        # parent_result = None
         user_address = None
         parent_address = None
 
@@ -153,7 +153,7 @@ class TipCommand(Command):
             if r["username"].lower() == comment.author.name.lower():
                 user_address = r["address"]
             if r["username"].lower() == parent_author.lower():
-                parent_result = r
+                # parent_result = r
                 parent_address = r["address"]
 
         if not user_address:
@@ -165,14 +165,14 @@ class TipCommand(Command):
 
         if not parent_address:
             self.logger.info("  parent is not registered")
-            if not parent_result:
-                self.logger.info("  parent not in db .. adding")
-                parent_result = database.add_unregistered_user(parent_author, comment.fullname)
-                if not parent_result:
-                    self.logger.info("  failed to add to db")
-                    self.leave_comment_reply(comment,
-                                             f"Cannot tip u/{parent_author} at this time.  Please try again later.")
-                    return
+            # if not parent_result:
+            #     self.logger.info("  parent not in db .. adding")
+            #     parent_result = database.add_unregistered_user(parent_author, comment.fullname)
+            #     if not parent_result:
+            #         self.logger.info("  failed to add to db")
+            #         self.leave_comment_reply(comment,
+            #                                  f"Cannot tip u/{parent_author} at this time.  Please try again later.")
+            #         return
 
         if user_address == parent_address:
             self.logger.info("  attempted self tipping")
