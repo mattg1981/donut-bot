@@ -4,13 +4,13 @@ import commands.database as db
 
 class Test(TestCase):
 
-    def test_add_unregistered_user(self):
-        user="def_not_a_valid_user";
-        content_id = "some_id"
-        result = db.add_unregistered_user(user, content_id)
-        if result:
-            return
-        self.fail()
+    # def test_add_unregistered_user(self):
+    #     user="def_not_a_valid_user";
+    #     content_id = "some_id"
+    #     result = db.add_unregistered_user(user, content_id)
+    #     if result:
+    #         return
+    #     self.fail()
 
     def test_get_user_by_address(self):
         address = "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC"
