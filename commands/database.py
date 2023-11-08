@@ -20,19 +20,19 @@ def get_users_by_name(users):
         return cur.fetchall()
 
 
-def add_unregistered_user(user, content_id):
-    query = """
-        INSERT INTO users (username, content_id, last_updated) 
-        SELECT ?, ?, ?
-        WHERE NOT EXISTS (SELECT 1 FROM users WHERE username=?) 
-        RETURNING *
-    """
-
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute(query, [user, content_id, datetime.now(), user])
-        return cur.fetchall()
+# def add_unregistered_user(user, content_id):
+#     query = """
+#         INSERT INTO users (username, content_id, last_updated)
+#         SELECT ?, ?, ?
+#         WHERE NOT EXISTS (SELECT 1 FROM users WHERE username=?)
+#         RETURNING *
+#     """
+#
+#     with sqlite3.connect(get_db_path()) as db:
+#         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+#         cur = db.cursor()
+#         cur.execute(query, [user, content_id, datetime.now(), user])
+#         return cur.fetchall()
 
 
 def get_user_by_address(address):
