@@ -20,4 +20,6 @@ if __name__ == '__main__':
             cursor.execute("INSERT INTO users (username, address, last_updated) VALUES (?, ?, ?)",
                            (user["username"], user["address"], datetime.now()))
 
+        cursor.execute("INSERT INTO users (username, address, last_updated) VALUES (?, ?, ?)",
+                       ['donut-bot', '0xa8C8c9e18C763805c91bcB720B2320aDe16a0BBf', datetime.now()])
 

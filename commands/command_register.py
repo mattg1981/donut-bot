@@ -32,20 +32,20 @@ class RegisterCommand(Command):
             self.logger.info("  checking status")
             result = database.get_user_by_name(user)
 
-            if result is None or len(result) == 0:
-                self.logger.info("    not registered")
+            if result is None or len(result) == 0 or not result["address"]:
+                self.logger.info("  not registered")
                 self.leave_comment_reply(comment,
                                          f'u/{user} is not registered.  Please use the `{self.command_text} <address'
                                          f'>` command to register your wallet address.')
             else:
-                self.logger.info("    registered")
+                self.logger.info("  registered")
                 self.leave_comment_reply(comment,
                                          f'u/{user} is registered with the following address: `{result["address"]}`')
             return
 
         # handle `!register <address>` command
         p = re.compile(f'{self.command_text}\\s+(0x[a-fA-F0-9]{{40}})\\b')
-        re_result = p.match(comment.body)
+        re_result = p.search(comment.body)
         if re_result:
             address = re_result.group(1)
 
@@ -78,7 +78,7 @@ class RegisterCommand(Command):
 
         # handle `!register <ENS address>` command
         p = re.compile(f'{self.command_text}\\s+([\\w+.-]+.eth)')
-        re_result = p.match(comment.body)
+        re_result = p.search(comment.body)
         if re_result:
             self.logger.info("  ENS address")
             ens_address = re_result.group(1)

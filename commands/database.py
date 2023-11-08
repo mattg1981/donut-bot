@@ -90,35 +90,67 @@ def insert_or_update_address(user, address, content_id):
         return cursor.fetchone()
 
 
-def process_earn2tip(user_address, parent_address, parent_name, amount, token, content_id, community):
+def process_earn2tip(user_address, parent_address, parent_name, amount, token, content_id, parent_content_id,
+                     community):
+    sql = """
+    INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, 
+                          parent_content_id, community, created_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    RETURNING *
+    """
+
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(
-            "INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, community, created_date) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *", [user_address, parent_address, parent_name, amount, token,
-                                                            content_id, community, datetime.now()])
+        cur.execute(sql,
+                    [user_address, parent_address, parent_name, amount, token, content_id, parent_content_id, community,
+                     datetime.now()])
         return cur.fetchone()
 
 
 def get_sub_status_for_current_round(subreddit):
+    sql = """
+    select
+        community,
+        token,
+        distribution_round,
+        tip_count,
+        amount
+    from
+        main.view_sub_distribution_tips
+    where
+        community = ?
+        and distribution_round = (
+            select
+                distribution_round
+            from
+                distribution_rounds
+            where
+                DATE() between from_date
+                and to_date
+        )
+    """
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(
-            "select * from main.view_sub_distribution_tips where community = ?", [subreddit])
+        cur.execute(sql, [subreddit])
         return cur.fetchall()
 
 
 def get_tips_sent_for_current_round_by_user(user):
+    sql = """
+    SELECT from_address, token, count(tip.id) 'count', sum(amount) 'amount' 
+    FROM earn2tip tip 	
+    inner join distribution_rounds dr 
+    WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
+      and from_address = (SELECT address from users where username = ?) 
+      and DATE() between dr.from_date and dr.to_date
+    GROUP BY from_address, token
+    """
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(
-            "SELECT from_address, token, count(tip.id) 'count', sum(amount) 'amount' FROM earn2tip tip 	inner join "
-            "distribution_rounds dr WHERE tip.created_date BETWEEN dr.from_date and dr.to_date and "
-            "from_address = (SELECT address from users where username = ?) GROUP BY from_address, token"
-            , [user])
+        cur.execute(sql, [user])
         return cur.fetchall()
 
 
@@ -126,9 +158,10 @@ def get_tips_received_for_current_round_by_user(user):
     sql = """
     SELECT to_address, token, count(tip.id) 'count', sum(amount) 'amount' 
     FROM earn2tip tip 	
-    inner join 
-        distribution_rounds dr WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
+    inner join distribution_rounds dr 
+    WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
         and to_address = (SELECT address from users where username = ?) 
+        and DATE() between dr.from_date and dr.to_date
     GROUP BY to_address, token
     """
 

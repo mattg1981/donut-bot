@@ -18,27 +18,27 @@ else
 fi
 
 echo "creating database backup..."
-./backup_db.sh
+./backup-db.sh
 
 echo "pulling down new application code..."
 git reset --hard
 git pull
 
 if [ -e ../database/donut-bot.db ]; then
-  #echo removing existing donut-bot.db
+  echo "removing existing donut-bot.db"
   rm ../database/donut-bot.db
 fi
 
-#echo "restoring donut-bot from replicated database..."
+echo "restoring donut-bot from replicated database..."
 cd ../database
 litestream restore -o donut-bot.db donut-bot.db
 cd ..
 
-#echo "restarting database replication..."
+echo "restarting database replication..."
 sudo systemctl start litestream
 
-#echo "chmoding scripts to executable..."
+echo "chmoding scripts to executable..."
 chmod +x donut-bot.sh
 chmod +x utils/*
 
-#echo "completed successfully"
+echo "completed successfully"

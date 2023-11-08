@@ -6,7 +6,7 @@
   "e2t_post": "https://www.google.com",
   "community_tokens": [
     {
-      "community": "r/ethtrader",
+      "community": "r/ethtrader_test",
       "tokens": [
         {
           "name": "donut",
