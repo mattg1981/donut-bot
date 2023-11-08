@@ -2,7 +2,7 @@
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
   "praw_user_agent": "donut-bot (by u/mattg1981)",
-  "eth-public-node": "https://ethereum.publicnode.com",
+  "eth_public_node": "https://ethereum.publicnode.com",
   "e2t_post": "https://www.reddit.com/r/ethtrader/comments/17q24e7/introducing_donutbot_register_and_tip_commands/",
   "community_tokens": [
     {

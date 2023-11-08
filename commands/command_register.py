@@ -97,7 +97,7 @@ class RegisterCommand(Command):
 
             try:
                 self.logger.info("  attempting to resolve ENS...")
-                w3 = Web3(Web3.HTTPProvider(self.config["eth-public-node"]))
+                w3 = Web3(Web3.HTTPProvider(self.config["eth_public_node"]))
                 if w3.is_connected():
                     self.logger.info("  connected to public node...")
 
