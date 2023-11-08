@@ -31095,7 +31095,7 @@
     },
     {
         "username": "Goldbaerig",
-        "address": "0x9ef08725F6a5Ea8C9E911d793bcbf8FD26f4bFBd",
+        "address": "0xEf3114817602E8d92cf35056a357c0Adc069d751",
         "contrib": "888",
         "donut": "889",
         "weight": "888"
@@ -35023,6 +35023,83 @@
     {
         "username": "ablablababla",
         "address": "0x5DFa59d24554d3cb74e8153F7F44336C6eD287C1",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "S-U_2",
+        "address": "0x01d3d24f754d64c7f9942c00aef89e6f64b4c205",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "ComCaPro",
+        "address": "0xa0529347dfdcfc644d3b981673b61a23a08506a8",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "SharkOwO",
+        "address": "0x85F3E5b880Bcb4149673aAf6B92e32179a45b9f1",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "Dull-Wear-3286",
+        "address": "0x918AA4737037E1cD1B686F71b161794029F18329",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "sadsissyphus",
+        "address": "0xe7fBE65570d5c3B9bdD60Dc01097f3657C40906B",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "cajunrajing",
+        "address": "0x2EfBdBAf6a3a9d7BB2070aa7a16318a67C730534",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "Ditto_B",
+        "address": "0x9B5031248D14f09DC022B07180BBA7B1d59Bc7b2",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "MantisToboggan66",
+        "address": "0xe03d2E34513ed45479e03364d5CD8B5FfeCb63D9",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "KIG45",
+        "address": "0x196b2bd780c5dEebab6485Bbb985658c63322BD7",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "NoRecommendation9108",
+        "address": "0x3Cc905130bd541b56e70189B225491ef59EBdf14",
+        "contrib": 0,
+        "donut": 0,
+        "weight": 0
+    },
+    {
+        "username": "F-machine",
+        "address": "0x6b2Dfb8f1F88A400E3aad648d9D8A1a5E1820a7b",
         "contrib": 0,
         "donut": 0,
         "weight": 0
