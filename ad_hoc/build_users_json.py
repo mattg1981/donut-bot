@@ -10,7 +10,7 @@ def get_address(address):
     if '.eth' not in address:
         return address
 
-    w3 = Web3(Web3.HTTPProvider(config["eth-public-node"]))
+    w3 = Web3(Web3.HTTPProvider(config["eth_public_node"]))
     if w3.is_connected():
         # dont do any error handling, let the process fail
         eth_address = w3.ens.address(address)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
     db_path = os.path.normpath(db_path)
 
-    out_file = "users.json"
+    out_file = "../out/users.json"
 
     sql = """
     select * from users;
