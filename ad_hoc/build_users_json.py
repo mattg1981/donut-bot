@@ -27,7 +27,7 @@ if __name__ == '__main__':
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
     db_path = os.path.normpath(db_path)
 
-    out_file = "../out/users.json"
+    out_file = "../temp/users.json"
 
     sql = """
     select * from users;
