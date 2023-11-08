@@ -45,7 +45,8 @@ if __name__ == '__main__':
         try:
             json_user = next(j for j in user_json if j["username"].lower() == u["username"].lower())
             json_user["address"] = get_address(u["address"])
-        except Exception as e:
+        except StopIteration as e:
+            # not found in the enumerable
             user_json.append({
                 "username": u["username"],
                 "address": get_address(u["address"]),
@@ -53,6 +54,9 @@ if __name__ == '__main__':
                 "donut": 0,
                 "weight": 0
             })
+        except Exception as e:
+            print(e)
+            exit(4)
 
     print(f'{len(user_json)} users now in users.json')
 
