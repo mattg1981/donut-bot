@@ -13,7 +13,10 @@ class TestTipCommand(TestCase):
         if not tip.can_handle("!tip "):
             self.fail()
 
-        comment = "Let me test\r \n\r \n!tip 1"
+        comment = "'I am so sorry bro, I did not notice it.\n\n!tip 10'"
+
+        print(comment)
+        print(repr(comment))
         # comment = comment.replace("\r", "")
         # comment = comment.replace("\n", "")
 
@@ -26,11 +29,13 @@ class TestTipCommand(TestCase):
         p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
         re_result = p.search(comment.lower())
         if re_result:
+            amount = re_result.group(1)
             pass
 
         p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)')
         re_result = p.search(comment.lower())
         if re_result:
+            amount = re_result.group(1)
             pass
 
         p2 = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*')

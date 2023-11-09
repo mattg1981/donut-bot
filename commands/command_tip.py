@@ -25,12 +25,12 @@ class TipCommand(Command):
 
             int_value = int(float(result))
             if len(str(int_value)) > 10:
-                raise Exception("Number too large")
+                raise Exception("  Number too large")
 
             return result if result > 0 else -1
         except Exception as e:
-            self.logger.error(f"invalid amount specified: {amount}")
-            self.logger.error(e)
+            self.logger.error(f"  invalid amount specified: {amount}")
+            self.logger.error(f'  {e}')
             return -1
 
     def handle_tip_status(self, comment):
@@ -252,7 +252,7 @@ class TipCommand(Command):
 
             normalized_amount = self.normalize_amount(amount)
             if normalized_amount <= 0:
-                self.logger.info(f"  invalid amount {amount}!")
+                self.logger.info(f"  comment body: {repr(comment.body)}")
                 self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, that amount is invalid!")
                 return
 
