@@ -20,7 +20,7 @@ echo "git add (in case a new file is available"
 git add . --force
 
 echo "git commit..."
-git commit -m "updated tips output json ${TIMESTAMP_DAY} ${TIMESTAMP_DAY}" *
+git commit -m "updated tips output json ${TIMESTAMP_DAY} ${TIMESTAMP}" *
 
 echo "git push..."
 git push

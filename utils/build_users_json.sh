@@ -19,7 +19,7 @@ cp -fr ../temp/users.json ../../donut.distribution/docs/
 cd ../../donut.distribution/docs/
 
 echo "git commit..."
-git commit -m "updated users.json ${TIMESTAMP_DAY} ${TIMESTAMP_DAY}" ./users.json
+git commit -m "updated users.json ${TIMESTAMP_DAY} ${TIMESTAMP}" ./users.json
 
 echo "git push..."
 git push
