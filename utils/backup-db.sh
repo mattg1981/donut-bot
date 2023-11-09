@@ -13,7 +13,7 @@ if [ -e ../database/donut-bot.db ]; then
   TIMESTAMP=$( date +%Y_%m_%d_%H_%M_%S )
 
   # create folder if it doesnt exist
-  [ ! -d ../../donut-bot-db-backups ]; then
+  if [ ! -d ../../donut-bot-db-backups ]; then
     mkdir -p ../../donut-bot-db-backups
   fi
 
