@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+#  stops donut-bot if running, creates a backup of the database, pulls down
+#  the newest code, chmods the scripts to executable, and then starts donut-bot
+#
+
 PID=$( cat ../pid.txt )
 
 if ps -p $PID > /dev/null; then

@@ -1,10 +1,21 @@
 #!/bin/bash
 
+#
+#  creates a backup of the donut-bot database using the sqlite3 .backup command
+#  and stores it in a folder that is outside of the project
+#
+
+
 echo "creating backup of donut-bot.db..."
 if [ -e ../database/donut-bot.db ]; then
   TIMESTAMP_DAY=$( date +%Y_%m_%d )
   TIMESTAMP_TIME=$( date +%H )
   TIMESTAMP=$( date +%Y_%m_%d_%H_%M_%S )
+
+  # create folder if it doesnt exist
+  [ ! -d ../../donut-bot-db-backups ]; then
+    mkdir -p ../../donut-bot-db-backups
+  fi
 
   BACKUP_PATH=../../donut-bot-db-backups/$TIMESTAMP_DAY/$TIMESTAMP_TIME
 
