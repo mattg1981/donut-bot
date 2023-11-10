@@ -5,9 +5,8 @@
 #  and stores it in a folder that is outside of the project
 #
 
-
-echo "creating backup of donut-bot.db..."
 if [ -e ../database/donut-bot.db ]; then
+  echo "creating backup of donut-bot.db..."
   TIMESTAMP_DAY=$( date +%Y_%m_%d )
   TIMESTAMP_TIME=$( date +%H )
   TIMESTAMP=$( date +%Y_%m_%d_%H_%M_%S )
@@ -21,6 +20,7 @@ if [ -e ../database/donut-bot.db ]; then
 
   mkdir -p $BACKUP_PATH
   sqlite3 ../database/donut-bot.db ".backup '${BACKUP_PATH}/donut-bot_${TIMESTAMP}.db'"
+  echo "completed successfully"
+else
+  echo "database not found... aborting"
 fi
-
-echo "completed successfully"
