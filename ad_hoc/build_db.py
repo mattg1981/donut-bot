@@ -55,13 +55,14 @@ if __name__ == '__main__':
 		`last_updated` datetime not null default CURRENT_TIMESTAMP
 	);
 	
-	CREATE VIEW view_sub_distribution_tips (community, token, distribution_round, tip_count, amount) as
+	CREATE VIEW view_sub_distribution_tips (community, token, distribution_round, tip_count, amount, average_tip_amount) as
     SELECT
       tip.community,
       tip.token,
       dr.distribution_round,
       count(tip.id) 'tip_count',
-      sum(amount) 'amount'
+      sum(amount) 'amount',
+      avg(amount) 'average_tip_amount'
     FROM
       earn2tip tip
       inner join distribution_rounds dr
