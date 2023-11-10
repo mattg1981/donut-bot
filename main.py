@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import time
+
 import praw
 
 from commands import *
@@ -56,22 +58,27 @@ if __name__ == '__main__':
         commands.append(cls(config))
 
     while True:
-        # for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
-        for comment in reddit.subreddit(subs).stream.comments():
-            if comment.author.name == username:
-                continue
+        try:
+            # for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
+            for comment in reddit.subreddit(subs).stream.comments():
+                if comment.author.name == username:
+                    continue
 
-            # if using pause_after, uncomment the code below
-            # if comment is None:
-            #     time.sleep(5)
+                # if using pause_after, uncomment the code below
+                # if comment is None:
+                #     time.sleep(5)
 
-            # find any command that can handle this comment and then process that comment
-            for command in commands:
-                if command.can_handle(comment.body):
-                    try:
-                        command.process_comment(comment)
+                # find any command that can handle this comment and then process that comment
+                for command in commands:
+                    if command.can_handle(comment.body):
+                        try:
+                            command.process_comment(comment)
 
-                        # no point trying the other commands to handle this comment
-                        break
-                    except Exception as e:
-                        logger.error(f'  Exception: {e}')
+                            # no point trying the other commands to handle this comment
+                            break
+                        except Exception as e:
+                            logger.error(f'  Exception: {e}')
+        except Exception as e:
+            logger.error(e)
+            logger.info('sleeping 30 seconds ...')
+            time.sleep(30)
