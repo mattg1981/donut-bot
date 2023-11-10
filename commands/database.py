@@ -111,11 +111,7 @@ def process_earn2tip(user_address, parent_address, parent_name, amount, token, c
 def get_sub_status_for_current_round(subreddit):
     sql = """
     select
-        community,
-        token,
-        distribution_round,
-        tip_count,
-        amount
+        *
     from
         main.view_sub_distribution_tips
     where
