@@ -77,7 +77,7 @@ class TipCommand(Command):
             tip_text = f"r/{comment.subreddit.display_name} has had the following earn2tip tips this round:\n\n"
             for tip in result:
                 amount = round(float(tip["amount"]), 5)
-                tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total, {tip['average_tip_amount']} average)\n\n"
+                tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total, {round(tip['average_tip_amount'], 2)} average)\n\n"
 
         # todo pull this logic out into a def
         #  it is repeated in another place and it will also make the code testable
