@@ -16,6 +16,9 @@ python3.11 ../ad_hoc/build_tips_output.py
 
 cd ../out
 
+echo "git pull"
+git pull
+
 echo "git add (in case a new file is available"
 git add . --force
 
