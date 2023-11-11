@@ -3910,5 +3910,17 @@
         "parent_content_id": "t1_k8tvizz",
         "community": "ethtrader",
         "created_date": "2023-11-11 14:46:42.602711"
+    },
+    {
+        "from_user": "F-machine",
+        "from_address": "0x6b2Dfb8f1F88A400E3aad648d9D8A1a5E1820a7b",
+        "to_address": "0x52a7f4e8904F70Ea831ED31511b35AadCB36b1d9",
+        "to_user": "bvandepol",
+        "amount": 1,
+        "token": "donut",
+        "content_id": "t1_k8ufjm2",
+        "parent_content_id": "t1_k8u7pfe",
+        "community": "ethtrader",
+        "created_date": "2023-11-11 15:53:36.420446"
     }
 ]
