@@ -3922,5 +3922,17 @@
         "parent_content_id": "t1_k8u7pfe",
         "community": "ethtrader",
         "created_date": "2023-11-11 15:53:36.420446"
+    },
+    {
+        "from_user": "goldyluckinblokchain",
+        "from_address": "0xbfE08A5301906f5B5C1DB7E61Ae5A9420afcAF4A",
+        "to_address": "0xCA7faf6c0441049e2F449fbA86B77587987A21Fe",
+        "to_user": "Friendly-Airline2426",
+        "amount": 6.9,
+        "token": "donut",
+        "content_id": "t1_k8uxqms",
+        "parent_content_id": "t1_k8ssozg",
+        "community": "ethtrader",
+        "created_date": "2023-11-11 17:43:23.852149"
     }
 ]
