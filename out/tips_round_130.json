@@ -4462,5 +4462,17 @@
         "parent_content_id": "t3_17tjmmu",
         "community": "ethtrader",
         "created_date": "2023-11-12 08:05:52.058434"
+    },
+    {
+        "from_user": "Electrical_Tension",
+        "from_address": "0xFbF271152D5F4220D8c8340052c2e1E8451b9728",
+        "to_address": "0x09028949bEf4b51709e0b149Ed67D9B2f802a2E7",
+        "to_user": "crayontastegood",
+        "amount": 1.69,
+        "token": "donut",
+        "content_id": "t1_k8xiyux",
+        "parent_content_id": "t3_17tjb9k",
+        "community": "ethtrader",
+        "created_date": "2023-11-12 08:36:56.699614"
     }
 ]
