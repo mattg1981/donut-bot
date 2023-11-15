@@ -6754,5 +6754,17 @@
         "parent_content_id": "t1_k9erxtq",
         "community": "ethtrader",
         "created_date": "2023-11-15 15:05:46.574923"
+    },
+    {
+        "from_user": "Fredzoor",
+        "from_address": "0x45051312DeA7a0b7302bCbCCC979E88e28a08e3F",
+        "to_address": "0xa51731189c99832A2ba2f28C6c2dc1Db451F3a2e",
+        "to_user": "kirtash93",
+        "amount": 3,
+        "token": "donut",
+        "content_id": "t1_k9ewkzc",
+        "parent_content_id": "t3_17w0mr3",
+        "community": "ethtrader",
+        "created_date": "2023-11-15 15:31:01.259924"
     }
 ]
