@@ -6070,5 +6070,17 @@
         "parent_content_id": "t3_17vehum",
         "community": "ethtrader",
         "created_date": "2023-11-14 17:09:03.934194"
+    },
+    {
+        "from_user": "dead-spiral",
+        "from_address": "0x7687fbc6D50EA1620105A0e271B8Cb6239905121",
+        "to_address": "0xbE8793cE3eA65A70BdA8C0364981f900Ad80d9dB",
+        "to_user": "reddito321",
+        "amount": 6.9,
+        "token": "donut",
+        "content_id": "t1_k9ai0bx",
+        "parent_content_id": "t1_k9adp02",
+        "community": "ethtrader",
+        "created_date": "2023-11-14 18:50:52.822857"
     }
 ]
