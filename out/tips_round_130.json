@@ -7354,5 +7354,17 @@
         "parent_content_id": "t3_17wmvu7",
         "community": "ethtrader",
         "created_date": "2023-11-16 08:00:41.543427"
+    },
+    {
+        "from_user": "MrPuma86",
+        "from_address": "0xe50B88C71E72138b20B5dB56254a7953D9813683",
+        "to_address": "0xa51731189c99832A2ba2f28C6c2dc1Db451F3a2e",
+        "to_user": "kirtash93",
+        "amount": 6.9,
+        "token": "donut",
+        "content_id": "t1_k9ibft1",
+        "parent_content_id": "t3_17w0mr3",
+        "community": "ethtrader",
+        "created_date": "2023-11-16 09:05:45.850773"
     }
 ]
