@@ -261,17 +261,11 @@ class TipCommand(Command):
         self.logger.info(f"  comment link: https://reddit.com/comments/{comment.submission.id}/_/{comment.id}")
 
         # handle '!tip status' command
-        # p = re.compile(f'{self.command_text}\\s+status')
-        # re_result = self.tip_status_regex.search(comment.body.lower())
-        # if re_result:
         if self.tip_status_regex.search(comment.body.lower()):
             self.handle_tip_status(comment)
             return
 
         # handle '!tip sub' command
-        # p = re.compile(f'{self.command_text}\\s+sub')
-        # re_result = self.tip_sub_regex.search(comment.body.lower())
-        # if re_result:
         if self.tip_sub_regex.search(comment.body.lower()):
             self.handle_tip_sub(comment)
             return
