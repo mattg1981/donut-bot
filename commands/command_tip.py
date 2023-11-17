@@ -245,7 +245,7 @@ class TipCommand(Command):
         self.leave_comment_reply(comment, comment_reply)
 
     def leave_comment_reply(self, comment, reply, set_processed=True):
-        sig = f'\n\n^(TEST donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
+        sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
         reply += sig
         if set_processed:
             database.set_processed_content(comment.fullname)
