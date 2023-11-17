@@ -197,7 +197,7 @@ class TipCommand(Command):
                 reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
 
         if len(funded_result) > 0:
-            reply = f"\n\nu/{comment.author.name} has **funded** the following to their account this round:\n\n"
+            reply += f"\n\nu/{comment.author.name} has **funded** the following to their account this round:\n\n"
             for fund in funded_result:
                 amount = round(float(fund["amount"]), 5)
                 reply += f"&ensp;&ensp;{amount} {fund['token']}\n\n"
