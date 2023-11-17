@@ -10,11 +10,18 @@ def get_address(address):
     if '.eth' not in address:
         return address
 
-    w3 = Web3(Web3.HTTPProvider(config["eth_public_node"]))
-    if w3.is_connected():
-        # dont do any error handling, let the process fail
-        eth_address = w3.ens.address(address)
-        return eth_address
+    for public_node in config["eth_public_nodes"]:
+        try:
+            print(f"  trying ETH node {public_node}...")
+
+            w3 = Web3(Web3.HTTPProvider(public_node))
+            if w3.is_connected():
+                # dont do any error handling, let the process fail
+                eth_address = w3.ens.address(address)
+                return eth_address
+
+        except Exception as e:
+            print(f"error: {e}")
 
 
 if __name__ == '__main__':
