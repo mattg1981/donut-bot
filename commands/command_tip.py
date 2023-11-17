@@ -177,6 +177,7 @@ class TipCommand(Command):
 
         sent_result = database.get_tips_sent_for_current_round_by_user(comment.author.name)
         received_result = database.get_tips_received_for_current_round_by_user(comment.author.name)
+        funded_result = database.get_funded_for_current_round_by_user(comment.author.name)
 
         reply = ""
         if len(sent_result) == 0:
@@ -194,6 +195,12 @@ class TipCommand(Command):
             for tip in received_result:
                 amount = round(float(tip["amount"]), 5)
                 reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
+
+        if len(funded_result) > 0:
+            reply = f"\n\nu/{comment.author.name} has **funded** the following to their account this round:\n\n"
+            for fund in funded_result:
+                amount = round(float(fund["amount"]), 5)
+                reply += f"&ensp;&ensp;{amount} {fund['token']}\n\n"
 
         self.leave_comment_reply(comment, reply)
 

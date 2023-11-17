@@ -166,6 +166,24 @@ def get_tips_received_for_current_round_by_user(user):
         cur.execute(sql, [user])
         return cur.fetchall()
 
+def get_funded_for_current_round_by_user(user):
+    sql = """
+    SELECT u.username, token, sum(amount) 'amount' 
+    FROM funded_account fund 	
+      inner join users u on fund.from_address = u.address COLLATE NOCASE
+      inner join distribution_rounds dr
+    WHERE fund.processed_at BETWEEN dr.from_date and dr.to_date 
+        and u.username = ?
+        and DATE() between dr.from_date and dr.to_date
+    GROUP BY u.username, token
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(sql, [user])
+        return cur.fetchall()
+
 
 def get_db_path():
     base_dir = os.path.dirname(os.path.abspath(__file__))
