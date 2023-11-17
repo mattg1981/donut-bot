@@ -1,5 +1,5 @@
 from unittest import TestCase
-import commands.database as db
+import database.database as db
 
 
 class Test(TestCase):

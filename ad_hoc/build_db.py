@@ -10,7 +10,7 @@ if __name__ == '__main__':
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.schema.db")
     db_path = os.path.normpath(db_path)
 
-    sql = """
+    tables_and_views = """
     CREATE TABLE `distribution_rounds` (
 		`id` integer not null primary key autoincrement,
 		`from_date` datetime not null,
@@ -28,6 +28,7 @@ if __name__ == '__main__':
 		`token` NVARCHAR2 not null,
 		`content_id` NVARCHAR2 null,
 		`parent_content_id` NVARCHAR2 null,
+		`submission_content_id` NVARCHAR2 null,
 		`community` nvarchar2 not null,
 		`created_date` datetime not null default CURRENT_TIMESTAMP,
 		`processed_date` datetime null
@@ -55,6 +56,27 @@ if __name__ == '__main__':
 		`last_updated` datetime not null default CURRENT_TIMESTAMP
 	);
 	
+	CREATE TABLE `funded_account` (
+        `id` integer not null primary key autoincrement,
+        `from_address` NVARCHAR2 not null,
+        `blockchain_amount` FLOAT not null,
+        `amount` FLOAT not null,
+        `token` NVARCHAR2 not null,
+        `block_number` INTEGER not null,
+        `tx_hash` NVARCHAR2 not null,
+        `tx_timestamp` varchar(255) not null,
+        `processed_at` DATETIME null,
+        `created_at` datetime not null default CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE `settings` (
+        `id` integer not null primary key autoincrement,
+        `setting` NVARCHAR2 not null,
+        `value` NVARCHAR2 null,
+        `updated_at` DATETIME not null default CURRENT_TIMESTAMP,
+        `created_at` datetime not null default CURRENT_TIMESTAMP
+      );
+	
 	CREATE VIEW view_sub_distribution_tips (community, token, distribution_round, tip_count, amount, average_tip_amount) as
     SELECT
       tip.community,
@@ -79,5 +101,12 @@ if __name__ == '__main__':
 
     with sqlite3.connect(db_path) as db:
         cursor = db.cursor()
+        cursor.executescript(tables_and_views)
 
-        cursor.execute(sql)
+        # add required data now
+        cursor.execute("insert into settings (setting, value, updated_at, created_at) values (?,?,?,?)",
+                       ['funded_account_last_block', 30952176, datetime.now(), datetime.now()])
+
+        cursor.execute("insert into settings (setting, value, updated_at, created_at) values (?,?,?,?)",
+                       ['funded_account_last_runtime', datetime.now(), datetime.now(), datetime.now()])
+

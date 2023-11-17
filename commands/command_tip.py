@@ -1,16 +1,38 @@
 import re
 
-from commands import database
+from database import database
 from commands.command import Command
 from commands.command_register import RegisterCommand
+from models.tip import Tip
 
 
 class TipCommand(Command):
-    VERSION = 'v0.1.20231102-tip'
+    VERSION = 'v0.1.20231114-tip'
 
     def __init__(self, config):
         super(TipCommand, self).__init__(config)
         self.command_text = "!tip"
+
+        delimiters = "\r", "\n"
+        newline_pattern = '|'.join(map(re.escape, delimiters))
+        self.newline_regex = re.compile(newline_pattern)
+
+        earn2tip_pattern = f"{self.command_text}\s+([uU]\/[A-Za-z0-9_-]+\s+)*([0-9]*\.*[0-9]+)\s*(\w+)*"
+        self.earn2tip_regex = re.compile(earn2tip_pattern)
+
+        self.tip_status_regex = re.compile(f'{self.command_text}\\s+status')
+        self.tip_sub_regex = re.compile(f'{self.command_text}\\s+sub')
+
+        # find all the configured tokens for this sub
+        self.valid_tokens = {}
+        self.logger.debug("  getting community tokens")
+        community_tokens = self.config["community_tokens"]
+        for ct in community_tokens:
+            community = ct["community"].lower()
+            if community[:2] == "r/":
+                community = community[2:]
+
+            self.valid_tokens[community] = ct["tokens"]
 
     def normalize_amount(self, amount):
         """
@@ -32,6 +54,114 @@ class TipCommand(Command):
             self.logger.error(f"  invalid amount specified: {amount}")
             self.logger.error(f'  {e}')
             return -1
+
+    def parse_comments_for_tips(self, comment):
+        """
+        Parses and returns a list of tips parsed from the passed in comment.
+        :param comment: the reddit comment
+        :return: a list of tips parsed from the comment
+        """
+        tips = []
+
+        comment_lines = self.newline_regex.split(comment.body)
+
+        for line in comment_lines:
+            search_results = self.earn2tip_regex.findall(line)
+
+            # no match on this line
+            if not search_results:
+                continue
+
+            for search_result in search_results:
+                self.logger.info("  earn2tip detected...")
+                recipient = search_result[0]
+                amount = search_result[1]
+                token = search_result[2]
+
+                is_valid = True
+                message = ""
+
+                community = comment.subreddit.display_name.lower()
+                sender = comment.author.name
+
+                if recipient:
+                    recipient = recipient[2:].strip()
+                else:
+                    recipient = comment.parent().author.name
+
+                if not token:
+                    default_token = next(x for x in self.valid_tokens[community] if x["is_default"])
+                    token = default_token["name"].strip()
+                else:
+                    # determine if its a valid token
+                    token_lookup = next((x for x in self.valid_tokens[community] if x["name"].lower() == token.lower()),
+                                        None)
+
+                    # if we did not find the token, lets try to handle plural case.
+                    # e.g. 'donuts' was supplied but the token is 'donut'
+                    if not token_lookup:
+                        if token.lower()[-1] == 's':
+                            token = token.lower()[:-1]
+                            token_lookup = next(
+                                (x for x in self.valid_tokens[community] if x["name"].lower() == token.lower()), None)
+
+                    # we were not able to find the token
+                    if not token_lookup:
+                        is_valid = False
+                        message = f"❌ Sorry u/{sender}, `{token}` is not a valid token for this sub."
+
+                if is_valid:
+                    normalized_amount = self.normalize_amount(amount)
+                    if normalized_amount <= 0:
+                        is_valid = False
+                        self.logger.error(f"  invalid amount!")
+                        self.logger.error(f"  comment body: {repr(comment.body)}")
+                        message = f"❌ Sorry u/{sender}, that amount is invalid!"
+                    else:
+                        amount = normalized_amount
+
+                # only do the address lookup if we have an otherwise valid tip
+                sender_address = None
+                recipient_address = None
+                if is_valid:
+                    self.logger.info(f"  getting user addresses for sender: {sender} and recipient: {recipient}")
+
+                    result = database.get_users_by_name([sender, recipient])
+                    for r in result:
+                        if r["username"].lower() == sender.lower():
+                            sender_address = r["address"]
+                        if r["username"].lower() == recipient.lower():
+                            recipient_address = r["address"]
+
+                    if not sender_address:
+                        is_valid = False
+                        reg = RegisterCommand(None)
+                        self.logger.info("  sender not registered")
+                        message = (f"❌ Sorry u/{comment.author.name} - you are not registered.  Please use "
+                                   f"the [{reg.command_text} command]({self.config['e2t_post']}) to register.")
+
+                    if is_valid and sender_address == recipient_address:
+                        is_valid = False
+                        self.logger.info("  attempted self tipping")
+                        message = f"❌ Sorry u/{sender}, you cannot tip yourself!"
+
+                if is_valid:
+                    message = f"u/{sender} has tipped u/{recipient} {amount} {token}"
+
+                    if not recipient_address:
+                        self.logger.info("  parent is not registered")
+                        message += (f"\n\n⚠️ u/{recipient} is not currently registered and will not receive "
+                                    f"this tip unless they [register]({self.config['e2t_post']}) before this round ends.")
+
+                tip = Tip(sender, sender_address, recipient,
+                          recipient_address, amount, token,
+                          comment.fullname, comment.parent().fullname,
+                          comment.submission.id, community, is_valid, message)
+
+                self.logger.info(f"  {tip}")
+                tips.append(tip)
+
+        return tips
 
     def handle_tip_status(self, comment):
         self.logger.info("  user checking status")
@@ -92,30 +222,33 @@ class TipCommand(Command):
 
         self.leave_comment_reply(comment, tip_text + token_reply)
 
-    def process_earn2tip(self, comment, user_address, parent_address, parent_username, amount, token, content_id,
-                         parent_content_id, community):
-        result = database.process_earn2tip(user_address,
-                                           parent_address,
-                                           parent_username,
-                                           amount,
-                                           token,
-                                           content_id,
-                                           parent_content_id,
-                                           community)
+    def do_onchain_or_fallback_tip(self, comment):
+        # just !tip (or some sort of edge case that fell through and will
+        # get a default comment)
 
-        if not result:
-            reply = "Error saving tip to the database.  Please try again later."
-        else:
-            reply = f"u/{comment.author.name} has tipped u/{parent_username} {amount} {token}"
-            if not parent_address:
-                reply += f"\n\nNOTE: u/{parent_username} is not currently registered and will not receive the tip until they do so."
+        # first get parent 'thing' information
+        parent_author = comment.parent().author.name
+        parent_result = database.get_user_by_name(parent_author)
 
-        self.leave_comment_reply(comment, reply)
+        self.logger.info("  on-chain tipping (or fallback)")
+        content_id = comment.parent().fullname
+        desktop_link = f"https://www.donut.finance/tip/?action=tip&contentId={content_id}"
 
-    def leave_comment_reply(self, comment, reply):
-        sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
+        if content_id[:3] == "t1_":
+            desktop_link += f"&recipient={parent_author}&address={parent_result['address']}"
+
+        mobile_link = f"https://metamask.app.link/dapp/{desktop_link}"
+
+        comment_reply = f"**[Leave a tip]** [Desktop]({desktop_link}) | [Mobile (Metamask Only)]({mobile_link})"
+        comment_reply += ("\n\n*The mobile link works best on iOS if you use the "
+                          "System Default Browser in the Reddit Client (Settings > Open Links > Default Browser)*")
+        self.leave_comment_reply(comment, comment_reply)
+
+    def leave_comment_reply(self, comment, reply, set_processed=True):
+        sig = f'\n\n^(TEST donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
         reply += sig
-        database.set_processed_content(comment.fullname)
+        if set_processed:
+            database.set_processed_content(comment.fullname)
         comment.reply(reply)
 
     def process_comment(self, comment):
@@ -125,161 +258,40 @@ class TipCommand(Command):
             self.logger.info("  previously processed...")
             return
 
+        self.logger.info(f"  comment link: https://reddit.com/comments/{comment.submission.id}/_/{comment.id}")
+
         # handle '!tip status' command
-        p = re.compile(f'{self.command_text}\\s+status')
-        re_result = p.search(comment.body.lower())
-        if re_result:
+        # p = re.compile(f'{self.command_text}\\s+status')
+        # re_result = self.tip_status_regex.search(comment.body.lower())
+        # if re_result:
+        if self.tip_status_regex.search(comment.body.lower()):
             self.handle_tip_status(comment)
             return
 
         # handle '!tip sub' command
-        p = re.compile(f'{self.command_text}\\s+sub')
-        re_result = p.search(comment.body.lower())
-        if re_result:
+        # p = re.compile(f'{self.command_text}\\s+sub')
+        # re_result = self.tip_sub_regex.search(comment.body.lower())
+        # if re_result:
+        if self.tip_sub_regex.search(comment.body.lower()):
             self.handle_tip_sub(comment)
             return
 
-        parent_author = comment.parent().author.name
-        # parent_result = None
-        user_address = None
-        parent_address = None
-
-        self.logger.info(f"  getting user addresses for {comment.author.name} and {parent_author}")
-        result = database.get_users_by_name([comment.author.name, parent_author])
-
-        for r in result:
-            if r["username"].lower() == comment.author.name.lower():
-                user_address = r["address"]
-            if r["username"].lower() == parent_author.lower():
-                # parent_result = r
-                parent_address = r["address"]
-
-        if not user_address:
-            self.logger.info("  user not registered")
-            reg = RegisterCommand(None)
-            self.leave_comment_reply(comment,
-                                     f"Cannot tip u/{parent_author} - you are not registered.  Please use the {reg.command_text} command to register!")
+        tips = self.parse_comments_for_tips(comment)
+        if not tips:
+            self.do_onchain_or_fallback_tip(comment)
             return
 
-        if not parent_address:
-            self.logger.info("  parent is not registered")
-            # if not parent_result:
-            #     self.logger.info("  parent not in db .. adding")
-            #     parent_result = database.add_unregistered_user(parent_author, comment.fullname)
-            #     if not parent_result:
-            #         self.logger.info("  failed to add to db")
-            #         self.leave_comment_reply(comment,
-            #                                  f"Cannot tip u/{parent_author} at this time.  Please try again later.")
-            #         return
+        reply = ""
+        for idx, tip in enumerate(tips):
+            reply += tip.message
+            if idx < len(tips) - 1:
+                reply += '\n\n'
 
-        if user_address == parent_address:
-            self.logger.info("  attempted self tipping")
-            self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, you cannot tip yourself!")
-            return
-
-        # find all the configured tokens for this sub
-        self.logger.debug("  getting community tokens")
-        valid_tokens = {}
-        community_tokens = self.config["community_tokens"]
-        for ct in community_tokens:
-            if ct["community"].lower() == f"r/{comment.subreddit.display_name.lower()}":
-                valid_tokens = ct["tokens"]
-
-        # find default token for this sub
-        self.logger.debug("  getting community default token")
-        default_token_meta = {}
-        for t in valid_tokens:
-            if t["is_default"]:
-                default_token_meta = t
-                break
-
-        is_earn2tip = False
-        parsed_token = ""
-        amount = 0
-
-        #  !tip 10\n\nComment on new line
-        #  !tip 10\nSingle return (mobile)
-        #  !tip 10\n\nSingle return (mobile)
-        p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
-        re_result = p.search(comment.body.lower())
-        if re_result:
-            amount = re_result.group(1)
-            is_earn2tip = True
-
-        if not is_earn2tip:
-            #  !tip 10 donut
-            #  !tip 10 donut with a comment after the tip
-            #  !tip 10 donut/n/nWith new lines after the tip
-            p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)')
-            re_result = p.search(comment.body.lower())
-            if re_result:
-                amount = re_result.group(1)
-                parsed_token = re_result.group(2)
-                is_earn2tip = True
-
-        if not is_earn2tip:
-            #  !tip 10
-            p = re.compile(f'{self.command_text}\\s+([0-9]*\\.*[0-9]*)\\s*')
-            re_result = p.search(comment.body.lower())
-            if re_result:
-                amount = re_result.group(1)
-                is_earn2tip = True
-
-        if is_earn2tip:
-            self.logger.info("  earn2tip")
-            token_meta = {}
-
-            if not parsed_token:
-                self.logger.info("  default token")
-                token_meta = default_token_meta
-            else:
-                for t in valid_tokens:
-                    if t["name"].lower() == parsed_token.lower():
-                        token_meta = t
-                        break
-
-                    # handle plural case.  e.g. 'donuts' was supplied but the token is 'donut'
-                    if parsed_token.lower()[-1] == 's':
-                        if t["name"].lower() == parsed_token.lower()[:-1]:
-                            token_meta = t
-                            break
-
-            if not token_meta:
-                self.logger.info(f"  not a valid token!")
-                self.leave_comment_reply(comment,
-                                         f"Sorry u/{comment.author.name}, `{parsed_token}` is not a valid token!")
-                return
-
-            normalized_amount = self.normalize_amount(amount)
-            if normalized_amount <= 0:
-                self.logger.info(f"  comment body: {repr(comment.body)}")
-                self.leave_comment_reply(comment, f"Sorry u/{comment.author.name}, that amount is invalid!")
-                return
-
-            self.process_earn2tip(comment,
-                                  user_address,
-                                  parent_address,
-                                  parent_author,
-                                  normalized_amount,
-                                  token_meta["name"],
-                                  comment.fullname,
-                                  comment.parent().fullname,
-                                  comment.subreddit.display_name)
-            return
-
-        # just !tip (or some sort of edge case that fell through and will
-        # get a default comment)
-        self.logger.info("  on-chain tipping (or fallback)")
-        content_id = comment.parent().fullname
-        desktop_link = f"https://www.donut.finance/tip/?action=tip&contentId={content_id}"
-
-        if content_id[:3] == "t1_":
-            desktop_link += f"&recipient={parent_author}&address={parent_address}"
-
-        mobile_link = f"https://metamask.app.link/dapp/{desktop_link}"
-
-        comment_reply = f"**[Leave a tip]** [Desktop]({desktop_link}) | [Mobile (Metamask Only)]({mobile_link})"
-        comment_reply += ("\n\n*The mobile link works best on iOS if you use the "
-                          "System Default Browser in the Reddit Client (Settings > Open Links > Default Browser)*")
-
-        self.leave_comment_reply(comment, comment_reply)
+        valid_tips = [t for t in tips if t.is_valid]
+        if not valid_tips:
+            self.leave_comment_reply(comment, reply)
+        elif database.process_earn2tips(valid_tips):
+            self.leave_comment_reply(comment, reply, False)
+        else:
+            self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "
+                                              f"tip at this time.  Please try again later!")

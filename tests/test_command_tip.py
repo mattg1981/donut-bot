@@ -1,3 +1,5 @@
+import json
+import os
 import re
 from unittest import TestCase
 
@@ -6,25 +8,51 @@ from commands.command_tip import TipCommand
 
 class TestTipCommand(TestCase):
     def test_can_handle(self):
-        tip = TipCommand("config")
+        with open(os.path.normpath("../config.json"), 'r') as f:
+            config = json.load(f)
+
+        tip = TipCommand(config)
+
         if not tip.can_handle("!tip"):
             self.fail()
 
         if not tip.can_handle("!tip "):
             self.fail()
 
-        comment = "'I am so sorry bro, I did not notice it.\n\n!tip 10'"
 
-        print(comment)
-        print(repr(comment))
-        # comment = comment.replace("\r", "")
-        # comment = comment.replace("\n", "")
+        comment0 = "!tip 20"
 
-        if "!tip" in comment:
-            pass
+        comment1 = "I am so sorry bro, I did not notice it.\n\n!tip 10"
 
-        if not tip.can_handle(comment):
+        comment2 = """!tip u/aminok 8 donut
+jakdfk
+!tip 20
+lakdfk
+!tip 10 donut !tip 20 donut
+!tip 10 !tip 15
+!tip u/aminok 15 !tip u/mattg1981 20 donut
+aldkflakf
+!tip u/am 20
+!tip 10"""
+
+        comment3 = """
+        I like to onchain tip.
+        !tip
+        """
+
+        comment4 = """
+            !tip 4 donuts
+            !tip 3 xdai
+        """
+
+        if not tip.can_handle(comment0):
             self.fail()
+
+        tips0 = tip.parse_comments_for_tips(comment0)
+        tips1 = tip.parse_comments_for_tips(comment1)
+        tips2 = tip.parse_comments_for_tips(comment2)
+        tips3 = tip.parse_comments_for_tips(comment3)
+        tips4 = tip.parse_comments_for_tips(comment4)
 
         p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
         re_result = p.search(comment.lower())

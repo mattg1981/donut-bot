@@ -1,22 +1,25 @@
 from web3 import Web3
 
-from commands import database
+from database import database
 from commands.command import Command
 import re
 
 
 class RegisterCommand(Command):
-    VERSION = 'v0.1.20231102-reg'
+    VERSION = 'v0.1.20231114-reg'
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION})'
 
     def __init__(self, config):
         super(RegisterCommand, self).__init__(config)
         self.command_text = "!register"
 
+        self.register_address_regex = re.compile(f'{self.command_text}\\s+<*(0x[a-fA-F0-9]{{40}})>*')
+        self.register_ens_regex = re.compile(f'{self.command_text}\\s+<*([\\w+.-]+.eth)>*')
+
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_SIGNATURE
-        comment.reply(reply)
         database.set_processed_content(comment.fullname)
+        comment.reply(reply)
 
     def process_comment(self, comment):
         self.logger.info(f"process reg command - content_id: {comment.fullname} | author: {comment.author.name}")
@@ -24,6 +27,8 @@ class RegisterCommand(Command):
         if database.has_processed_content(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
+
+        self.logger.info(f"  comment link: https://reddit.com/comments/{comment.submission.id}/_/{comment.id}")
 
         user = comment.author.name
 
@@ -44,8 +49,7 @@ class RegisterCommand(Command):
             return
 
         # handle `!register <address>` command
-        p = re.compile(f'{self.command_text}\\s+(0x[a-fA-F0-9]{{40}})\\b')
-        re_result = p.search(comment.body)
+        re_result = self.register_address_regex.search(comment.body)
         if re_result:
             address = re_result.group(1)
 
@@ -77,8 +81,7 @@ class RegisterCommand(Command):
                 return
 
         # handle `!register <ENS address>` command
-        p = re.compile(f'{self.command_text}\\s+([\\w+.-]+.eth)')
-        re_result = p.search(comment.body)
+        re_result = self.register_ens_regex.search(comment.body)
         if re_result:
             self.logger.info("  ENS address")
             ens_address = re_result.group(1)
@@ -95,40 +98,44 @@ class RegisterCommand(Command):
                                                       f'address.')
                 return
 
-            try:
-                self.logger.info("  attempting to resolve ENS...")
-                w3 = Web3(Web3.HTTPProvider(self.config["eth_public_node"]))
-                if w3.is_connected():
-                    self.logger.info("  connected to public node...")
+            self.logger.info("  attempting to resolve ENS...")
+            for public_node in self.config["eth_public_nodes"]:
+                try:
+                    self.logger.info(f"  trying ETH node {public_node}...")
 
-                    # check to verify the ENS address resolves
-                    eth_address = w3.ens.address(ens_address)
+                    w3 = Web3(Web3.HTTPProvider(public_node))
+                    if w3.is_connected():
+                        self.logger.info("  connected to public node...")
 
-                    if eth_address is None:
-                        self.logger.warn("  ENS did not resolve...")
-                        self.leave_comment_reply(comment,
-                                                 f'The ENS name specified `{ens_address}` does not currently resolve '
-                                                 f'to an address. Unable to register ENS address at this time.  '
-                                                 f'Please ensure you typed the correct address or try again later.')
+                        # check to verify the ENS address resolves
+                        eth_address = w3.ens.address(ens_address)
+
+                        if eth_address is None:
+                            self.logger.warn("  ENS did not resolve...")
+                            self.leave_comment_reply(comment,
+                                                     f'The ENS name specified `{ens_address}` does not currently resolve '
+                                                     f'to an address. Unable to register ENS address at this time.  '
+                                                     f'Please ensure you typed the correct address or try again later.')
+                            return
+
+                        result = database.insert_or_update_address(user, ens_address, comment.fullname)
+
+                        if result:
+                            self.logger.info("  success...")
+                            self.leave_comment_reply(comment, f'u/{user} successfully registered with `{ens_address}`')
+                        else:
+                            self.logger.warn("  unable to register wallet at this time.")
+                            self.leave_comment_reply(comment, f'Unable to register ENS address at this time.  Please '
+                                                              f'ensure you typed the correct address or try again later.')
+
                         return
 
-                    result = database.insert_or_update_address(user, ens_address, comment.fullname)
-
-                    if result:
-                        self.logger.info("  success...")
-                        self.leave_comment_reply(comment, f'u/{user} successfully registered with `{ens_address}`')
-                    else:
-                        self.logger.warn("  unable to register wallet at this time.")
-                        self.leave_comment_reply(comment, f'Unable to register ENS address at this time.  Please '
-                                                          f'ensure you typed the correct address or try again later.')
-
+                    # we have tried all the public eth nodesand they all failed
+                    self.leave_comment_reply(comment, f'Unable to register ENS address at this time.  Please ensure'
+                                                      f' you typed the correct address or try again later.')
                     return
-
-            except Exception as e:
-                self.logger.error(e)
-                self.leave_comment_reply(comment, f'Unable to register ENS address at this time.  Please ensure'
-                                                  f' you typed the correct address or try again later.')
-                return
+                except Exception as e:
+                    self.logger.error(e)
 
         self.logger.warn(f"  invalid address format or no address was supplied")
         self.leave_comment_reply(comment, f"Invalid address.  Please ensure the address is in the format '0x' "

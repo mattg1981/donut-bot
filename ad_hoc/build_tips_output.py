@@ -25,6 +25,7 @@ if __name__ == '__main__':
       e.token,
       e.content_id,
       e.parent_content_id,
+      e.submission_content_id,
       e.community,
       e.created_date
     from
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         cursor.execute(rounds_query)
         rounds_result = cursor.fetchone()
 
-    # i loaded distribution round data for 2 rounds prior to the tip bot
+    # I loaded distribution round data for 2 rounds prior to the tip bot
     # going live - so I add two to the min
     r_min = rounds_result["min"] + 2
     r_max = rounds_result["max"]

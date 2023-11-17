@@ -19,22 +19,6 @@ def get_users_by_name(users):
                     ','.join('?' * len(users)), users)
         return cur.fetchall()
 
-
-# def add_unregistered_user(user, content_id):
-#     query = """
-#         INSERT INTO users (username, content_id, last_updated)
-#         SELECT ?, ?, ?
-#         WHERE NOT EXISTS (SELECT 1 FROM users WHERE username=?)
-#         RETURNING *
-#     """
-#
-#     with sqlite3.connect(get_db_path()) as db:
-#         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-#         cur = db.cursor()
-#         cur.execute(query, [user, content_id, datetime.now(), user])
-#         return cur.fetchall()
-
-
 def get_user_by_address(address):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -90,22 +74,37 @@ def insert_or_update_address(user, address, content_id):
         return cursor.fetchone()
 
 
-def process_earn2tip(user_address, parent_address, parent_name, amount, token, content_id, parent_content_id,
-                     community):
+def process_earn2tips(tips):
     sql = """
     INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, 
-                          parent_content_id, community, created_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
-    RETURNING *
+                          parent_content_id, submission_content_id, community, created_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
     """
 
+    history_sql = "INSERT INTO history (content_id) VALUES(?) RETURNING *;"
+    content_id = tips[0].content_id
+
+    created_date = datetime.now()
+    data = []
+
+    for tip in tips:
+        tip.created_date = created_date
+        data.append((tip.sender_address, tip.recipient_address, tip.recipient_name, tip.amount, tip.token,
+                     tip.content_id, tip.parent_content_id, tip.submission_content_id, tip.community, created_date))
+
     with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        db.isolation_level = None
         cur = db.cursor()
-        cur.execute(sql,
-                    [user_address, parent_address, parent_name, amount, token, content_id, parent_content_id, community,
-                     datetime.now()])
-        return cur.fetchone()
+
+        cur.execute("begin")
+        try:
+            cur.executemany(sql, data)
+            cur.execute(history_sql, [content_id])
+            cur.execute("commit")
+            return True
+        except sqlite3.Error as e:
+            cur.execute("rollback")
+            return False
 
 
 def get_sub_status_for_current_round(subreddit):
@@ -170,5 +169,5 @@ def get_tips_received_for_current_round_by_user(user):
 
 def get_db_path():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(base_dir, "../database/donut-bot.db")
+    db_path = os.path.join(base_dir, "donut-bot.db")
     return os.path.normpath(db_path)

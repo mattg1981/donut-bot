@@ -2,7 +2,38 @@
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
   "praw_user_agent": "donut-bot (by u/mattg1981)",
-  "eth_public_node": "https://ethereum.publicnode.com",
+  "eth_public_nodes": [
+    "https://eth.llamarpc.com",
+    "https://ethereum.publicnode.com",
+    "https://ethereum.blockpi.network/v1/rpc/public",
+    "https://eth-mainnet.diamondswap.org/rpc",
+    "https://eth.merkle.io",
+    "https://eth-pokt.nodies.app",
+    "https://eth.drpc.org",
+    "https://gateway.tenderly.co/public/mainnet",
+    "https://endpoints.omniatech.io/v1/eth/mainnet/public",
+    "https://virginia.rpc.blxrbdn.com"
+  ],
+  "gno_public_nodes": [
+    "https://gnosis.blockpi.network/v1/rpc/public",
+    "https://gnosis.api.onfinality.io/public",
+    "https://gnosis.publicnode.com",
+    "https://gnosis-pokt.nodies.app",
+    "https://gnosis.oat.farm",
+    "https://gnosis.drpc.org",
+    "https://gnosis-mainnet.public.blastapi.io",
+    "https://rpc.ap-southeast-1.gateway.fm/v4/gnosis/non-archival/mainnet",
+    "https://endpoints.omniatech.io/v1/gnosis/mainnet/public",
+    "https://1rpc.io/gnosis"
+  ],
+  "multi_sig_address":"0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
+  "account_funded_message": "Hi #NAME#, donut-bot has located the following transaction on the blockchain and funded your account to use for tipping.  Any remaining balance not used in your account will be credited on your next distribution.  You can also verify this information by using the **!tip status** command!\n\n**TX HASH:** #TX_HASH#\n\n**AMOUNT:** #AMOUNT#\n\n**TOKEN:** #TOKEN#",
+  "funded_accounts_to_ignore": [
+    {
+      "account": "EthTraderCommunity",
+      "address": "0xf7927bf0230c7b0e82376ac944aeedc3ea8dfa25"
+    }
+  ],
   "e2t_post": "https://www.reddit.com/r/ethtrader/comments/17q24e7/introducing_donutbot_register_and_tip_commands/",
   "community_tokens": [
     {
@@ -11,7 +42,10 @@
         {
           "name": "donut",
           "icon": ":donut:",
-          "is_default": true
+          "is_default": true,
+          "chain": "gnosis",
+          "chain_id": 10,
+          "contract_address": "0x524b969793a64a602342d89bc2789d43a016b13a"
         }
       ]
     }
