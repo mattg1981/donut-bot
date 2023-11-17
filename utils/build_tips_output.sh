@@ -4,7 +4,7 @@
 #  outputs tip information, commits the file and pushes
 #
 
-echo "begin building new users.json file..."
+echo "begin building tips output file..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
