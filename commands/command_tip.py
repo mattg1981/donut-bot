@@ -63,7 +63,7 @@ class TipCommand(Command):
         """
         tips = []
 
-        comment_lines = self.newline_regex.split(comment.body)
+        comment_lines = self.newline_regex.split(comment.body.lower())
 
         for line in comment_lines:
             search_results = self.earn2tip_regex.findall(line)
