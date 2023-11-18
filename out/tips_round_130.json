@@ -10229,5 +10229,70 @@
         "submission_content_id": "17xu8oq",
         "community": "ethtrader",
         "created_date": "2023-11-18 08:05:01.897331"
+    },
+    {
+        "from_user": "Every_Hunt_160",
+        "from_address": "0x51fa5238F563A48B050bdc69A1Ca91358f1BB337",
+        "to_address": "0xbE8793cE3eA65A70BdA8C0364981f900Ad80d9dB",
+        "to_user": "reddito321",
+        "amount": 1.69,
+        "token": "donut",
+        "content_id": "t1_k9rmjxp",
+        "parent_content_id": "t3_17xu8oq",
+        "submission_content_id": "17xu8oq",
+        "community": "ethtrader",
+        "created_date": "2023-11-18 08:23:18.811556"
+    },
+    {
+        "from_user": "bvandepol",
+        "from_address": "0x52a7f4e8904F70Ea831ED31511b35AadCB36b1d9",
+        "to_address": "0xCA7faf6c0441049e2F449fbA86B77587987A21Fe",
+        "to_user": "Friendly-Airline2426",
+        "amount": 1.69,
+        "token": "donut",
+        "content_id": "t1_k9rn25a",
+        "parent_content_id": "t1_k9rmwso",
+        "submission_content_id": "17xtm5z",
+        "community": "ethtrader",
+        "created_date": "2023-11-18 08:27:40.062301"
+    },
+    {
+        "from_user": "Fredzoor",
+        "from_address": "0x45051312DeA7a0b7302bCbCCC979E88e28a08e3F",
+        "to_address": "0x52a7f4e8904F70Ea831ED31511b35AadCB36b1d9",
+        "to_user": "bvandepol",
+        "amount": 2.69,
+        "token": "donut",
+        "content_id": "t1_k9rnhfl",
+        "parent_content_id": "t1_k9rn25a",
+        "submission_content_id": "17xtm5z",
+        "community": "ethtrader",
+        "created_date": "2023-11-18 08:31:22.528398"
+    },
+    {
+        "from_user": "Every_Hunt_160",
+        "from_address": "0x51fa5238F563A48B050bdc69A1Ca91358f1BB337",
+        "to_address": "0x9a8321d07BfD79f9B8A87DB28cE8885C4045f64e",
+        "to_user": "Honey_-_Badger",
+        "amount": 6.9,
+        "token": "donut",
+        "content_id": "t1_k9rni47",
+        "parent_content_id": "t1_k9rn0qf",
+        "submission_content_id": "17xtm5z",
+        "community": "ethtrader",
+        "created_date": "2023-11-18 08:31:28.178946"
+    },
+    {
+        "from_user": "Every_Hunt_160",
+        "from_address": "0x51fa5238F563A48B050bdc69A1Ca91358f1BB337",
+        "to_address": "0x2dBB136D8DC31698ADA7C56E0853C255629d0cA6",
+        "to_user": "FattestLion",
+        "amount": 1,
+        "token": "donut",
+        "content_id": "t1_k9rnudp",
+        "parent_content_id": "t1_k9rmwzz",
+        "submission_content_id": "17xtm5z",
+        "community": "ethtrader",
+        "created_date": "2023-11-18 08:34:34.837315"
     }
 ]
