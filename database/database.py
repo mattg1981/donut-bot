@@ -7,7 +7,7 @@ def get_user_by_name(user):
     with sqlite3.connect(get_db_path(), isolation_level=None) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("SELECT * FROM users WHERE username=?", [user])
+        cur.execute("SELECT * FROM users WHERE username=? COLLATE NOCASE", [user])
         return cur.fetchone()
 
 
@@ -15,7 +15,7 @@ def get_users_by_name(users):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('SELECT * FROM users WHERE username IN (%s)' %
+        cur.execute('SELECT * FROM users WHERE username COLLATE NOCASE IN (%s)' %
                     ','.join('?' * len(users)), users)
         return cur.fetchall()
 
@@ -23,7 +23,7 @@ def get_user_by_address(address):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("SELECT * FROM users WHERE address=?", [address])
+        cur.execute("SELECT * FROM users WHERE address=? COLLATE NOCASE", [address])
         return cur.fetchone()
 
 
@@ -64,7 +64,7 @@ def insert_or_update_address(user, address, content_id):
 
         if exists:
             cursor.execute(
-                "UPDATE users SET address=?, content_id=?, last_updated=? WHERE username=? "
+                "UPDATE users SET address=?, content_id=?, last_updated=? WHERE username=? COLLATE NOCASE"
                 "RETURNING *", [address, content_id, datetime.now(), user])
         else:
             cursor.execute(
@@ -138,7 +138,7 @@ def get_tips_sent_for_current_round_by_user(user):
     FROM earn2tip tip 	
     inner join distribution_rounds dr 
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
-      and from_address = (SELECT address from users where username = ?) 
+      and from_address = (SELECT address from users where username = ? COLLATE NOCASE) COLLATE NOCASE
       and DATE() between dr.from_date and dr.to_date
     GROUP BY from_address, token
     """
@@ -155,7 +155,7 @@ def get_tips_received_for_current_round_by_user(user):
     FROM earn2tip tip 	
     inner join distribution_rounds dr 
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
-        and to_address = (SELECT address from users where username = ?) 
+        and to_address = (SELECT address from users where username = ? COLLATE NOCASE) COLLATE NOCASE
         and DATE() between dr.from_date and dr.to_date
     GROUP BY to_address, token
     """
@@ -173,7 +173,7 @@ def get_funded_for_current_round_by_user(user):
       inner join users u on fund.from_address = u.address COLLATE NOCASE
       inner join distribution_rounds dr
     WHERE fund.processed_at BETWEEN dr.from_date and dr.to_date 
-        and u.username = ?
+        and u.username = ? COLLATE NOCASE
         and DATE() between dr.from_date and dr.to_date
     GROUP BY u.username, token
     """
