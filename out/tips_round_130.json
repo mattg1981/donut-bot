@@ -12270,5 +12270,44 @@
         "submission_content_id": "17zbibh",
         "community": "ethtrader",
         "created_date": "2023-11-20 06:06:01.502676"
+    },
+    {
+        "from_user": "vmguld",
+        "from_address": "0x31Bf9c97dDEe30309E76878df7c6Be1F2F2354Be",
+        "to_address": null,
+        "to_user": "BusinessTaxGuy",
+        "amount": 3,
+        "token": "donut",
+        "content_id": "t1_ka0b7i9",
+        "parent_content_id": "t3_17zkp3s",
+        "submission_content_id": "17zkp3s",
+        "community": "ethtrader",
+        "created_date": "2023-11-20 06:19:22.254325"
+    },
+    {
+        "from_user": "Ben_Pars",
+        "from_address": "0xE7577A26478a5f70E1b85D3288be13E41072429C",
+        "to_address": "0xe7F3c9746282d534f8C90fD410624333e23AC565",
+        "to_user": "pythonskynet",
+        "amount": 1,
+        "token": "donut",
+        "content_id": "t1_ka0dbrv",
+        "parent_content_id": "t3_17zncvq",
+        "submission_content_id": "17zncvq",
+        "community": "ethtrader",
+        "created_date": "2023-11-20 06:41:27.738931"
+    },
+    {
+        "from_user": "Every_Hunt_160",
+        "from_address": "0x51fa5238F563A48B050bdc69A1Ca91358f1BB337",
+        "to_address": "0xe7F3c9746282d534f8C90fD410624333e23AC565",
+        "to_user": "pythonskynet",
+        "amount": 1.6,
+        "token": "donut",
+        "content_id": "t1_ka0fdem",
+        "parent_content_id": "t3_17zncvq",
+        "submission_content_id": "17zncvq",
+        "community": "ethtrader",
+        "created_date": "2023-11-20 07:01:21.951996"
     }
 ]
