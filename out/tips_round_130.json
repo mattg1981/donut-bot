@@ -12712,5 +12712,44 @@
         "submission_content_id": "18001pp",
         "community": "ethtrader",
         "created_date": "2023-11-20 16:07:12.283355"
+    },
+    {
+        "from_user": "Ok_Election7896",
+        "from_address": "0x8DfdD8E1f2EA3f70C7a5f0a42903A8239a83d313",
+        "to_address": "0x870d6C65E99EeE634165150282c68Ee88A5eC6b1",
+        "to_user": "ASingleGuitarString",
+        "amount": 2,
+        "token": "donut",
+        "content_id": "t1_ka2t5w5",
+        "parent_content_id": "t3_18001pp",
+        "submission_content_id": "18001pp",
+        "community": "ethtrader",
+        "created_date": "2023-11-20 16:31:33.849170"
+    },
+    {
+        "from_user": "Friendly-Airline2426",
+        "from_address": "0xCA7faf6c0441049e2F449fbA86B77587987A21Fe",
+        "to_address": "0xd762e68a2d30ab4d836683c421121AbB5b3e1DcC",
+        "to_user": "mattg1981",
+        "amount": 6.9,
+        "token": "donut",
+        "content_id": "t1_ka2wegh",
+        "parent_content_id": "t1_ka2thoj",
+        "submission_content_id": "17zbibh",
+        "community": "ethtrader",
+        "created_date": "2023-11-20 16:52:21.738673"
+    },
+    {
+        "from_user": "foreignGER",
+        "from_address": "0x3E0231812cA1b81c180DA4537B8F2eb4Df380e32",
+        "to_address": "0xbfE08A5301906f5B5C1DB7E61Ae5A9420afcAF4A",
+        "to_user": "goldyluckinblokchain",
+        "amount": 1.2,
+        "token": "donut",
+        "content_id": "t1_ka2yz5x",
+        "parent_content_id": "t3_1801gvo",
+        "submission_content_id": "1801gvo",
+        "community": "ethtrader",
+        "created_date": "2023-11-20 17:09:08.077813"
     }
 ]
