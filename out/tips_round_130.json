@@ -11841,5 +11841,18 @@
         "submission_content_id": "17z872r",
         "community": "ethtrader",
         "created_date": "2023-11-19 22:44:04.757814"
+    },
+    {
+        "from_user": "boiboi3434",
+        "from_address": "0x556F5911Bc0F3a14b3427BB6d3e84c8022E44b20",
+        "to_address": "0xb89CB46A5Cf811b99A3608C8b9e63aD0DE990Fe0",
+        "to_user": "Buzzalu",
+        "amount": 6.9,
+        "token": "donut",
+        "content_id": "t1_k9zg7ah",
+        "parent_content_id": "t1_k9z9gj7",
+        "submission_content_id": "17zbibh",
+        "community": "ethtrader",
+        "created_date": "2023-11-19 23:26:34.205312"
     }
 ]
