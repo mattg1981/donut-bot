@@ -15429,5 +15429,83 @@
         "submission_content_id": "180gtt9",
         "community": "ethtrader",
         "created_date": "2023-11-21 11:54:57.060336"
+    },
+    {
+        "from_user": "InevitableComplex895",
+        "from_address": "0xe1C712Df934f18486A7605D80ca0B310340A4E52",
+        "to_address": "0x2ccE323E044Fe6669Bc7286f5445A20c93890d2b",
+        "to_user": "MonitorFlat229",
+        "amount": 5,
+        "token": "donut",
+        "content_id": "t1_ka6tbra",
+        "parent_content_id": "t3_180l3gv",
+        "submission_content_id": "180l3gv",
+        "community": "ethtrader",
+        "created_date": "2023-11-21 12:10:26.359854"
+    },
+    {
+        "from_user": "goldyluckinblokchain",
+        "from_address": "0xbfE08A5301906f5B5C1DB7E61Ae5A9420afcAF4A",
+        "to_address": "0xc9Cb73C552b09E225a15EAe1b9005A8F0d956250",
+        "to_user": "Atorcran",
+        "amount": 1.69,
+        "token": "donut",
+        "content_id": "t1_ka6xztl",
+        "parent_content_id": "t3_180nwy4",
+        "submission_content_id": "180nwy4",
+        "community": "ethtrader",
+        "created_date": "2023-11-21 12:38:25.194569"
+    },
+    {
+        "from_user": "HarryDotter420",
+        "from_address": "0x5520E1534d617D353c4AC182FF298689ee2Fe91E",
+        "to_address": "0x4df57f4A62f05dDB2eC4e6749677AA8e77740a2E",
+        "to_user": "Lokiee0077",
+        "amount": 1,
+        "token": "donut",
+        "content_id": "t1_ka71j3g",
+        "parent_content_id": "t3_180nn3g",
+        "submission_content_id": "180nn3g",
+        "community": "ethtrader",
+        "created_date": "2023-11-21 12:59:29.512698"
+    },
+    {
+        "from_user": "dead-spiral",
+        "from_address": "0x7687fbc6D50EA1620105A0e271B8Cb6239905121",
+        "to_address": "0x97EB58F86F1b67561990C933eB7a8426d139fa58",
+        "to_user": "yester_philippines",
+        "amount": 2,
+        "token": "donut",
+        "content_id": "t1_ka72cn1",
+        "parent_content_id": "t3_180eboj",
+        "submission_content_id": "180eboj",
+        "community": "ethtrader",
+        "created_date": "2023-11-21 13:04:27.172586"
+    },
+    {
+        "from_user": "yester_philippines",
+        "from_address": "0x97EB58F86F1b67561990C933eB7a8426d139fa58",
+        "to_address": "0x3cC47c557E985Cb8b52d1E263a1296fd2097121c",
+        "to_user": "Elon_mkus",
+        "amount": 1,
+        "token": "donut",
+        "content_id": "t1_ka72e6v",
+        "parent_content_id": "t3_180nilv",
+        "submission_content_id": "180nilv",
+        "community": "ethtrader",
+        "created_date": "2023-11-21 13:04:41.569497"
+    },
+    {
+        "from_user": "Fredzoor",
+        "from_address": "0x45051312DeA7a0b7302bCbCCC979E88e28a08e3F",
+        "to_address": null,
+        "to_user": "cointelegraph1",
+        "amount": 3,
+        "token": "donut",
+        "content_id": "t1_ka72xn7",
+        "parent_content_id": "t3_180lkt9",
+        "submission_content_id": "180lkt9",
+        "community": "ethtrader",
+        "created_date": "2023-11-21 13:07:57.681227"
     }
 ]
