@@ -76,6 +76,25 @@ if __name__ == '__main__':
         `updated_at` DATETIME not null default CURRENT_TIMESTAMP,
         `created_at` datetime not null default CURRENT_TIMESTAMP
       );
+      
+      CREATE TABLE onchain_tip (
+            id           INTEGER         NOT NULL
+                                         PRIMARY KEY AUTOINCREMENT,
+            from_address NVARCHAR2       NOT NULL
+                                         COLLATE NOCASE,
+            to_address   NVARCHAR2       NOT NULL
+                                         COLLATE NOCASE,
+            tx_hash      NVARCHAR2       NOT NULL
+                                         COLLATE NOCASE,
+            block        BIGINT,
+            amount       DECIMAL (10, 5) NOT NULL,
+            token        NVARCHAR2       NOT NULL,
+            content_id   NVARCHAR2,
+            timestamp    DATETIME        NOT NULL,
+            created_date DATETIME        NOT NULL
+                                         DEFAULT CURRENT_TIMESTAMP
+        );
+
 	
 	CREATE VIEW view_sub_distribution_tips (community, token, distribution_round, tip_count, amount, average_tip_amount) as
     SELECT

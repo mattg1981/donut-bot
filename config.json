@@ -27,6 +27,7 @@
     "https://1rpc.io/gnosis"
   ],
   "multi_sig_address":"0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
+  "tipping_contract_address": "0xF40e98033eb722CC6B4a64F7b37737d56eCB17EF",
   "account_funded_message": "Hi #NAME#, donut-bot has located the following transaction on the blockchain and funded your account to use for tipping.  Any remaining balance not used in your account will be credited on your next distribution.  You can also verify this information by using the **!tip status** command!\n\n**TX HASH:** #TX_HASH#\n\n**AMOUNT:** #AMOUNT#\n\n**TOKEN:** #TOKEN#",
   "funded_accounts_to_ignore": [
     {
