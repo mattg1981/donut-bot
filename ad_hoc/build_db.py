@@ -77,24 +77,33 @@ if __name__ == '__main__':
         `created_at` datetime not null default CURRENT_TIMESTAMP
       );
       
-      CREATE TABLE onchain_tip (
-            id           INTEGER         NOT NULL
-                                         PRIMARY KEY AUTOINCREMENT,
-            from_address NVARCHAR2       NOT NULL
-                                         COLLATE NOCASE,
-            to_address   NVARCHAR2       NOT NULL
-                                         COLLATE NOCASE,
-            tx_hash      NVARCHAR2       NOT NULL
-                                         COLLATE NOCASE,
-            block        BIGINT,
-            amount       DECIMAL (10, 5) NOT NULL,
-            token        NVARCHAR2       NOT NULL,
-            content_id   NVARCHAR2,
-            timestamp    DATETIME        NOT NULL,
-            created_date DATETIME        NOT NULL
-                                         DEFAULT CURRENT_TIMESTAMP
-        );
-
+    CREATE TABLE onchain_tip (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        from_address NVARCHAR2 NOT NULL COLLATE NOCASE,
+        to_address NVARCHAR2 NOT NULL COLLATE NOCASE,
+        tx_hash NVARCHAR2 NOT NULL COLLATE NOCASE,
+        block BIGINT,
+        amount DECIMAL(10, 5) NOT NULL,
+        token NVARCHAR2 NOT NULL,
+        content_id NVARCHAR2,
+        timestamp DATETIME NOT NULL,
+        created_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+        
+    CREATE TABLE `multisig_tips` (
+        `id` integer not null primary key autoincrement,
+        `from_address` NVARCHAR2 not null,
+        `to_address` NVARCHAR2 null,
+        `author` NVARCHAR2 null,
+        `tx_hash` NVARCHAR2 not null,
+        `block_number` BIGINT not null,
+        `amount` DECIMAL not null,
+        `token` NVARCHAR2 not null,
+        `timestamp` DATETIME not null,
+        `content_id` NVARCHAR2 not null,
+        `distributed_at` DATETIME null,
+        `created_at` datetime not null default CURRENT_TIMESTAMP
+    );
 	
 	CREATE VIEW view_sub_distribution_tips (community, token, distribution_round, tip_count, amount, average_tip_amount) as
     SELECT
