@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
     # write new csv
     with open(f"../out/round_{DISTRIBUTION_ROUND}_with_tip_distribution_and_funding.csv", 'w') as output_file:
-        writer = csv.DictWriter(output_file, csv_records[0].keys())
+        writer = csv.DictWriter(output_file, csv_records[0].keys(), extrasaction='ignore')
         writer.writeheader()
         writer.writerows(csv_records)
 
