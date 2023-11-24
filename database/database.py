@@ -7,7 +7,7 @@ def get_user_by_name(user):
     with sqlite3.connect(get_db_path(), isolation_level=None) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("SELECT * FROM users WHERE username=? COLLATE NOCASE", [user])
+        cur.execute("SELECT * FROM users WHERE username=? COLLATE NOCASE;", [user])
         return cur.fetchone()
 
 
@@ -15,7 +15,7 @@ def get_users_by_name(users):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('SELECT * FROM users WHERE username COLLATE NOCASE IN (%s)' %
+        cur.execute('SELECT * FROM users WHERE username COLLATE NOCASE IN (%s);' %
                     ','.join('?' * len(users)), users)
         return cur.fetchall()
 
@@ -23,7 +23,7 @@ def get_user_by_address(address):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("SELECT * FROM users WHERE address=? COLLATE NOCASE", [address])
+        cur.execute("SELECT * FROM users WHERE address=? COLLATE NOCASE;", [address])
         return cur.fetchone()
 
 
@@ -31,7 +31,7 @@ def has_processed_content(content_id):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('SELECT id FROM history WHERE content_id = ?', [content_id])
+        cur.execute('SELECT id FROM history WHERE content_id = ?;', [content_id])
         return cur.fetchone()
 
 
@@ -39,7 +39,7 @@ def set_processed_content(content_id):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('INSERT INTO history (content_id) VALUES(?) RETURNING *', [content_id])
+        cur.execute('INSERT INTO history (content_id) VALUES(?) RETURNING *;', [content_id])
         return cur.fetchone()
 
 
@@ -47,29 +47,31 @@ def remove_processed_content(content_id):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute("DELETE FROM history WHERE content_id = ?", [content_id])
+        cur.execute("DELETE FROM history WHERE content_id = ?;", [content_id])
 
 
 def insert_or_update_address(user, address, content_id):
-    result = None
-    user_address = get_user_by_name(user)
-
-    exists = True
-    if user_address is None:
-        exists = False
+    user_result = get_user_by_name(user)
 
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
 
-        if exists:
-            cursor.execute(
-                "UPDATE users SET address=?, content_id=?, last_updated=? WHERE username=? COLLATE NOCASE"
-                "RETURNING *", [address, content_id, datetime.now(), user])
+        if user_result:
+            sql = """
+                UPDATE users 
+                SET address=?, content_id=?, last_updated=? 
+                WHERE username=? COLLATE NOCASE
+                RETURNING *;
+            """
+            cursor.execute(sql, [address, content_id, datetime.now(), user])
         else:
-            cursor.execute(
-                "INSERT INTO users (username, address, content_id, last_updated) VALUES (?,?,?,?) RETURNING *",
-                [user, address, content_id, datetime.now()])
+            sql = """
+                INSERT INTO users (username, address, content_id, last_updated) 
+                VALUES (?,?,?,?) 
+                RETURNING *;
+            """
+            cursor.execute(sql,[user, address, content_id, datetime.now()])
 
         return cursor.fetchone()
 
@@ -78,7 +80,7 @@ def process_earn2tips(tips):
     sql = """
     INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, 
                           parent_content_id, submission_content_id, community, created_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;
     """
 
     history_sql = "INSERT INTO history (content_id) VALUES(?) RETURNING *;"
