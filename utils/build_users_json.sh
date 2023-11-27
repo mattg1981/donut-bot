@@ -18,7 +18,7 @@ python3.11 ../ad_hoc/build_users_json.py
 cp -fr ../temp/users.json ../../donut.distribution/docs/
 cd ../../donut.distribution/docs/
 
-echo "pull pull"
+echo "git pull"
 git pull
 
 echo "git commit..."
