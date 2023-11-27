@@ -117,6 +117,9 @@ if __name__ == '__main__':
 
         # add_tippee = False
 
+        if from_user['username'] == 'diarpiiiii':
+            pass
+
         if not from_user or not to_user:
             # either the tipper or the receiver was not in the csv file
             if not from_user:
@@ -142,10 +145,10 @@ if __name__ == '__main__':
         # user didnt have enough to tip
         if float(old_sender_val) < tip_amount:
             logger.warning(f"user: [{tip['from_user']}] tipped but did not have enough funds to cover the tip [prev balance: {old_sender_val}]")
-            logger.warning(f"original tip amount: {tip_amount} -> amount materialized: {old_sender_val}")
             tip_amount = float(old_sender_val)
-
-            if tip_amount <= 0:
+            if tip_amount > 0:
+                logger.warning(f"original tip amount: {tip_amount} -> amount materialized: {old_sender_val}")
+            else:
                 logger.warning(f"no amount materialized")
                 continue
 
