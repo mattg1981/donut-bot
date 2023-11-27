@@ -117,9 +117,6 @@ if __name__ == '__main__':
 
         # add_tippee = False
 
-        if from_user['username'] == 'diarpiiiii':
-            pass
-
         if not from_user or not to_user:
             # either the tipper or the receiver was not in the csv file
             if not from_user:
