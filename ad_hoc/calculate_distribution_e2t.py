@@ -156,6 +156,9 @@ if __name__ == '__main__':
 
     logger.info("outputting .csv")
 
+    # sort by points
+    csv_records.sort(key=lambda x: float(x['points']), reverse=True)
+
     # write new csv
     with open(f"../out/round_{DISTRIBUTION_ROUND}_with_tip_distribution_and_funding.csv", 'w') as output_file:
         writer = csv.DictWriter(output_file, csv_records[0].keys(), extrasaction='ignore')
