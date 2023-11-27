@@ -1,4 +1,5 @@
 /.env
-/logs/donut-bot.log
 /venv/
+/logs/*.log
 /database/*.db
+/out/*.json

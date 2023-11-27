@@ -15,6 +15,8 @@ echo "building tip output file"
 python3.11 ../ad_hoc/build_tips_output.py
 
 cd ../out
+cp -fr .tips_round_* ../../donut-bot-output/tips/
+cd ../../donut-bot-output/tips/
 
 echo "git pull"
 git pull
