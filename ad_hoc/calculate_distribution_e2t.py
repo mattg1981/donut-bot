@@ -147,6 +147,7 @@ if __name__ == '__main__':
                 logger.warning(f"original tip amount: {tip_amount} -> amount materialized: {old_sender_val}")
             else:
                 logger.warning(f"no amount materialized")
+                logger.warning("")
                 continue
 
         from_user['points'] = float(from_user['points']) - float(tip_amount)
