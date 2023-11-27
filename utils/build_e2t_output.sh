@@ -15,7 +15,7 @@ echo "applying tips and funded accounts"
 python3.11 ../ad_hoc/calculate_distribution_e2t.py
 
 cd ../out
-cp -fr ../round_* ../../donut-bot-output/csv/
+cp -fr ./round_* ../../donut-bot-output/csv/
 cd ../../donut-bot-output/csv/
 
 echo "git pull"
