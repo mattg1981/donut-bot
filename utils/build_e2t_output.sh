@@ -16,13 +16,17 @@ python3.11 ../ad_hoc/calculate_distribution_e2t.py
 
 cd ../out
 cp -fr ./round_* ../../donut-bot-output/csv/
-cd ../../donut-bot-output/csv/
+
+cd ../logs
+cp -fr ./calculate_distribution_e2t* ../../donut-bot-output/logs/
+
+cd ../../donut-bot-output/
 
 echo "git pull"
 git pull
 
 echo "git add (in case a new file is available"
-git add . --force
+git add --all --force
 
 echo "git commit..."
 git commit -m "applied e2t tips ${TIMESTAMP_DAY} ${TIMESTAMP}" *
