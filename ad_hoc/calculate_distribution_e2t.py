@@ -33,13 +33,12 @@ if __name__ == '__main__':
     # get funded accounts
     with sqlite3.connect(db_path) as db:
         funded_account_sql = """
-            SELECT u.username, u.address, token, sum(amount) 'amount' 
+            SELECT u.username, u.address, fund.token, fund.amount, fund.tx_hash 
             FROM funded_account fund 	
               inner join users u on fund.from_address = u.address COLLATE NOCASE
             WHERE fund.processed_at BETWEEN 
               (select from_date from distribution_rounds where distribution_round = ?)  and 
               (select to_date from distribution_rounds where distribution_round = ?) 
-            GROUP BY u.username, u.address, token;
         """
 
         tips_sql = """
@@ -79,7 +78,7 @@ if __name__ == '__main__':
     # apply funded account tokens
     for fa in funded_accounts:
         logger.info(
-            f"  processing funded account: [user]: {fa['username']} [amount]: {fa['amount']} [token]: {fa['token']}")
+            f"  processing funded account: [user]: {fa['username']} [amount]: {fa['amount']} [token]: {fa['token']} [tx_hash]: {fa['tx_hash']}")
 
         record = next((x for x in csv_records if x["username"].lower() == fa["username"].lower()), None)
 
