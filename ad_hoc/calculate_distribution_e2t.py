@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     # set up logging
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    log_name = os.path.basename(__file__)[:-3]
+    log_name = f"{os.path.basename(__file__)[:-3]}_round_{DISTRIBUTION_ROUND}"
     logger = logging.getLogger(log_name)
     logger.setLevel(logging.INFO)
 
