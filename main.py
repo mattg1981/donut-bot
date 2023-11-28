@@ -61,7 +61,7 @@ if __name__ == '__main__':
         try:
             # for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
             for comment in reddit.subreddit(subs).stream.comments():
-                if comment.author.name == username:
+                if not comment.author or comment.author.name == username:
                     continue
 
                 # if using pause_after, uncomment the code below
