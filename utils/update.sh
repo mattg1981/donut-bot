@@ -14,6 +14,15 @@ else
    echo "donut-bot not running..."
 fi
 
+FLAIR_PID=$( cat ../bots/flair.pid )
+
+if ps -p $FLAIR_PID > /dev/null; then
+   echo "flair-bot is running, stopping process..."
+   kill -9 $FLAIR_PID
+else
+   echo "flair-bot not running..."
+fi
+
 #LS_STATUS="$(systemctl is-active litestream)"
 #if [ "$LS_STATUS" == "active" ]; then
 #  echo "litestream replication is running, stopping ..."
@@ -48,5 +57,5 @@ chmod +x donut-bot.sh
 chmod +x utils/*
 
 echo "completed successfully"
-echo "starting donut-bot..."
+echo "starting bots..."
 ./donut-bot.sh
