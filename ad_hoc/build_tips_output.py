@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     tips_query = """
     select
-      u.username 'from_user',
+      e.from_user,
       e.from_address,
       e.to_address,
       e.to_user,
@@ -30,7 +30,6 @@ if __name__ == '__main__':
       e.created_date
     from
       earn2tip e
-      left join users u on e.from_address = u.address COLLATE NOCASE
     where
       created_date between (
         select
