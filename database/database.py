@@ -78,9 +78,9 @@ def insert_or_update_address(user, address, content_id):
 
 def process_earn2tips(tips):
     sql = """
-    INSERT INTO earn2tip (from_address, to_address, to_user, amount, token, content_id, 
+    INSERT INTO earn2tip (from_user, from_address, to_user, to_address, amount, token, content_id, 
                           parent_content_id, submission_content_id, community, created_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;
     """
 
     history_sql = "INSERT INTO history (content_id) VALUES(?) RETURNING *;"
@@ -91,7 +91,7 @@ def process_earn2tips(tips):
 
     for tip in tips:
         tip.created_date = created_date
-        data.append((tip.sender_address, tip.recipient_address, tip.recipient_name, tip.amount, tip.token,
+        data.append((tip.sender_name, tip.sender_address, tip.recipient_name, tip.recipient_address,  tip.amount, tip.token,
                      tip.content_id, tip.parent_content_id, tip.submission_content_id, tip.community, created_date))
 
     with sqlite3.connect(get_db_path()) as db:
