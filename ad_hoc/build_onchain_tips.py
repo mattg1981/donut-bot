@@ -112,6 +112,8 @@ if __name__ == '__main__':
         tip_transactions = [x for x in url_result['result']]
         results.extend(tip_transactions)
 
+        logger.info(f"  found {len(tip_transactions)} tips!")
+
         max_block = max(tip['blockNumber'] for tip in results)
 
         if len(tip_transactions) < offsetSize:
