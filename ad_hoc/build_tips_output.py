@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     tips_query = """
     select
-      COALESCE(e.from_user, u.username),
+      COALESCE(e.from_user, u.username) 'from_user',
       e.from_address,
       e.to_address,
       e.to_user,
