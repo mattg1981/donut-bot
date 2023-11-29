@@ -32,7 +32,7 @@ if __name__ == '__main__':
         UNION
         
         SELECT 
-          u1.username 'from_user'
+          COALESCE(e.from_user, u1.username) 'from_user'
           , e.from_address
           , e.to_user
           , u2.address 'to_address'
