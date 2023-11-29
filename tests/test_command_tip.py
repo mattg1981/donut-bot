@@ -3,11 +3,51 @@ import os
 import re
 from unittest import TestCase
 
+import praw
+from dotenv import load_dotenv
+
 from commands.command_tip import TipCommand
 
 
 class TestTipCommand(TestCase):
+
+
+
+
     def test_can_handle(self):
+        # load environment variables
+        load_dotenv()
+
+        with open(os.path.normpath("../config.json"), 'r') as f:
+            config = json.load(f)
+
+        tip = TipCommand(config)
+
+        reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
+                             client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+                             username=os.getenv('REDDIT_USERNAME'),
+                             password=os.getenv('REDDIT_PASSWORD'),
+                             user_agent=config["praw_user_agent"])
+
+        comment = reddit.comment(id='kasy9fi')
+        if not tip.can_handle(comment.body):
+            self.fail()
+
+        self.assertEqual(True, True)
+
+        comment_body = """Awesome post.
+
+The key is, as you've pointed out, to provide Liquidity in a ranging market.... Such as we have right now ;)
+
+!tip 1"""
+
+
+
+
+
+
+
+
         with open(os.path.normpath("../config.json"), 'r') as f:
             config = json.load(f)
 
