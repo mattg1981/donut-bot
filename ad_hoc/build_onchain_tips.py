@@ -86,15 +86,6 @@ if __name__ == '__main__':
     if not max_block:
         max_block = 0
 
-    #  handle edge case where the last update may have returned > 10,000 records.
-    #  we remove all records from the lastest block in the database and then start
-    #  grabbing new tips from that block onward.
-    if max_block > 0:
-        with sqlite3.connect(db_path) as db:
-            db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-            cursor = db.cursor()
-            cursor.execute("delete from onchain_tip where block = ?", [max_block])
-
     api_key = os.getenv('GNOSIS_SCAN_IO_API_KEY')
     tippingContract = config["tipping_contract_address"]
     batch = 0
@@ -160,7 +151,7 @@ if __name__ == '__main__':
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
 
         sql = """
-            insert into onchain_tip (from_address, to_address, tx_hash, block, amount, token, content_id, timestamp)
+            insert or replace into onchain_tip (from_address, to_address, tx_hash, block, amount, token, content_id, timestamp)
             values (?,?,?,?,?,?,?,?)
         """
 
