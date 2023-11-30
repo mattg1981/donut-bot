@@ -55,8 +55,10 @@ if __name__ == '__main__':
                    `created_at` datetime not null default CURRENT_TIMESTAMP
                  );
 
-               CREATE UNIQUE INDEX IF NOT EXISTS
-                  user_id_idx on flair(username, ban_date);
+               CREATE UNIQUE INDEX bans_username_bandate ON bans (
+                    username,
+                    ban_date
+                );
            """
         cur = db.cursor()
         cur.executescript(build_table_and_index)
