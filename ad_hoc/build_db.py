@@ -11,28 +11,36 @@ if __name__ == '__main__':
     db_path = os.path.normpath(db_path)
 
     tables_and_views = """
-    CREATE TABLE `distribution_rounds` (
-		`id` integer not null primary key autoincrement,
-		`from_date` datetime not null,
-		`to_date` datetime not null,
-		`community` nvarchar2 not null,
-		`distribution_round` integer not null
-	);
+    CREATE TABLE distribution_rounds (
+        id                 INTEGER   NOT NULL
+                                     PRIMARY KEY AUTOINCREMENT,
+        from_date          DATETIME  NOT NULL,
+        to_date            DATETIME  NOT NULL,
+        community          NVARCHAR2 NOT NULL
+                                     COLLATE NOCASE,
+        distribution_round INTEGER   NOT NULL
+    );
 	
-	CREATE TABLE `earn2tip` (
-		`id` integer not null primary key autoincrement,
-		`from_address` NVARCHAR2 not null,
-		`to_address` NVARCHAR2 null,
-		`to_user` NVARCHAR2 null,
-		`amount` DECIMAL(10,5) not null,
-		`token` NVARCHAR2 not null,
-		`content_id` NVARCHAR2 null,
-		`parent_content_id` NVARCHAR2 null,
-		`submission_content_id` NVARCHAR2 null,
-		`community` nvarchar2 not null,
-		`created_date` datetime not null default CURRENT_TIMESTAMP,
-		`processed_date` datetime null
-	);
+	CREATE TABLE earn2tip (
+    id                    INTEGER         NOT NULL
+                                          PRIMARY KEY AUTOINCREMENT,
+    from_user             NVARCHAR2       COLLATE NOCASE,
+    from_address          NVARCHAR2       NOT NULL
+                                          COLLATE NOCASE,
+    to_user               NVARCHAR2       COLLATE NOCASE,
+    to_address            NVARCHAR2       COLLATE NOCASE,
+    amount                DECIMAL (10, 5) NOT NULL,
+    token                 NVARCHAR2       NOT NULL
+                                          COLLATE NOCASE,
+    content_id            NVARCHAR2,
+    parent_content_id     NVARCHAR2,
+    submission_content_id NVARCHAR2,
+    community             NVARCHAR2       NOT NULL
+                                          COLLATE NOCASE,
+    created_date          DATETIME        NOT NULL
+                                          DEFAULT CURRENT_TIMESTAMP,
+    processed_date        DATETIME
+);
 	
 	CREATE TABLE
 	`faucet` (
@@ -48,25 +56,33 @@ if __name__ == '__main__':
 		`created_at` datetime not null default CURRENT_TIMESTAMP
 	);
 	
-	CREATE TABLE `users` (
-		`id` integer not null primary key autoincrement,
-		`username` NVARCHAR2 not null,
-		`address` NVARCHAR2 null,
-		`content_id` NVARCHAR2 null,
-		`last_updated` datetime not null default CURRENT_TIMESTAMP
-	);
+	CREATE TABLE users (
+    id           INTEGER   NOT NULL
+                           PRIMARY KEY AUTOINCREMENT,
+    username     NVARCHAR2 NOT NULL
+                           COLLATE NOCASE,
+    address      NVARCHAR2 COLLATE NOCASE,
+    content_id   NVARCHAR2,
+    last_updated DATETIME  NOT NULL
+                           DEFAULT CURRENT_TIMESTAMP
+    );
 	
-	CREATE TABLE `funded_account` (
-        `id` integer not null primary key autoincrement,
-        `from_address` NVARCHAR2 not null,
-        `blockchain_amount` FLOAT not null,
-        `amount` FLOAT not null,
-        `token` NVARCHAR2 not null,
-        `block_number` INTEGER not null,
-        `tx_hash` NVARCHAR2 not null,
-        `tx_timestamp` varchar(255) not null,
-        `processed_at` DATETIME null,
-        `created_at` datetime not null default CURRENT_TIMESTAMP
+	
+    CREATE TABLE funded_account (
+        id                INTEGER       NOT NULL
+                                        PRIMARY KEY AUTOINCREMENT,
+        from_user         NVARCHAR2     COLLATE NOCASE,
+        from_address      NVARCHAR2     NOT NULL
+                                        COLLATE NOCASE,
+        blockchain_amount FLOAT         NOT NULL,
+        amount            FLOAT         NOT NULL,
+        token             NVARCHAR2     NOT NULL,
+        block_number      INTEGER       NOT NULL,
+        tx_hash           NVARCHAR2     NOT NULL,
+        tx_timestamp      VARCHAR (255) NOT NULL,
+        processed_at      DATETIME,
+        created_at        DATETIME      NOT NULL
+                                        DEFAULT CURRENT_TIMESTAMP
     );
     
     CREATE TABLE `settings` (
