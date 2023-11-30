@@ -32,8 +32,8 @@ if __name__ == '__main__':
         UNION
         
         SELECT 
-          COALESCE(e.from_user, u1.username) 'from_user'
-          , e.from_address
+          e.from_user
+          , u1.address 'from_address'
           , e.to_user
           , u2.address 'to_address'
           , 'offchain:' || e.id 'tx_hash'
@@ -42,7 +42,7 @@ if __name__ == '__main__':
           , e.created_date 'timestamp'
           , e.parent_content_id 'content_id'
         from earn2tip e
-          left join users u1 on e.from_address = u1.address collate nocase
+          left join users u1 on e.from_user = u1.username collate nocase
           left join users u2 on e.to_user = u2.username collate nocase
         where e.created_date between 
           (select from_date from distribution_rounds where distribution_round = ?) and (select to_date from distribution_rounds where distribution_round = ?)
