@@ -192,7 +192,24 @@ if __name__ == '__main__':
               );
               
             CREATE UNIQUE INDEX IF NOT EXISTS
-               user_id_idx on flair(user_id);
+               flair_user_id_idx on flair(user_id);
+               
+            CREATE VIEW IF NOT EXISTS view_flair_can_update (
+                username,
+                address,
+                hash,
+                last_update
+            )
+            AS
+                SELECT u.username,
+                       u.address,
+                       f.hash,
+                       f.last_update
+                  FROM users u
+                       LEFT JOIN
+                       flair f ON u.id = f.user_id
+                 WHERE f.last_update IS NULL OR 
+                       f.last_update <= Datetime('now', '-30 minutes', 'localtime');
         """
         cur = db.cursor()
         cur.executescript(build_table_and_index)
@@ -212,9 +229,9 @@ if __name__ == '__main__':
                 # get address for user
                 with sqlite3.connect(db_path) as db:
                     flair_sql = """
-                        select username, address 
+                        select username, address, hash
                         from view_flair_can_update 
-                        where username=? COLLATE NOCASE
+                        where username=?
                     """
                     db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
                     cur = db.cursor()
@@ -240,20 +257,25 @@ if __name__ == '__main__':
                 if result.stake > 0:
                     flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
 
-                logger.info("  setting flair...")
-                reddit.subreddit(subs).flair.set(comment.author.name,
+                flair_hash = hash(flair_text)
+
+                if flair_hash != user_lookup['hash']:
+                    logger.info("  setting flair...")
+                    reddit.subreddit(subs).flair.set(comment.author.name,
                                                  text=flair_text,
                                                  css_class="flair-default")
+                else:
+                    logger.info("  flair unchanged since last update...")
 
                 logger.info("  update last_update for flair")
                 with sqlite3.connect(db_path) as db:
                     update_sql = """       
-                        INSERT OR REPLACE INTO flair (user_id, last_update) 
-                        VALUES ((select id from users where username=? COLLATE NOCASE), ?)
+                        INSERT OR REPLACE INTO flair (user_id, hash, last_update) 
+                        VALUES ((select id from users where username=?), ?, ?)
                     """
                     db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
                     cur = db.cursor()
-                    cur.execute(update_sql, [comment.author.name, datetime.now()])
+                    cur.execute(update_sql, [comment.author.name, flair_hash, datetime.now()])
 
                 logger.info("  success.")
 
