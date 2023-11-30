@@ -1,14 +1,20 @@
 import csv
+import json
 import logging
 import os.path
 import sqlite3
-import requests
 
 from logging.handlers import RotatingFileHandler
+
+from web3 import Web3
 
 DISTRIBUTION_ROUND = 130
 
 if __name__ == '__main__':
+    # load config
+    with open(os.path.normpath("../config.json"), 'r') as f:
+        config = json.load(f)
+
     # locate database
     base_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(base_dir, "../database/donut-bot.db")
@@ -35,20 +41,18 @@ if __name__ == '__main__':
         funded_account_sql = """
             SELECT u.username, u.address, fund.token, fund.amount, fund.tx_hash 
             FROM funded_account fund 	
-              inner join users u on fund.from_address = u.address COLLATE NOCASE
+              inner join users u on fund.from_user = u.username
             WHERE fund.processed_at BETWEEN 
               (select from_date from distribution_rounds where distribution_round = ?)  and 
               (select to_date from distribution_rounds where distribution_round = ?) 
         """
 
         tips_sql = """
-            SELECT u.username 'from_user', e.* 
+            SELECT * 
             FROM earn2tip e
-            INNER JOIN users u on e.from_address = u.address COLLATE NOCASE
             WHERE created_date BETWEEN
               (select from_date from distribution_rounds where distribution_round = ?)  and 
               (select to_date from distribution_rounds where distribution_round = ?) 
-              -- AND to_address IS NOT NULL;
         """
 
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -115,17 +119,17 @@ if __name__ == '__main__':
         from_user = next((x for x in csv_records if x["username"].lower() == tip["from_user"].lower()), None)
         to_user = next((x for x in csv_records if x["username"].lower() == tip["to_user"].lower()), None)
 
-        # add_tippee = False
-
         if not from_user or not to_user:
             # either the tipper or the receiver was not in the csv file
             if not from_user:
                 logger.warning(f"tipper [{tip['from_user']}] not in csv, tip will not materialize... tip: {tip}")
                 continue
             else:
-                # will need to add the tippee to the csv_records dict
-                # add_tippee = True
+                # will need to add the receiver to the csv_records dict
                 logger.warning(f"tip receiver [{tip['to_user']}] was not in csv, adding now...")
+
+                # it is okay that we use tip[to_address] - even though this
+                # could be old/stale, it will get updated at the end of the file
                 to_user = {
                     "username": tip["to_user"],
                     "comments": 0,
@@ -158,10 +162,57 @@ if __name__ == '__main__':
         logger.info(f"[{tip['to_user']}] previous [points]: {old_recipient_val} -> new [points]: {to_user['points']}")
         logger.info("")
 
-    logger.info("outputting .csv")
+    # update to the latest address for each user, and also expand .ens names
+    logger.info("updating to latest user addresses on file and resolving .ens names")
+    with sqlite3.connect(db_path) as db:
+        latest_address = """
+            SELECT address 
+            FROM users 
+            WHERE username=? 
+        """
+
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cursor = db.cursor()
+
+        for csv_record in csv_records:
+            cursor.execute(latest_address, [csv_record['username']])
+            user_address = cursor.fetchone()
+
+            if not user_address:
+                logger.warning(f"  user [{csv_record['username']}] not found, skip updating address")
+
+            address = user_address['address']
+            if ".eth" in address:
+                logger.info(f"  resolving ENS address for user [{csv_record['username']}] -> ENS [{user_address['address']}]")
+                for public_node in config["eth_public_nodes"]:
+                    try:
+                        logger.info(f"  trying ETH node {public_node}...")
+
+                        w3 = Web3(Web3.HTTPProvider(public_node))
+                        if w3.is_connected():
+                            logger.info("  connected to public node...")
+
+                            # check to verify the ENS address resolves
+                            address = w3.ens.address(user_address['address'])
+                            logger.info(f"    ENS domain [{user_address['address']}] resolved to [{address}]...")
+
+                            if address is None:
+                                logger.warning("  ENS did not resolve...")
+
+                            break
+                    except Exception as e:
+                        logger.error(e)
+
+            if address != csv_record['blockchain_address']:
+                logger.info(f"  user [{csv_record['username']}] updating from address [{csv_record['blockchain_address']}] -> to [{address}]")
+                csv_record['blockchain_address'] = address
+
 
     # sort by points
+    logger.info("sorting dataset by points")
     csv_records.sort(key=lambda x: float(x['points']), reverse=True)
+
+    logger.info("outputting .csv")
 
     # write new csv
     with open(f"../out/round_{DISTRIBUTION_ROUND}_with_tip_distribution_and_funding.csv", 'w') as output_file:
