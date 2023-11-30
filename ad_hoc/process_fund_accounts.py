@@ -169,10 +169,10 @@ if __name__ == '__main__':
 
                         with sqlite3.connect(db_path) as db:
                             insert_sql = """
-                                INSERT INTO funded_account (from_address, blockchain_amount, amount, token, block_number, tx_hash, tx_timestamp, created_at)
-                                SELECT ?, ?, ?, ?, ?, ?, ?, ?
+                                INSERT INTO funded_account (from_user, from_address, blockchain_amount, amount, token, block_number, tx_hash, tx_timestamp, created_at)
+                                SELECT (select username from users where address =?), ?, ?, ?, ?, ?, ?, ?, ?
                                 WHERE NOT EXISTS (select 1 from funded_account where tx_hash = ?)
-                                RETURNING (select username from users where address = ? COLLATE NOCASE)
+                                RETURNING (select username from users where address = ?)
                             """
                             cursor = db.cursor()
                             cursor.execute(insert_sql, [from_address, blockchain_amount, amount, token, block,
