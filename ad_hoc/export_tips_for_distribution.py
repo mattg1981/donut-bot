@@ -1,10 +1,7 @@
 import csv
-import json
 import os.path
-import urllib.request
 import sqlite3
 
-from datetime import datetime
 
 if __name__ == '__main__':
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,8 +23,8 @@ if __name__ == '__main__':
           ,t.[timestamp]
           ,t.content_id
         FROM onchain_tip t
-         left join users u1 on t.from_address = u1.address collate nocase
-         left join users u2 on t.to_address = u2.address collate nocase
+         left join users u1 on t.from_address = u1.address
+         left join users u2 on t.to_address = u2.address
         
         UNION
         
@@ -42,8 +39,8 @@ if __name__ == '__main__':
           , e.created_date 'timestamp'
           , e.parent_content_id 'content_id'
         from earn2tip e
-          left join users u1 on e.from_user = u1.username collate nocase
-          left join users u2 on e.to_user = u2.username collate nocase
+          left join users u1 on e.from_user = u1.username 
+          left join users u2 on e.to_user = u2.username
         where e.created_date between 
           (select from_date from distribution_rounds where distribution_round = ?) and (select to_date from distribution_rounds where distribution_round = ?)
         
