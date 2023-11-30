@@ -198,7 +198,7 @@ if __name__ == '__main__':
         cur.executescript(build_table_and_index)
 
     # set flair for donut-bot once
-    reddit.subreddit(subs).flair.set('donut-bot', text='bot', css_class="flair-stats")
+    reddit.subreddit(subs).flair.set('donut-bot', text='bot', css_class="flair-default")
 
     while True:
         try:
