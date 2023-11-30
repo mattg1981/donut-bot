@@ -136,13 +136,13 @@ def get_sub_status_for_current_round(subreddit):
 
 def get_tips_sent_for_current_round_by_user(user):
     sql = """
-    SELECT from_address, token, count(tip.id) 'count', sum(amount) 'amount' 
+    SELECT from_user, token, count(tip.id) 'count', sum(amount) 'amount' 
     FROM earn2tip tip 	
-    inner join distribution_rounds dr 
+      inner join distribution_rounds dr 
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
-      and from_address = (SELECT address from users where username = ? COLLATE NOCASE) COLLATE NOCASE
+      and from_user = ? COLLATE NOCASE
       and DATE() between dr.from_date and dr.to_date
-    GROUP BY from_address, token
+    GROUP BY from_user, token
     """
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -153,13 +153,13 @@ def get_tips_sent_for_current_round_by_user(user):
 
 def get_tips_received_for_current_round_by_user(user):
     sql = """
-    SELECT to_address, token, count(tip.id) 'count', sum(amount) 'amount' 
+    SELECT to_user, token, count(tip.id) 'count', sum(amount) 'amount' 
     FROM earn2tip tip 	
-    inner join distribution_rounds dr 
+      inner join distribution_rounds dr 
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
-        and to_address = (SELECT address from users where username = ? COLLATE NOCASE) COLLATE NOCASE
+        and to_user = ? COLLATE NOCASE
         and DATE() between dr.from_date and dr.to_date
-    GROUP BY to_address, token
+    GROUP BY to_user, token
     """
 
     with sqlite3.connect(get_db_path()) as db:
