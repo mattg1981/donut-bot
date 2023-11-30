@@ -22,33 +22,42 @@ if __name__ == '__main__':
     );
 	
 	CREATE TABLE earn2tip (
-    id                    INTEGER         NOT NULL
-                                          PRIMARY KEY AUTOINCREMENT,
-    from_user             NVARCHAR2       COLLATE NOCASE,
-    from_address          NVARCHAR2       NOT NULL
-                                          COLLATE NOCASE,
-    to_user               NVARCHAR2       COLLATE NOCASE,
-    to_address            NVARCHAR2       COLLATE NOCASE,
-    amount                DECIMAL (10, 5) NOT NULL,
-    token                 NVARCHAR2       NOT NULL
-                                          COLLATE NOCASE,
-    content_id            NVARCHAR2,
-    parent_content_id     NVARCHAR2,
-    submission_content_id NVARCHAR2,
-    community             NVARCHAR2       NOT NULL
-                                          COLLATE NOCASE,
-    created_date          DATETIME        NOT NULL
-                                          DEFAULT CURRENT_TIMESTAMP,
-    processed_date        DATETIME
-);
+        id                    INTEGER         NOT NULL
+                                              PRIMARY KEY AUTOINCREMENT,
+        from_user             NVARCHAR2       COLLATE NOCASE,
+        from_address          NVARCHAR2       NOT NULL
+                                              COLLATE NOCASE,
+        to_user               NVARCHAR2       COLLATE NOCASE,
+        to_address            NVARCHAR2       COLLATE NOCASE,
+        amount                DECIMAL (10, 5) NOT NULL,
+        token                 NVARCHAR2       NOT NULL
+                                              COLLATE NOCASE,
+        content_id            NVARCHAR2,
+        parent_content_id     NVARCHAR2,
+        submission_content_id NVARCHAR2,
+        community             NVARCHAR2       NOT NULL
+                                              COLLATE NOCASE,
+        created_date          DATETIME        NOT NULL
+                                              DEFAULT CURRENT_TIMESTAMP,
+        processed_date        DATETIME
+    );
 	
-	CREATE TABLE
-	`faucet` (
-		`id` integer not null primary key autoincrement,
-		`address` NVARCHAR2 not null, 
-		`direction` NVARCHAR2 not null default 'OUTBOUND',
-		`created_date` datetime not null default CURRENT_TIMESTAMP
-	);
+	CREATE TABLE faucet (
+        id           INTEGER         NOT NULL
+                                     PRIMARY KEY AUTOINCREMENT,
+        username         NVARCHAR2       NOT NULL
+                                     COLLATE NOCASE,
+        address      NVARCHAR2       NOT NULL
+                                     COLLATE NOCASE,
+        direction    NVARCHAR2       NOT NULL
+                                     DEFAULT 'OUTBOUND'
+                                     COLLATE NOCASE,
+        amount       DECIMAL (10, 5) NOT NULL,
+        tx_hash      NVARCHAR2       NOT NULL
+                                     COLLATE BINARY,
+        created_date DATETIME        NOT NULL
+                                     DEFAULT CURRENT_TIMESTAMP
+    );
 	
 	CREATE TABLE `history` (
 		`id` integer not null primary key autoincrement,
@@ -141,6 +150,33 @@ if __name__ == '__main__':
       tip.community,
       tip.token,
       dr.distribution_round;
+      
+    CREATE VIEW view_flair_can_update (
+        username,
+        address,
+        hash,
+        last_update
+    )
+    AS
+        SELECT u.username,
+               u.address,
+               f.hash,
+               f.last_update
+          FROM users u
+               LEFT JOIN
+               flair f ON u.id = f.user_id
+         WHERE f.last_update IS NULL OR 
+               f.last_update <= Datetime('now', '-20 minutes', 'localtime');
+      
+      
+    CREATE VIEW view_faucet_can_request AS
+    SELECT u.username,
+           u.address
+      FROM users u
+           LEFT OUTER JOIN
+           faucet f ON u.username = f.username
+     WHERE f.created_date IS NULL OR 
+           f.created_date <= Datetime('now', '-28 days', 'localtime');
     """
 
     with sqlite3.connect(db_path) as db:
