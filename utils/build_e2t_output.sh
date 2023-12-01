@@ -15,7 +15,8 @@ echo "applying tips and funded accounts"
 python3.11 ../ad_hoc/calculate_distribution_e2t.py
 
 cd ../out
-cp -fr ./round_* ../../donut-bot-output/csv/
+cp -fr ./round*.csv ../../donut-bot-output/distribution_data/
+cp -fr ./*_materialized_tips.json ../../donut-bot-output/offchain_tips/materialized/
 
 cd ../logs
 cp -fr ./calculate_distribution_e2t* ../../donut-bot-output/logs/
