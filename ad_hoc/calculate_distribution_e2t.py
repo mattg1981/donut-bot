@@ -27,6 +27,10 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     log_path = os.path.join(base_dir, f"../logs/{log_name}.log")
+
+    if os.path.exists(log_path):
+        os.remove(log_path)
+
     file_handler = RotatingFileHandler(os.path.normpath(log_path), maxBytes=2500000, backupCount=4)
     file_handler.setFormatter(formatter)
     console_handler = logging.StreamHandler()
