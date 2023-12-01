@@ -105,6 +105,10 @@ if __name__ == '__main__':
     logger.info(f"completed funded accounts")
     logger.info(f"begin applying tips...")
 
+    # store the tips/amounts that actually materialize and we will save it to a file to be used for tip
+    # bonus calcs
+    materialized_tips = []
+
     i = 0
     for tip in tips:
         i = i + 1
@@ -145,7 +149,8 @@ if __name__ == '__main__':
 
         # user didnt have enough to tip
         if float(old_sender_val) < tip_amount:
-            logger.warning(f"user: [{tip['from_user']}] tipped but did not have enough funds to cover the tip [prev balance: {old_sender_val}]")
+            logger.warning(
+                f"user: [{tip['from_user']}] tipped but did not have enough funds to cover the tip [prev balance: {old_sender_val}]")
             tip_amount = float(old_sender_val)
             if tip_amount > 0:
                 logger.warning(f"original tip amount: {tip_amount} -> amount materialized: {old_sender_val}")
@@ -160,6 +165,21 @@ if __name__ == '__main__':
         old_recipient_val = to_user['points']
         to_user['points'] = float(to_user['points']) + float(tip_amount)
         logger.info(f"[{tip['to_user']}] previous [points]: {old_recipient_val} -> new [points]: {to_user['points']}")
+
+        materialized_tips.append({
+            'from_user': tip['from_user'],
+            'from_address': tip['from_address'],
+            'to_user': tip['to_user'],
+            'to_address': tip['to_address'],
+            'amount': tip_amount,
+            'token': tip['token'],
+            'content_id': tip['content_id'],
+            'parent_content_id': tip['parent_content_id'],
+            'submission_content_id': tip['submission_content_id'],
+            'community': tip['community'],
+            'created_date': tip['created_date']
+        })
+
         logger.info("")
 
     # update to the latest address for each user, and also expand .ens names
@@ -183,7 +203,8 @@ if __name__ == '__main__':
 
             address = user_address['address']
             if ".eth" in address:
-                logger.info(f"  resolving ENS address for user [{csv_record['username']}] -> ENS [{user_address['address']}]")
+                logger.info(
+                    f"  resolving ENS address for user [{csv_record['username']}] -> ENS [{user_address['address']}]")
                 for public_node in config["eth_public_nodes"]:
                     try:
                         logger.info(f"  trying ETH node {public_node}...")
@@ -204,9 +225,9 @@ if __name__ == '__main__':
                         logger.error(e)
 
             if address != csv_record['blockchain_address']:
-                logger.info(f"  user [{csv_record['username']}] updating from address [{csv_record['blockchain_address']}] -> to [{address}]")
+                logger.info(
+                    f"  user [{csv_record['username']}] updating from address [{csv_record['blockchain_address']}] -> to [{address}]")
                 csv_record['blockchain_address'] = address
-
 
     # sort by points
     logger.info("sorting dataset by points")
@@ -219,5 +240,15 @@ if __name__ == '__main__':
         writer = csv.DictWriter(output_file, csv_records[0].keys(), extrasaction='ignore')
         writer.writeheader()
         writer.writerows(csv_records)
+
+    logger.info("outputting materialized tips .json")
+
+    # write materialized tips
+    materialized_tips_file_output = f"../out/round_{DISTRIBUTION_ROUND}_materialized_tips.json"
+    if os.path.exists(materialized_tips_file_output):
+        os.remove(materialized_tips_file_output)
+
+    with open(materialized_tips_file_output, 'w') as f:
+        json.dump(materialized_tips, f, indent=4)
 
     logger.info("complete")
