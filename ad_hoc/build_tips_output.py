@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     tips_query = """
     select
-      e.from_user, u.username,
+      e.from_user, 
       e.from_address,
       e.to_address,
       e.to_user,
