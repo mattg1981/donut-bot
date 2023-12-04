@@ -55,7 +55,7 @@ if __name__ == '__main__':
                    `created_at` datetime not null default CURRENT_TIMESTAMP
                  );
 
-               CREATE UNIQUE INDEX bans_username_bandate ON bans (
+               CREATE UNIQUE INDEX IF NOT EXISTS bans_username_bandate ON bans (
                     username,
                     ban_date
                 );
