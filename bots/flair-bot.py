@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import sqlite3
 import time
 import types
@@ -32,7 +33,9 @@ def get_onchain_amounts(user_address):
     eth_success = gno_success = False
     eth_balance = gno_balance = contrib_balance = stake_eth = stake_gno = lp_eth = lp_gno = 0
 
-    for public_node in config["eth_public_nodes"]:
+    eth_public_nodes = config["eth_public_nodes"]
+    random.shuffle(eth_public_nodes)
+    for public_node in eth_public_nodes:
         try:
             logger.info(f"  trying ETH node {public_node}")
             eth_w3 = Web3(Web3.HTTPProvider(public_node))
@@ -68,7 +71,9 @@ def get_onchain_amounts(user_address):
         # dont lookup gnosis information if the eth lookup failed
         return None
 
-    for public_node in config["gno_public_nodes"]:
+    gno_public_nodes = config["gno_public_nodes"]
+    random.shuffle(gno_public_nodes)
+    for public_node in gno_public_nodes:
         try:
             logger.info(f"  trying GNO node {public_node}")
             gno_w3 = Web3(Web3.HTTPProvider(public_node))
