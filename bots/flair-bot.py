@@ -41,8 +41,8 @@ def get_onchain_amounts(user_address):
             eth_w3 = Web3(Web3.HTTPProvider(public_node))
             if eth_w3.is_connected():
                 if '.eth' in user_address:
-                    user_address = eth_w3.ens.address(user_address['address'])
-                    logger.info(f"    ENS domain [{user_address['address']}] resolved to [{address}]...")
+                    user_address = eth_w3.ens.address(user_address)
+                    logger.info(f"    ENS domain [{user_address}] resolved to [{user_address}]...")
 
                     if user_address is None:
                         logger.warning("  ENS did not resolve...")
