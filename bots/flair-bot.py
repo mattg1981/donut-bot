@@ -343,7 +343,7 @@ if __name__ == '__main__':
 
                 set_flair_for_user(comment.author.name)
 
-            time.sleep(4)
+            time.sleep(6)
 
         except Exception as e:
             logger.error(e)
