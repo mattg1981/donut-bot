@@ -1,4 +1,12 @@
 {
+  "flair": {
+    "ignore": [
+      "AutoModerator",
+      "CrispyDonutBot",
+      "EthTraderCommunity",
+      "EthTrader_Reposter"
+    ]
+  },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
   "praw_user_agent": "donut-bot (by u/mattg1981)",
@@ -30,7 +38,9 @@
   ],
   "multi_sig_address":"0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
   "tipping_contract_address": "0xF40e98033eb722CC6B4a64F7b37737d56eCB17EF",
+  "faucet_wallet_address": "0x478a4523ca9ac05FA91a1bB5b38131B55f9647b6",
   "account_funded_message": "Hi #NAME#, donut-bot has located the following transaction on the blockchain and funded your account to use for tipping.  Any remaining balance not used in your account will be credited on your next distribution.  You can also verify this information by using the **!tip status** command!\n\n**TX HASH:** #TX_HASH#\n\n**AMOUNT:** #AMOUNT#\n\n**TOKEN:** #TOKEN#",
+  "inbound_faucet_message": "Hi #NAME#, thank you for your support of the r/ethtrader faucet! Your generous contribution will help sustain the faucet and will also have a positive impact to the entire community.\n\n\n\ndonut-bot has located the following transaction on the blockchain\n\n**TX HASH:** #TX_HASH#\n\n**AMOUNT:** #AMOUNT# xDai",
   "funded_accounts_to_ignore": [
     {
       "account": "EthTraderCommunity",
@@ -47,7 +57,7 @@
           "icon": ":donut:",
           "is_default": true,
           "chain": "gnosis",
-          "chain_id": 10,
+          "chain_id": 100,
           "contract_address": "0x524b969793a64a602342d89bc2789d43a016b13a"
         }
       ]

@@ -13,18 +13,19 @@ from web3 import Web3
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
+UNREGISTERED = []
 
 def display_number(number):
-        if 1000 <= number < 1000000:
-            return str(round(number / 1000, 1)) + "K"
-        elif number >= 1000000:
-            return str(round(number / 1000000, 2)) + "M"
-        elif number >= 1000000000:
-            return str(round(number / 1000000000, 2)) + "B"
-        elif number >= 1000000000000:
-            return str(round(number / 1000000000000, 2)) + "T"
+    if 1000 <= number < 1000000:
+        return str(round(number / 1000, 1)) + "K"
+    elif number >= 1000000:
+        return str(round(number / 1000000, 2)) + "M"
+    elif number >= 1000000000:
+        return str(round(number / 1000000000, 2)) + "B"
+    elif number >= 1000000000000:
+        return str(round(number / 1000000000000, 2)) + "T"
 
-        return str(int(number))
+    return str(int(number))
 
 
 def get_onchain_amounts(user_address):
@@ -107,7 +108,8 @@ def get_onchain_amounts(user_address):
         ret_val.contrib = int(contrib_balance)
         ret_val.lp = int(lp_eth + lp_gno)
         ret_val.stake = int(stake_eth + stake_gno)
-        logger.info(f"  [donuts]: {ret_val.donuts} | [contrib] {ret_val.contrib} | [lp] {ret_val.lp} | [stake] {ret_val.stake}")
+        logger.info(
+            f"  [donuts]: {ret_val.donuts} | [contrib] {ret_val.contrib} | [lp] {ret_val.lp} | [stake] {ret_val.stake}")
 
         # todo remove this when we are ready to begin showing lp/stake values
         ret_val.lp = 0
@@ -116,6 +118,87 @@ def get_onchain_amounts(user_address):
         return ret_val
 
     return None
+
+
+def set_flair_for_user(user):
+    logger.info(f"processing comment from [user]: {user}...")
+    logger.info("  get user from sql...")
+
+    # get address for user
+    with sqlite3.connect(db_path) as db:
+        registered_sql = """
+            select username 
+            from users
+            where username=?;
+        """
+
+        can_update_sql = """
+            select username, address, hash
+            from view_flair_can_update 
+            where username=?;
+        """
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+
+        cur.execute(registered_sql, [user])
+        registered_lookup = cur.fetchone()
+
+        # dont lookup if user can update flair if they arent registered
+        if registered_lookup:
+            cur.execute(can_update_sql, [user])
+            user_lookup = cur.fetchone()
+
+    if not registered_lookup:
+        logger.info(f"  not registered.")
+        if user in UNREGISTERED:
+            return
+
+        flair_text = "Not Registered"
+        UNREGISTERED.append(user)
+        reddit.subreddit(subs).flair.set(user,
+                                         text=flair_text,
+                                         css_class="flair-default")
+        return
+
+    if not user_lookup:
+        logger.info(f"  not eligible to have their flair updated at this time.")
+        return
+
+    logger.info("  get onchain amounts...")
+    result = get_onchain_amounts(user_lookup["address"])
+
+    if not result:
+        logger.error(f"  onchain lookup failed, no flair to be applied!")
+        return
+
+    flair_text = f":donut: {display_number(result.donuts)} | ⚖️ {display_number(result.contrib)}"
+
+    if result.lp > 0:
+        flair_text = flair_text + f" | 💰 {display_number(result.lp)}"
+
+    if result.stake > 0:
+        flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
+
+    flair_hash = hash(flair_text)
+
+    if flair_hash != user_lookup['hash']:
+        logger.info("  setting flair...")
+        reddit.subreddit(subs).flair.set(user,
+                                         text=flair_text,
+                                         css_class="flair-default")
+    else:
+        logger.info("  flair unchanged since last update...")
+
+    logger.info("  update last_update for flair")
+    with sqlite3.connect(db_path) as db:
+        update_sql = """       
+            INSERT OR REPLACE INTO flair (user_id, hash, last_update) 
+            VALUES ((select id from users where username=?), ?, ?)
+        """
+        cur = db.cursor()
+        cur.execute(update_sql, [user, flair_hash, datetime.now()])
+
+    logger.info("  success.")
 
 
 if __name__ == '__main__':
@@ -215,69 +298,38 @@ if __name__ == '__main__':
         cur.executescript(build_table_and_index)
 
     # set flair for donut-bot once
-    reddit.subreddit(subs).flair.set('donut-bot', text='bot', css_class="flair-default")
+    reddit.subreddit(subs).flair.update(['donut-bot', 'CrispyDonutBot', 'EthTrader_Reposter'], text='bot', css_class="flair-default")
+    reddit.subreddit(subs).flair.update(['AutoModerator', 'EthTraderCommunity'], text='', css_class="flair-default")
+
+    ignore_list = [x.lower() for x in config['flair']['ignore']]
 
     while True:
         try:
-            for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
-                if comment.author.name == username:
+            for submission in reddit.subreddit(subs).stream.submissions(pause_after=-1):
+                if submission is None:
+                    break
+
+                if not submission.author or submission.author.name == username:
                     continue
 
-                logger.info(f"processing comment from [author]: {comment.author.name}...")
-                logger.info("  get user from sql...")
-
-                # get address for user
-                with sqlite3.connect(db_path) as db:
-                    flair_sql = """
-                        select username, address, hash
-                        from view_flair_can_update 
-                        where username=?
-                    """
-                    db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-                    cur = db.cursor()
-                    cur.execute(flair_sql, [comment.author.name])
-                    user_lookup = cur.fetchone()
-
-                if not user_lookup:
-                    logger.info(f"  not registered or not eligible to have their flair updated at this time.")
+                if submission.author.name.lower() in ignore_list:
                     continue
 
-                logger.info("  get onchain amounts...")
-                result = get_onchain_amounts(user_lookup["address"])
+                set_flair_for_user(submission.author.name)
 
-                if not result:
-                    logger.error(f"  onchain lookup failed, no flair to be applied!")
+            for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
+                if comment is None:
+                    break
+
+                if not comment.author or comment.author.name == username:
                     continue
 
-                flair_text = f":donut: {display_number(result.donuts)} | ⚖️ {display_number(result.contrib)}"
+                if comment.author.name.lower() in ignore_list:
+                    continue
 
-                if result.lp > 0:
-                    flair_text = flair_text + f" | 💰 {display_number(result.lp)}"
+                set_flair_for_user(comment.author.name)
 
-                if result.stake > 0:
-                    flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
-
-                flair_hash = hash(flair_text)
-
-                if flair_hash != user_lookup['hash']:
-                    logger.info("  setting flair...")
-                    reddit.subreddit(subs).flair.set(comment.author.name,
-                                                 text=flair_text,
-                                                 css_class="flair-default")
-                else:
-                    logger.info("  flair unchanged since last update...")
-
-                logger.info("  update last_update for flair")
-                with sqlite3.connect(db_path) as db:
-                    update_sql = """       
-                        INSERT OR REPLACE INTO flair (user_id, hash, last_update) 
-                        VALUES ((select id from users where username=?), ?, ?)
-                    """
-                    db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-                    cur = db.cursor()
-                    cur.execute(update_sql, [comment.author.name, flair_hash, datetime.now()])
-
-                logger.info("  success.")
+            time.sleep(4)
 
         except Exception as e:
             logger.error(e)
