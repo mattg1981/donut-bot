@@ -44,6 +44,14 @@ def get_onchain_amounts(user_address):
                 if user_address.islower():
                     user_address = Web3.to_checksum_address(user_address)
 
+                if '.eth' in user_address:
+                    address = eth_w3.ens.address(user_address['address'])
+                    logger.info(f"    ENS domain [{user_address['address']}] resolved to [{address}]...")
+
+                    if address is None:
+                        logger.warning("  ENS did not resolve...")
+                        return
+
                 # donut token
                 donut_address_eth = '0xC0F9bD5Fa5698B6505F643900FFA515Ea5dF54A9'
                 eth_donut_contract = eth_w3.eth.contract(address=donut_address_eth, abi=eth_abi)
