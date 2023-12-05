@@ -224,7 +224,9 @@ if __name__ == '__main__':
     # set up logging
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger("flair_bot")
-    logger.setLevel(logging.INFO)
+
+    # set to info for more info - lots of logs are generated
+    logger.setLevel(logging.WARNING)
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(base_dir, "../logs/flair-bot.log")
