@@ -27,7 +27,7 @@ class FaucetCommand(Command):
         self.contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
 
     def leave_comment_reply(self, comment, reply):
-        reply += f"\n\n💥 Please help support this faucet by sending xDai (on the Gnosis chain) to:\n`{self.config['faucet_wallet_address']}`."
+        reply += f"\n\n💥 Please help support this faucet by sending xDai (on the Gnosis chain) to: `{self.config['faucet_wallet_address']}`."
         reply += self.COMMENT_SIGNATURE
 
         db.set_processed_content(comment.fullname)
