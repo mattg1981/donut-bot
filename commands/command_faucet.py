@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from decimal import Decimal
 
 from web3 import Web3
@@ -67,11 +68,15 @@ class FaucetCommand(Command):
                     self.logger.warning("  failed to connect, attempting to retry...")
                     continue
 
+                user_address = registered_user['address']
+                if user_address.islower() and '.eth' not in user_address:
+                    user_address = Web3.to_checksum_address(user_address)
+
                 # connected, now find contrib for user
                 contrib_contract = w3.eth.contract(address=w3.to_checksum_address(self.contrib_address),
                                                    abi=self.contrib_abi)
                 contrib_token_balance = contrib_contract.functions.balanceOf(
-                    w3.to_checksum_address(registered_user['address'])).call()
+                    w3.to_checksum_address(user_address)).call()
                 contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
 
                 if contrib_balance < 50:
@@ -95,7 +100,7 @@ class FaucetCommand(Command):
                 tx = {
                     'chainId': 100,
                     'from': w3.to_checksum_address(self.config['faucet_wallet_address']),
-                    'to': registered_user['address'],
+                    'to': user_address,
                     'value': w3.to_wei(drip_amount, 'ether'),
                     'nonce': w3.eth.get_transaction_count(w3.to_checksum_address(self.config['faucet_wallet_address'])),
                     'gasPrice': w3.eth.generate_gas_price(),
@@ -112,7 +117,7 @@ class FaucetCommand(Command):
                 human_readable_tx_hash = w3.to_hex(tx_hash)
                 self.logger.info(f"  success!  tx_hash: [{human_readable_tx_hash}]")
 
-                db_insert = db.add_faucet_history(user, registered_user['address'], 'OUTBOUND', drip_amount,
+                db_insert = db.add_faucet_history(user, user_address, 'OUTBOUND', drip_amount,
                                                   human_readable_tx_hash, receipt['blockNumber'])
                 if not db_insert:
                     self.logger.error("  failed to write history to faucet")
@@ -122,6 +127,7 @@ class FaucetCommand(Command):
                 return
             except Exception as e:
                 self.logger.error(f"  {e}")
+                time.sleep(1)
 
         self.leave_comment_reply(comment, "❌ Something went wrong, please try again later.")
         # return
