@@ -17,7 +17,7 @@ class FaucetCommand(Command):
     def __init__(self, config):
         super(FaucetCommand, self).__init__(config)
 
-        self.command_text = "!faucet"
+        self.command_text = "!faucet-test"
 
         with open(os.path.normpath("contracts/contrib_gnosis_abi.json"), 'r') as f:
             self.contrib_abi = json.load(f)
@@ -54,7 +54,7 @@ class FaucetCommand(Command):
         if not faucet_eligible:
             self.logger.info("  user dripped in last 28 days...")
             self.leave_comment_reply(comment, f"❌ Sorry u/{user}, you can only use the faucet once every 28 days!")
-
+            return
         try:
             self.logger.info(f"  connect to ankr rpc service ...")
             w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))

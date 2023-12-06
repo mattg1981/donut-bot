@@ -315,7 +315,8 @@ if __name__ == '__main__':
     # set flair for donut-bot once
     reddit.subreddit(subs).flair.update(['donut-bot', 'CrispyDonutBot', 'EthTrader_Reposter'], text='bot',
                                         css_class="flair-default")
-    reddit.subreddit(subs).flair.update(['AutoModerator', 'EthTraderCommunity'], text='', css_class="flair-default")
+    reddit.subreddit(subs).flair.update(['AutoModerator', 'EthTraderCommunity'], text='',
+                                        css_class="flair-default")
 
     ignore_list = [x.lower() for x in config['flair']['ignore']]
 
