@@ -3,6 +3,38 @@ import sqlite3
 from datetime import datetime
 
 
+def get_faucet_eligible(user):
+    with sqlite3.connect(get_db_path()) as db:
+        faucet_sql = """
+            SELECT * 
+            FROM view_faucet_can_request
+            WHERE username=?;
+        """
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(faucet_sql, [user])
+        return cur.fetchone()
+
+
+def add_faucet_history(user, address, direction, amount, tx_hash, block):
+    with sqlite3.connect(get_db_path()) as db:
+        insert_sql = """
+            INSERT INTO faucet (username,
+                       address,
+                       direction,
+                       amount,
+                       tx_hash,
+                       block,
+                       created_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING *;
+        """
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(insert_sql, [user, address, direction, amount, tx_hash, block, datetime.now()])
+        return cur.fetchone()
+
+
 def get_user_by_name(user):
     with sqlite3.connect(get_db_path(), isolation_level=None) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))

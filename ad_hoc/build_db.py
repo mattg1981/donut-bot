@@ -45,7 +45,7 @@ if __name__ == '__main__':
 	CREATE TABLE faucet (
         id           INTEGER         NOT NULL
                                      PRIMARY KEY AUTOINCREMENT,
-        username         NVARCHAR2       NOT NULL
+        username     NVARCHAR2       NOT NULL
                                      COLLATE NOCASE,
         address      NVARCHAR2       NOT NULL
                                      COLLATE NOCASE,
@@ -55,9 +55,12 @@ if __name__ == '__main__':
         amount       DECIMAL (10, 5) NOT NULL,
         tx_hash      NVARCHAR2       NOT NULL
                                      COLLATE BINARY,
+        block        INTEGER         NOT NULL,
+        notified_date DATETIME,
         created_date DATETIME        NOT NULL
                                      DEFAULT CURRENT_TIMESTAMP
     );
+
 	
 	CREATE TABLE `history` (
 		`id` integer not null primary key autoincrement,
@@ -173,10 +176,22 @@ if __name__ == '__main__':
     SELECT u.username,
            u.address
       FROM users u
-           LEFT OUTER JOIN
-           faucet f ON u.username = f.username
-     WHERE f.created_date IS NULL OR 
-           f.created_date <= Datetime('now', '-28 days', 'localtime');
+           LEFT JOIN
+           (
+               SELECT u.username,
+                      u.address,
+                      f.direction,
+                      f.created_date
+                 FROM users u
+                      LEFT OUTER JOIN
+                      faucet f ON u.username = f.username
+                WHERE f.direction = 'OUTBOUND'
+                ORDER BY f.created_date DESC
+                LIMIT 1
+           )
+           AS sub
+     WHERE sub.created_date IS NULL OR 
+           sub.created_date <= Datetime('now', '-28 days', 'localtime');
     """
 
     with sqlite3.connect(db_path) as db:
