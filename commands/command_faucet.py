@@ -17,7 +17,7 @@ class FaucetCommand(Command):
     def __init__(self, config):
         super(FaucetCommand, self).__init__(config)
 
-        self.command_text = "!faucet"
+        self.command_text = "!faucet-disable"
 
         with open(os.path.normpath("contracts/contrib_gnosis_abi.json"), 'r') as f:
             self.contrib_abi = json.load(f)
