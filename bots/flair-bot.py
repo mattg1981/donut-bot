@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 UNREGISTERED = []
 
+
 def display_number(number):
     if 1000 <= number < 1000000:
         return str(round(number / 1000, 1)) + "K"
@@ -40,15 +41,15 @@ def get_onchain_amounts(user_address):
             logger.info(f"  trying ETH node {public_node}")
             eth_w3 = Web3(Web3.HTTPProvider(public_node))
             if eth_w3.is_connected():
-                if '.eth' in user_address:
-                    user_address = eth_w3.ens.address(user_address)
-                    logger.info(f"    ENS domain [{user_address}] resolved to [{user_address}]...")
+                # if '.eth' in user_address:
+                #     user_address = eth_w3.ens.address(user_address)
+                #     logger.info(f"    ENS domain [{user_address}] resolved to [{user_address}]...")
+                #
+                #     if user_address is None:
+                #         logger.warning("  ENS did not resolve...")
+                #         return
 
-                    if user_address is None:
-                        logger.warning("  ENS did not resolve...")
-                        return
-
-                if user_address.islower():
+                if user_address.islower() and '.eth' not in user_address:
                     user_address = Web3.to_checksum_address(user_address)
 
                 # donut token
@@ -312,7 +313,8 @@ if __name__ == '__main__':
         cur.executescript(build_table_and_index)
 
     # set flair for donut-bot once
-    reddit.subreddit(subs).flair.update(['donut-bot', 'CrispyDonutBot', 'EthTrader_Reposter'], text='bot', css_class="flair-default")
+    reddit.subreddit(subs).flair.update(['donut-bot', 'CrispyDonutBot', 'EthTrader_Reposter'], text='bot',
+                                        css_class="flair-default")
     reddit.subreddit(subs).flair.update(['AutoModerator', 'EthTraderCommunity'], text='', css_class="flair-default")
 
     ignore_list = [x.lower() for x in config['flair']['ignore']]
