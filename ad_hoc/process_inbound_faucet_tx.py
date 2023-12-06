@@ -34,6 +34,31 @@ def notify_user(username, tx_hash, amount):
 
     logger.info("  successfully updated db... ")
 
+def process_notifications():
+    # notify any transactions that need to be notified (if any)
+    logger.info("finding transactions that need notifications ...")
+    with sqlite3.connect(db_path) as db:
+        notify_sql = """
+                    SELECT u.username, f.* 
+                    from faucet f
+                      inner join users u on f.username = u.username
+                    where direction = 'INBOUND' and notified_date is null
+                """
+
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cursor = db.cursor()
+        cursor.execute(notify_sql)
+        notifications = cursor.fetchall()
+
+    if not notifications:
+        logger.info("  none needed")
+    else:
+        logger.info(f"  {len(notifications)} found")
+    for n in notifications:
+        try:
+            notify_user(n["username"], n["tx_hash"], n["amount"])
+        except Exception as e:
+            logger.error(e)
 
 if __name__ == '__main__':
     # load environment variables
@@ -91,6 +116,7 @@ if __name__ == '__main__':
 
     # no new results
     if not len(json_result['result']):
+        process_notifications()
         logger.info("complete.")
         exit(0)
 
@@ -121,26 +147,6 @@ if __name__ == '__main__':
             logger.error(f"failed to insert record for tx_hash: {tx_hash}")
             continue
 
-    # notify any transactions that need to be notified (if any)
-    logger.info("finding transactions that need notifications ...")
-    with sqlite3.connect(db_path) as db:
-        notify_sql = """
-                SELECT u.username, f.* 
-                from faucet f
-                  inner join users u on f.username = u.username
-                where notified_date is null
-            """
-
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cursor = db.cursor()
-        cursor.execute(notify_sql)
-        notifications = cursor.fetchall()
-
-    if not notifications:
-        logger.info("  none needed")
-    else:
-        logger.info(f"  {len(notifications)} found")
-    for n in notifications:
-        notify_user(n["username"], n["tx_hash"], n["amount"])
+    process_notifications()
 
     logger.info('complete.')
