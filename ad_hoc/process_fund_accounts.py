@@ -22,10 +22,10 @@ def notify_user(username, tx_hash, amount, token):
                .replace("#AMOUNT#", str(amount))
                .replace("#TOKEN#", token))
 
-    logger.info("successfully notified...")
-
     # send message
     reddit.redditor(username).message(subject="Account Funded!", message=message)
+
+    logger.info("successfully notified...")
 
     update_sql = """
        update funded_account set processed_at = ? where tx_hash = ?
@@ -172,7 +172,7 @@ if __name__ == '__main__':
                                 INSERT INTO funded_account (from_user, from_address, blockchain_amount, amount, token, block_number, tx_hash, tx_timestamp, created_at)
                                 SELECT (select username from users where address =?), ?, ?, ?, ?, ?, ?, ?, ?
                                 WHERE NOT EXISTS (select 1 from funded_account where tx_hash = ?)
-                                RETURNING (select username from users where address = ?)
+                                RETURNING (select username from users where address = ?);
                             """
                             cursor = db.cursor()
                             cursor.execute(insert_sql, [from_address, blockchain_amount, amount, token, block,
@@ -193,6 +193,10 @@ if __name__ == '__main__':
                         logger.error(e)
         except Exception as e:
             logger.error(e)
+
+    if not w3_was_success:
+        logger.info("  exhuasted all public nodes...")
+        exit(4)
 
     # find previous transactions that need to be notified (if any)
     logger.info("finding old transactions that need notifications ...")
