@@ -58,7 +58,7 @@ class FaucetCommand(Command):
             self.leave_comment_reply(comment, f"❌ Sorry u/{user}, you can only use the faucet once every 28 days!")
             return
 
-        for i in range(0, 5):
+        for i in range(1, 8):
             try:
                 self.logger.info(f"  connect to ankr rpc service ... attempt {i}")
                 w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
