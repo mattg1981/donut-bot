@@ -170,28 +170,24 @@ if __name__ == '__main__':
                flair f ON u.id = f.user_id
          WHERE f.last_update IS NULL OR 
                f.last_update <= Datetime('now', '-20 minutes', 'localtime');
-      
-      
-    CREATE VIEW view_faucet_can_request AS
+
+CREATE VIEW view_faucet_can_request AS
     SELECT u.username,
-           u.address
+           u.address,
+           s.created_date
       FROM users u
            LEFT JOIN
            (
-               SELECT u.username,
-                      u.address,
-                      f.direction,
-                      f.created_date
-                 FROM users u
-                      LEFT OUTER JOIN
-                      faucet f ON u.username = f.username
-                WHERE f.direction = 'OUTBOUND'
-                ORDER BY f.created_date DESC
-                LIMIT 1
+               SELECT username,
+                      max(created_date) created_date
+                 FROM faucet
+                WHERE direction = 'OUTBOUND'
+                GROUP BY username
            )
-           AS sub
-     WHERE sub.created_date IS NULL OR 
-           sub.created_date <= Datetime('now', '-28 days', 'localtime');
+           s ON u.username = s.username
+     WHERE s.created_date IS NULL OR 
+           s.created_date <= Datetime('now', '-28 days', 'localtime');
+
     """
 
     with sqlite3.connect(db_path) as db:
