@@ -2,16 +2,21 @@ import json
 import logging
 import os
 import random
+import sys
 import urllib.request
 import math
 import praw
 
 from dotenv import load_dotenv
 from web3 import Web3
-from ..database import database as db
 from datetime import datetime
 from decimal import Decimal
+
 from logging.handlers import RotatingFileHandler
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+from database import database as db
 
 
 def send_any_notifications():
