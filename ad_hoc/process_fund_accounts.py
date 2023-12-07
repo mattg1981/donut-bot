@@ -8,7 +8,7 @@ import praw
 
 from dotenv import load_dotenv
 from web3 import Web3
-from database import database as db
+from ..database import database as db
 from datetime import datetime
 from decimal import Decimal
 from logging.handlers import RotatingFileHandler
