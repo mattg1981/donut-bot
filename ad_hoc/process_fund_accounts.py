@@ -3,15 +3,15 @@ import logging
 import os
 import random
 import urllib.request
+import math
+import praw
+
+from dotenv import load_dotenv
+from web3 import Web3
+from database import database as db
 from datetime import datetime
 from decimal import Decimal
 from logging.handlers import RotatingFileHandler
-from database import database as db
-
-import math
-import praw
-from dotenv import load_dotenv
-from web3 import Web3
 
 
 def send_any_notifications():
