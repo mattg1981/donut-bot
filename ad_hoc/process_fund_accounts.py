@@ -1,15 +1,28 @@
 import json
 import logging
 import os
-import sqlite3
+import random
 import urllib.request
 from datetime import datetime
+from decimal import Decimal
 from logging.handlers import RotatingFileHandler
+from database import database as db
 
 import math
 import praw
 from dotenv import load_dotenv
 from web3 import Web3
+
+
+def send_any_notifications():
+    # find previous transactions that need to be notified (if any)
+    logger.info("finding transactions that need notifications ...")
+    notifications = db.get_funded_accounts_to_notify()
+
+    if not notifications:
+        logger.info("  none needed")
+    for n in notifications:
+        notify_user(n["username"], n["tx_hash"], n["amount"], n["token"])
 
 
 def notify_user(username, tx_hash, amount, token):
@@ -26,36 +39,11 @@ def notify_user(username, tx_hash, amount, token):
     reddit.redditor(username).message(subject="Account Funded!", message=message)
 
     logger.info("successfully notified...")
-
-    update_sql = """
-       update funded_account set processed_at = ? where tx_hash = ?
-    """
-
     logger.info("updating sql processed_at")
 
-    # update sql so we dont process this record again
-    with sqlite3.connect(db_path) as db:
-        cursor = db.cursor()
-        cursor.execute(update_sql, [datetime.now(), tx_hash])
+    db.update_funded_account(tx_hash)
 
     logger.info("successfully updated db... ")
-
-
-def update_settings(max_block):
-    logger.info(f'final block: {max_block}')
-    logger.info(f'updating db settings...')
-
-    with sqlite3.connect(db_path) as db:
-        update_block = """
-                UPDATE settings set value = ? where setting = 'funded_account_last_block';
-            """
-
-        update_runtime = """
-                UPDATE settings set value = ? where setting = 'funded_account_last_runtime';
-            """
-        cursor = db.cursor()
-        cursor.execute(update_block, [max_block])
-        cursor.execute(update_runtime, [datetime.now()])
 
 
 if __name__ == '__main__':
@@ -65,11 +53,6 @@ if __name__ == '__main__':
     # load config
     with open(os.path.normpath("../config.json"), 'r') as f:
         config = json.load(f)
-
-    # locate database
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
-    db_path = os.path.normpath(db_path)
 
     # set up logging
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -85,6 +68,8 @@ if __name__ == '__main__':
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
+    logger.info("begin")
+
     # set up praw
     reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
                          client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
@@ -92,14 +77,13 @@ if __name__ == '__main__':
                          password=os.getenv('REDDIT_PASSWORD'),
                          user_agent=config["praw_user_agent"])
 
-    with sqlite3.connect(db_path) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cursor = db.cursor()
-        cursor.execute("select value 'block' from settings where setting = 'funded_account_last_block'")
-        starting_block = cursor.fetchone()['block']
+    logger.info("find most recently processed block in the db")
+    starting_block = db.get_max_multisig_block()
 
-    starting_block = int(starting_block) + 1
-    max_block = starting_block
+    if not starting_block:
+        starting_block = 0
+    else:
+        starting_block = int(starting_block) + 1
 
     logger.info(f"querying gnosisscan with starting block: {starting_block}...")
 
@@ -112,7 +96,7 @@ if __name__ == '__main__':
 
     # no new results
     if not len(json_result['result']):
-        update_settings(max_block)
+        send_any_notifications()
         logger.info("complete.")
         exit(0)
 
@@ -124,8 +108,9 @@ if __name__ == '__main__':
     ignored_addresses = [account["address"] for account in config["funded_accounts_to_ignore"]]
 
     w3_was_success = False
-
-    for public_node in config["gno_public_nodes"]:
+    public_nodes = config["gno_public_nodes"]
+    random.shuffle(public_nodes)
+    for public_node in public_nodes:
         try:
             if w3_was_success:
                 break
@@ -140,57 +125,37 @@ if __name__ == '__main__':
                 continue
 
             for tx in json_result["result"]:
-                max_block = tx["blockNumber"]
-
                 # only concern ourselves with pre-screened/valid tokens
                 # and ensure they are not from addresses that should be ignored
                 if (tx["contractAddress"] in valid_tokens and tx["from"].lower() not in ignored_addresses
                         and tx["to"].lower() == config['multi_sig_address'].lower()):
-                    try:
+
+                    tx_hash = tx["hash"]
+                    w3_tx = w3.eth.get_transaction(tx_hash)
+                    inpt = w3_tx.input.hex()
+
+                    # not a transfer event
+                    if not inpt[:10] == "0xa9059cbb":
+                        logger.debug(f"not a transfer transaction [tx_hash]: {tx_hash}")
+                        continue
+                    else:
                         from_address = tx["from"]
                         to_address = tx["to"]
                         token = tx["tokenSymbol"]
                         blockchain_amount = tx["value"]
-                        amount = float(tx["value"]) / math.pow(10, float(tx["tokenDecimal"]))
+                        amount = Decimal(tx["value"]) / Decimal(math.pow(10, float(tx["tokenDecimal"])))
                         block = tx["blockNumber"]
                         timestamp = datetime.fromtimestamp(int(tx["timeStamp"]))
-                        tx_hash = tx["hash"]
 
-                        w3_tx = w3.eth.get_transaction(tx_hash)
-                        inpt = w3_tx.input.hex()
+                        logger.info(
+                            f"transfer:: [from]: {from_address} [to]: {to_address} [amount]: {amount} [token]: {token} [tx_hash]: {tx_hash}")
 
-                        # not a transfer event
-                        if not inpt[:10] == "0xa9059cbb":
-                            logger.info(f"not a transfer transaction [tx_hash]: {tx_hash}")
-                            continue
-                        else:
-                            logger.info(
-                                f"transfer:: [from]: {from_address} [to]: {to_address} [amount]: {amount} [token]: {token} [tx_hash]: {tx_hash}")
+                    logger.info("insert record into database...")
 
-                        with sqlite3.connect(db_path) as db:
-                            insert_sql = """
-                                INSERT INTO funded_account (from_user, from_address, blockchain_amount, amount, token, block_number, tx_hash, tx_timestamp, created_at)
-                                SELECT (select username from users where address =?), ?, ?, ?, ?, ?, ?, ?, ?
-                                WHERE NOT EXISTS (select 1 from funded_account where tx_hash = ?)
-                                RETURNING (select username from users where address = ?);
-                            """
-                            cursor = db.cursor()
-                            cursor.execute(insert_sql, [from_address, blockchain_amount, amount, token, block,
-                                                        tx_hash, timestamp, datetime.now(), tx_hash, from_address])
-                            sql_result = cursor.fetchone()
+                    db.insert_funded_account(from_address, amount, token, block, tx_hash, timestamp)
 
-                        # user is not registered or we didnt insert because we have already processed
-                        # this tx_hash
-                        if not sql_result:
-                            logger.warning(f"[transaction]: {tx_hash} was not returned from the database to be notified on."
-                                           f" this can happen because the user is not registered in our database or because "
-                                           f"this transaction is being processed again for some reason.")
-                        else:
-                            # notify user that we processed their transaction
-                            notify_user(sql_result[0], tx_hash, amount, token)
+                    logger.info("sucess...")
 
-                    except Exception as e:
-                        logger.error(e)
         except Exception as e:
             logger.error(e)
 
@@ -198,24 +163,5 @@ if __name__ == '__main__':
         logger.info("  exhuasted all public nodes...")
         exit(4)
 
-    # find previous transactions that need to be notified (if any)
-    logger.info("finding old transactions that need notifications ...")
-    with sqlite3.connect(db_path) as db:
-        notify_sql = """
-                SELECT u.username, fa.* from funded_account fa
-                inner join users u on fa.from_address = u.address COLLATE NOCASE
-                where processed_at is null
-            """
-
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cursor = db.cursor()
-        cursor.execute(notify_sql)
-        notifications = cursor.fetchall()
-
-    if not notifications:
-        logger.info("  none needed")
-    for n in notifications:
-        notify_user(n["username"], n["tx_hash"], n["amount"], n["token"])
-
-    update_settings(max_block)
+    send_any_notifications()
     logger.info('complete.')
