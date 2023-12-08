@@ -24,7 +24,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    log_path = os.path.join(base_dir, "../logs/build_ban_list.log")
+    log_path = os.path.join(base_dir, "../logs/get_bans.log")
     handler = RotatingFileHandler(os.path.normpath(log_path), maxBytes=2500000, backupCount=4)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
