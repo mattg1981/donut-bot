@@ -133,9 +133,9 @@ class TipCommand(Command):
                     else:
                         amount = normalized_amount
 
+                sender_exists = False
+                recipient_exists = False
                 if is_valid:
-                    sender_exists = False
-                    recipient_exists = False
 
                     result = database.get_users_by_name([sender, recipient])
                     for r in result:
@@ -298,7 +298,7 @@ class TipCommand(Command):
         valid_tips = [t for t in tips if t.is_valid]
         if not valid_tips:
             self.leave_comment_reply(comment, reply)
-        elif database.process_earn2tips(valid_tips):
+        elif database.process_earn2tips(valid_tips, Path(__file__).stem):
             self.leave_comment_reply(comment, reply, False)
         else:
             self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "

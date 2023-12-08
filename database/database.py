@@ -166,14 +166,14 @@ def insert_or_update_address(user, address, content_id):
         return cursor.fetchone()
 
 
-def process_earn2tips(tips):
+def process_earn2tips(tips, command):
     sql = """
     INSERT INTO earn2tip (from_user, to_user, amount, token, content_id, 
                           parent_content_id, submission_content_id, community, created_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ;
     """
 
-    history_sql = "INSERT INTO history (content_id) VALUES(?) RETURNING *;"
+    history_sql = "INSERT INTO history (content_id, command) VALUES(?,?) RETURNING *;"
     content_id = tips[0].content_id
 
     created_date = datetime.now()
@@ -192,7 +192,7 @@ def process_earn2tips(tips):
         cur.execute("begin")
         try:
             cur.executemany(sql, data)
-            cur.execute(history_sql, [content_id])
+            cur.execute(history_sql, [content_id, command])
             cur.execute("commit")
             return True
         except sqlite3.Error as e:
