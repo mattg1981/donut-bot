@@ -1,5 +1,6 @@
 import json
 import os.path
+import random
 import urllib.request
 import sqlite3
 
@@ -10,7 +11,9 @@ def get_address(address):
     if '.eth' not in address:
         return address
 
-    for public_node in config["eth_public_nodes"]:
+    public_nodes = config["eth_public_nodes"]
+    random.shuffle(public_nodes)
+    for public_node in public_nodes:
         try:
             print(f"  trying ETH node {public_node}...")
 

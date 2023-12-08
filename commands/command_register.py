@@ -1,3 +1,5 @@
+import random
+
 from web3 import Web3
 
 from database import database
@@ -99,7 +101,9 @@ class RegisterCommand(Command):
                 return
 
             self.logger.info("  attempting to resolve ENS...")
-            for public_node in self.config["eth_public_nodes"]:
+            public_nodes = self.config["eth_public_nodes"]
+            random.shuffle(public_nodes)
+            for public_node in public_nodes:
                 try:
                     self.logger.info(f"  trying ETH node {public_node}...")
 

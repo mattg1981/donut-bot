@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import sqlite3
 import urllib.request
 from logging.handlers import RotatingFileHandler
@@ -43,7 +44,9 @@ if __name__ == '__main__':
     tipping_contract = None
     gno_w3 = None
 
-    for public_node in config["gno_public_nodes"]:
+    public_nodes = config["gno_public_nodes"]
+    random.shuffle(public_nodes)
+    for public_node in public_nodes:
         try:
             logger.info(f"  trying GNO node {public_node}")
             gno_w3 = Web3(Web3.HTTPProvider(public_node))
