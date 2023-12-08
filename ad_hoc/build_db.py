@@ -66,6 +66,24 @@ if __name__ == '__main__':
     created_at DATETIME  NOT NULL
                          DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE moderators (
+    id             INTEGER   PRIMARY KEY AUTOINCREMENT
+                             NOT NULL,
+    name           NVARCHAR2 NOT NULL
+                             COLLATE NOCASE,
+    date_assigned  DATETIME  NOT NULL,
+    community      NVARCHAR2 NOT NULL
+                             COLLATE NOCASE,
+    bonus_eligible BOOLEAN   DEFAULT (1),
+    is_active      BOOLEAN   NOT NULL
+                             DEFAULT (1),
+    last_update    DATETIME  NOT NULL
+                             DEFAULT (CURRENT_TIMESTAMP),
+    created_date   DATETIME  DEFAULT (CURRENT_TIMESTAMP) 
+                             NOT NULL
+);
+
 	
 	
 	CREATE TABLE users (
