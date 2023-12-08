@@ -1,11 +1,14 @@
 import csv
 import json
 import logging
+import math
 import os.path
 import random
 import sqlite3
 
 from logging.handlers import RotatingFileHandler
+from decimal import Decimal
+from copy import deepcopy
 
 from web3 import Web3
 
@@ -90,6 +93,8 @@ if __name__ == '__main__':
     with open(f'../in/round_{DISTRIBUTION_ROUND}.csv', newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=',')
         csv_records = list(reader)
+
+    csv_records_original = deepcopy(csv_records)
 
     logger.info(f"begin applying funded accounts...")
 
@@ -246,17 +251,25 @@ if __name__ == '__main__':
                     f"  user [{csv_record['username']}] updating from address [{csv_record['blockchain_address']}] -> to [{address}]")
                 csv_record['blockchain_address'] = address
 
-    # sort by points
-    logger.info("sorting dataset by points")
-    csv_records.sort(key=lambda x: float(x['points']), reverse=True)
+    # # sort by points
+    # logger.info("sorting dataset by points")
+    # csv_records.sort(key=lambda x: float(x['points']), reverse=True)
+
+    for original_record in csv_records_original:
+        e2t_record = next((x for x in csv_records if x["username"].lower() == original_record["username"].lower()),
+                          None)
+        original_record["net e2t"] = round(Decimal(e2t_record['points']) - Decimal(original_record['points']), 5)
 
     logger.info("outputting .csv")
+    fieldnames = ["username", "comments", "comment_score", "posts", "post_score", "raw_score", "pay2post", "points",
+             "net e2t", "blockchain_address"]
 
     # write new csv
-    with open(f"../out/round_{DISTRIBUTION_ROUND}.csv", 'w') as output_file:
-        writer = csv.DictWriter(output_file, csv_records[0].keys(), extrasaction='ignore')
+    with open(f"../out/round_{DISTRIBUTION_ROUND}_adjusted.csv", 'w') as output_file:
+        # writer = csv.DictWriter(output_file, csv_records[0].keys(), extrasaction='ignore')
+        writer = csv.DictWriter(output_file, fieldnames, extrasaction='ignore')
         writer.writeheader()
-        writer.writerows(csv_records)
+        writer.writerows(csv_records_original)
 
     logger.info("outputting materialized tips .json")
 
