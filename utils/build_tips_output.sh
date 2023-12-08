@@ -8,8 +8,8 @@ echo "begin building tips output file..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
-echo "associating any unregistered tips"
-python3.11 ../ad_hoc/associate_unregistered_tips.py
+#echo "associating any unregistered tips"
+#python3.11 ../ad_hoc/associate_unregistered_tips.py
 
 echo "building off-chain tip output file"
 python3.11 ../ad_hoc/build_tips_output.py
