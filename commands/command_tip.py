@@ -261,13 +261,13 @@ class TipCommand(Command):
         sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
         reply += sig
         if set_processed:
-            database.set_processed_content(comment.fullname)
+            database.set_processed_content_tips(comment.fullname)
         comment.reply(reply)
 
     def process_comment(self, comment):
         self.logger.info(f"process tip command - content_id: {comment.fullname} | author: {comment.author.name}")
 
-        if database.has_processed_content(comment.fullname) is not None:
+        if database.has_processed_content_tips(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
 

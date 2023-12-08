@@ -73,11 +73,6 @@ if __name__ == '__main__':
                     if command.can_handle(comment.body):
                         try:
                             command.process_comment(comment)
-
-                            # no point trying the other commands to handle this comment
-                            # update - now with faucet, I am seeing multiple commands
-                            # (tip + fuacet) so I will try to process all commands in the comment
-                            # break
                         except Exception as e:
                             logger.error(f'  Exception: {e}')
         except Exception as e:

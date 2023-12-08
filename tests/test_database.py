@@ -31,25 +31,25 @@ class Test(TestCase):
         self.assertEqual(user["username"], 'mattg1981')
 
     def test_has_processed_content(self):
-        result = db.has_processed_content("t1_k782jvi")
+        result = db.has_processed_content_tips("t1_k782jvi")
         self.assertIsNotNone(result)
 
-        result = db.has_processed_content("t1_NOT-IN-DB")
+        result = db.has_processed_content_tips("t1_NOT-IN-DB")
         self.assertIsNone(result)
 
     def test_set_processed_content(self):
         content_id = "SOME_ID_NOT_IN_DB"
 
         # cleanup (in case a prior test failed and failed to cleanup)
-        db.remove_processed_content(content_id)
+        db.remove_processed_content_tips(content_id)
 
-        result = db.set_processed_content(content_id)
+        result = db.set_processed_content_tips(content_id)
 
         self.assertIsNotNone(result)
-        self.assertIsNotNone(db.has_processed_content(content_id))
+        self.assertIsNotNone(db.has_processed_content_tips(content_id))
 
         # cleanup
-        db.remove_processed_content(content_id)
+        db.remove_processed_content_tips(content_id)
 
 
     def test_get_address_for_unregistered_user(self):

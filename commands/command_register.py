@@ -20,13 +20,13 @@ class RegisterCommand(Command):
 
     def leave_comment_reply(self, comment, reply):
         reply += self.COMMENT_SIGNATURE
-        database.set_processed_content(comment.fullname)
+        database.set_processed_content_registration(comment.fullname)
         comment.reply(reply)
 
     def process_comment(self, comment):
         self.logger.info(f"process reg command - content_id: {comment.fullname} | author: {comment.author.name}")
 
-        if database.has_processed_content(comment.fullname) is not None:
+        if database.has_processed_content_registration(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
 

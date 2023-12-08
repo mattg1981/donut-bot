@@ -30,13 +30,13 @@ class FaucetCommand(Command):
         reply += f"\n\n💥 Please help support this faucet by sending xDai (on the Gnosis chain) to: `{self.config['faucet_wallet_address']}`."
         reply += self.COMMENT_SIGNATURE
 
-        db.set_processed_content(comment.fullname)
+        db.set_processed_content_faucet(comment.fullname)
         comment.reply(reply)
 
     def process_comment(self, comment):
         self.logger.info(f"process faucet command - content_id: {comment.fullname} | author: {comment.author.name}")
 
-        if db.has_processed_content(comment.fullname) is not None:
+        if db.has_processed_content_faucet(comment.fullname) is not None:
             self.logger.info("  previously processed...")
             return
 
@@ -130,4 +130,3 @@ class FaucetCommand(Command):
                 time.sleep(1)
 
         self.leave_comment_reply(comment, "❌ Something went wrong, please try again later.")
-        # return

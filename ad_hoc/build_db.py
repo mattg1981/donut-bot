@@ -59,7 +59,19 @@ if __name__ == '__main__':
     );
 
 	
-	CREATE TABLE `history` (
+	CREATE TABLE `history_tips` (
+		`id` integer not null primary key autoincrement,
+		`content_id` nvarchar2 not null,
+		`created_at` datetime not null default CURRENT_TIMESTAMP
+	);
+	
+	CREATE TABLE `history_registration` (
+		`id` integer not null primary key autoincrement,
+		`content_id` nvarchar2 not null,
+		`created_at` datetime not null default CURRENT_TIMESTAMP
+	);
+	
+	CREATE TABLE `history_faucet` (
 		`id` integer not null primary key autoincrement,
 		`content_id` nvarchar2 not null,
 		`created_at` datetime not null default CURRENT_TIMESTAMP
