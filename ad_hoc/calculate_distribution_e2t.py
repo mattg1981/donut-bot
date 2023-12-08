@@ -10,6 +10,7 @@ from logging.handlers import RotatingFileHandler
 from decimal import Decimal
 from copy import deepcopy
 
+import requests
 from web3 import Web3
 
 DISTRIBUTION_ROUND = 130
@@ -83,16 +84,16 @@ if __name__ == '__main__':
         tips = cursor.fetchall()
 
     # get the csv file once it has been published
-    # logger.info(f"retrieving final csv file from EthTrader/donut.distribution...")
-    # url = f"https://raw.githubusercontent.com/EthTrader/donut.distribution/main/in/round_{DISTRIBUTION_ROUND}.csv"
-    # request_result = requests.get(url).text
-    # reader = csv.DictReader(request_result.splitlines(), delimiter=',')
-    # csv_records = list(reader)
+    logger.info(f"retrieving final csv file from EthTrader/donut.distribution...")
+    url = f"https://www.mydonuts.online/home/mydonuts/static/rounds/round_{DISTRIBUTION_ROUND}.csv"
+    request_result = requests.get(url).text
+    reader = csv.DictReader(request_result.splitlines(), delimiter=',')
+    csv_records = list(reader)
 
     # get file from the /in directory
-    with open(f'../in/round_{DISTRIBUTION_ROUND}.csv', newline='') as csvfile:
-        reader = csv.DictReader(csvfile, delimiter=',')
-        csv_records = list(reader)
+    # with open(f'../in/round_{DISTRIBUTION_ROUND}.csv', newline='') as csvfile:
+    #     reader = csv.DictReader(csvfile, delimiter=',')
+    #     csv_records = list(reader)
 
     csv_records_original = deepcopy(csv_records)
 
