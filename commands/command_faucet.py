@@ -2,6 +2,7 @@ import json
 import os
 import time
 from decimal import Decimal
+from pathlib import Path
 
 from web3 import Web3
 from web3.gas_strategies.time_based import medium_gas_price_strategy
@@ -30,13 +31,13 @@ class FaucetCommand(Command):
         reply += f"\n\n💥 Please help support this faucet by sending xDai (on the Gnosis chain) to: `{self.config['faucet_wallet_address']}`."
         reply += self.COMMENT_SIGNATURE
 
-        db.set_processed_content_faucet(comment.fullname)
+        db.set_processed_content(comment.fullname, Path(__file__).stem)
         comment.reply(reply)
 
     def process_comment(self, comment):
         self.logger.info(f"process faucet command - content_id: {comment.fullname} | author: {comment.author.name}")
 
-        if db.has_processed_content_faucet(comment.fullname) is not None:
+        if db.has_processed_content(comment.fullname, Path(__file__).stem) is not None:
             self.logger.info("  previously processed...")
             return
 

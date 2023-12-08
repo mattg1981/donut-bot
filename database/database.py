@@ -118,58 +118,25 @@ def get_user_by_address(address):
         return cur.fetchone()
 
 
-def has_processed_content_tips(content_id):
+def has_processed_content(content_id, command):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('SELECT id FROM history_tips WHERE content_id = ?;', [content_id])
+        cur.execute('SELECT id FROM history WHERE content_id = ? and command = ?;', [content_id, command])
         return cur.fetchone()
 
-
-def set_processed_content_tips(content_id):
+def set_processed_content(content_id, command):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('INSERT INTO history_tips (content_id) VALUES(?) RETURNING *;', [content_id])
+        cur.execute('INSERT INTO history (content_id, command) VALUES(?,?) RETURNING *;', [content_id, command])
         return cur.fetchone()
 
-
-def has_processed_content_registration(content_id):
+def remove_processed_content(content_id, command):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute('SELECT id FROM history_registration WHERE content_id = ?;', [content_id])
-        return cur.fetchone()
-
-
-def set_processed_content_registration(content_id):
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute('INSERT INTO history_registration (content_id) VALUES(?) RETURNING *;', [content_id])
-        return cur.fetchone()
-
-def has_processed_content_faucet(content_id):
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute('SELECT id FROM history_faucet WHERE content_id = ?;', [content_id])
-        return cur.fetchone()
-
-
-def set_processed_content_faucet(content_id):
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute('INSERT INTO history_faucet (content_id) VALUES(?) RETURNING *;', [content_id])
-        return cur.fetchone()
-
-
-def remove_processed_content_tips(content_id):
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute("DELETE FROM history_tips WHERE content_id = ?;", [content_id])
+        cur.execute("DELETE FROM history_tips WHERE content_id = ? and command = ?;", [content_id, command])
 
 
 # todo use insert or update
