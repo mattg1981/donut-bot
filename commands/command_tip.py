@@ -299,6 +299,7 @@ class TipCommand(Command):
         if not valid_tips:
             self.leave_comment_reply(comment, reply)
         elif database.process_earn2tips(valid_tips, Path(__file__).stem):
+            self.logger("success...")
             self.leave_comment_reply(comment, reply, False)
         else:
             self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "
