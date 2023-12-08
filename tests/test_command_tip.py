@@ -7,12 +7,108 @@ import praw
 from dotenv import load_dotenv
 
 from commands.command_tip import TipCommand
+from database import database
 
 
 class TestTipCommand(TestCase):
 
+    class Submission:
+        def __init__(self):
+            self.id = None
 
+        @property
+        def id(self):
+            return self._id
 
+        @id.setter
+        def id(self, value):
+            self._id = value
+
+    class SubReddit:
+        def __init__(self):
+            self._display_name = None
+
+        @property
+        def display_name(self):
+            return self._display_name
+
+        @display_name.setter
+        def display_name(self, value):
+            self._display_name = value
+
+    class Author:
+        def __init__(self):
+            self.name = None
+
+        @property
+        def name(self):
+            return self._name
+
+        @name.setter
+        def name(self, value):
+            self._name = value
+    class Comment:
+        def __init__(self, parent):
+            self._id = None
+            self.author = parent or TestTipCommand.Author()
+            self.submission = TestTipCommand.Submission()
+            self.subreddit = TestTipCommand.SubReddit()
+            self._fullname = None
+            self._body = None
+            self._parent = parent
+
+        @property
+        def body(self):
+            return self._body
+
+        @property
+        def id(self):
+            return self._id
+        @property
+        def fullname(self):
+            return self._fullname
+
+        def parent(self):
+            return self._parent
+
+        @body.setter
+        def body(self, value):
+            self._body = value
+
+        @id.setter
+        def id(self, value):
+            self._id = value
+            
+        @fullname.setter
+        def fullname(self, value):
+            self._fullname = value
+
+    def test_something(self):
+        # load config
+        with open(os.path.normpath("../config.json"), 'r') as f:
+            config = json.load(f)
+
+        command = TipCommand(config)
+
+        parent = TestTipCommand.Comment(None)
+        parent.author.name = 'kirtash93'
+        parent.fullname = 'parent.fullname'
+
+        comment = TestTipCommand.Comment(parent)
+        comment.fullname = 'mock'
+        comment.submission.id = 'mock'
+        comment.id = 'mock'
+        comment.author.name = 'mattg1981'
+        comment.body = 'test !Tip 10 !tip u/aminok 10\n\nanother !tip u/odd-radio-8500 30'
+        comment.subreddit.display_name = 'ethtrader'
+
+        if command.can_handle(comment.body):
+            tips = command.parse_comments_for_tips(comment)
+            valid_tips = [t for t in tips if t.is_valid]
+            database.process_earn2tips(valid_tips)
+            pass
+        else:
+            self.fail()
 
     def test_can_handle(self):
         # load environment variables
@@ -41,13 +137,6 @@ The key is, as you've pointed out, to provide Liquidity in a ranging market.... 
 
 !tip 1"""
 
-
-
-
-
-
-
-
         with open(os.path.normpath("../config.json"), 'r') as f:
             config = json.load(f)
 
@@ -58,7 +147,6 @@ The key is, as you've pointed out, to provide Liquidity in a ranging market.... 
 
         if not tip.can_handle("!tip "):
             self.fail()
-
 
         comment0 = "!tip 20"
 
@@ -117,7 +205,6 @@ aldkflakf
 
         if tip.can_handle("!tipExtra"):
             self.fail()
-
 
     def test_regex_for_tips(self):
         comment = "!tip 10 donut this is a great comment"

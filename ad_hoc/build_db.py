@@ -25,10 +25,7 @@ if __name__ == '__main__':
         id                    INTEGER         NOT NULL
                                               PRIMARY KEY AUTOINCREMENT,
         from_user             NVARCHAR2       COLLATE NOCASE,
-        from_address          NVARCHAR2       NOT NULL
-                                              COLLATE NOCASE,
         to_user               NVARCHAR2       COLLATE NOCASE,
-        to_address            NVARCHAR2       COLLATE NOCASE,
         amount                DECIMAL (10, 5) NOT NULL,
         token                 NVARCHAR2       NOT NULL
                                               COLLATE NOCASE,

@@ -3,7 +3,7 @@ import re
 from database import database
 from commands.command import Command
 from commands.command_register import RegisterCommand
-from models.tip import Tip
+from models.offchaintip import OffchainTip
 
 
 class TipCommand(Command):
@@ -85,9 +85,16 @@ class TipCommand(Command):
                 sender = comment.author.name
 
                 if recipient:
+                    # recipient supplied in the format u/username
+                    # so we need to strip the u/ off
                     recipient = recipient[2:].strip()
                 else:
-                    recipient = comment.parent().author.name
+                    parent_author = comment.parent().author
+                    if not parent_author:
+                        self.logger.error(f"  parent_author missing! skipping tip...")
+                        continue
+
+                    recipient = parent_author.name
 
                 if not token:
                     default_token = next(x for x in self.valid_tokens[community] if x["is_default"])
@@ -110,6 +117,11 @@ class TipCommand(Command):
                         is_valid = False
                         message = f"❌ Sorry u/{sender}, `{token}` is not a valid token for this sub."
 
+                if sender.lower() == recipient.lower():
+                    is_valid = False
+                    self.logger.info("  attempted self tipping")
+                    message = f"❌ Sorry u/{sender}, you cannot tip yourself!"
+
                 if is_valid:
                     normalized_amount = self.normalize_amount(amount)
                     if normalized_amount <= 0:
@@ -120,43 +132,37 @@ class TipCommand(Command):
                     else:
                         amount = normalized_amount
 
-                # only do the address lookup if we have an otherwise valid tip
-                sender_address = None
-                recipient_address = None
                 if is_valid:
-                    self.logger.info(f"  getting user addresses for sender: {sender} and recipient: {recipient}")
+                    sender_exists = False
+                    recipient_exists = False
 
                     result = database.get_users_by_name([sender, recipient])
                     for r in result:
                         if r["username"].lower() == sender.lower():
-                            sender_address = r["address"]
+                            sender_exists = True
                         if r["username"].lower() == recipient.lower():
-                            recipient_address = r["address"]
+                            # use the 'official' reddit name, not what was typed in
+                            recipient = r["username"]
+                            recipient_exists = True
 
-                    if not sender_address:
+                    if not sender_exists:
                         is_valid = False
                         reg = RegisterCommand(None)
                         self.logger.info("  sender not registered")
                         message = (f"❌ Sorry u/{comment.author.name} - you are not registered.  Please use "
                                    f"the [{reg.command_text} command]({self.config['e2t_post']}) to register.")
 
-                    if is_valid and sender_address == recipient_address:
-                        is_valid = False
-                        self.logger.info("  attempted self tipping")
-                        message = f"❌ Sorry u/{sender}, you cannot tip yourself!"
-
                 if is_valid:
                     message = f"u/{sender} has tipped u/{recipient} {amount} {token}"
 
-                    if not recipient_address:
+                    if not recipient_exists:
                         self.logger.info("  parent is not registered")
                         message += (f"\n\n⚠️ u/{recipient} is not currently registered and will not receive "
                                     f"this tip unless they [register]({self.config['e2t_post']}) before this round ends.")
 
-                tip = Tip(sender, sender_address, recipient,
-                          recipient_address, amount, token,
-                          comment.fullname, comment.parent().fullname,
-                          comment.submission.id, community, is_valid, message)
+                tip = OffchainTip(sender, recipient, amount, token,
+                                  comment.fullname, comment.parent().fullname,
+                                  comment.submission.id, community, is_valid, message)
 
                 self.logger.info(f"  {tip}")
                 tips.append(tip)

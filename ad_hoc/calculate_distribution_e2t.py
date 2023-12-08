@@ -2,6 +2,7 @@ import csv
 import json
 import logging
 import os.path
+import random
 import sqlite3
 
 from logging.handlers import RotatingFileHandler
@@ -48,15 +49,24 @@ if __name__ == '__main__':
               inner join users u on fund.from_user = u.username
             WHERE fund.processed_at BETWEEN 
               (select from_date from distribution_rounds where distribution_round = ?)  and 
-              (select to_date from distribution_rounds where distribution_round = ?) 
+              (select to_date from distribution_rounds where distribution_round = ?) ;
         """
 
         tips_sql = """
-            SELECT * 
+            SELECT e.*,
+               CASE WHEN u.username IS NULL THEN 0 ELSE 1 END to_user_exists
             FROM earn2tip e
-            WHERE created_date BETWEEN
-              (select from_date from distribution_rounds where distribution_round = ?)  and 
-              (select to_date from distribution_rounds where distribution_round = ?) 
+               LEFT JOIN users u ON e.to_user = u.username
+            WHERE 
+               created_date BETWEEN (
+                    SELECT from_date
+                      FROM distribution_rounds
+                     WHERE distribution_round = ?
+                ) AND (
+                   SELECT to_date
+                     FROM distribution_rounds
+                    WHERE distribution_round = ?
+               );
         """
 
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -119,7 +129,7 @@ if __name__ == '__main__':
         logger.info(
             f"processing tip [{i} of {len(tips)}] << [from]: {tip['from_user']} [to]:{tip['to_user']} [amount]: {tip['amount']} [token]: {tip['token']} >>")
 
-        if not tip["to_address"]:
+        if not tip["to_user_exists"]:
             logger.info(f"user [{tip['to_user']}] is not registered, tip will be ignored! {tip}")
             logger.info("")
             continue
@@ -144,14 +154,14 @@ if __name__ == '__main__':
                     "comment score": 0,
                     "post score": 0,
                     "points": 0,
-                    "blockchain_address": tip["to_address"]
+                    "blockchain_address": 0  # will get populated at end of this process
                 }
                 csv_records.append(to_user)
 
         old_sender_val = from_user['points']
         tip_amount = tip["amount"]
 
-        # user didnt have enough to tip
+        # user didn't have enough to tip
         if float(old_sender_val) < tip_amount:
             logger.warning(
                 f"user: [{tip['from_user']}] tipped but did not have enough funds to cover the tip [prev balance: {old_sender_val}]")
@@ -172,9 +182,9 @@ if __name__ == '__main__':
 
         materialized_tips.append({
             'from_user': tip['from_user'],
-            'from_address': tip['from_address'],
+            # 'from_address': tip['from_address'],
             'to_user': tip['to_user'],
-            'to_address': tip['to_address'],
+            # 'to_address': tip['to_address'],
             'amount': tip_amount,
             'token': tip['token'],
             'content_id': tip['content_id'],
@@ -192,7 +202,7 @@ if __name__ == '__main__':
         latest_address = """
             SELECT address 
             FROM users 
-            WHERE username=? 
+            WHERE username=? ;
         """
 
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -209,7 +219,10 @@ if __name__ == '__main__':
             if ".eth" in address:
                 logger.info(
                     f"  resolving ENS address for user [{csv_record['username']}] -> ENS [{user_address['address']}]")
-                for public_node in config["eth_public_nodes"]:
+
+                public_nodes = config["eth_public_nodes"]
+                random.shuffle(public_nodes)
+                for public_node in public_nodes:
                     try:
                         logger.info(f"  trying ETH node {public_node}...")
 

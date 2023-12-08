@@ -7,23 +7,27 @@ from decimal import Decimal
 def adapt_decimal(d):
     return str(d)
 
+
 def convert_decimal(s):
     return Decimal(s)
+
 
 def update_funded_account(tx_hash):
     with sqlite3.connect(get_db_path()) as db:
         update_sql = """
-           update funded_account set processed_at = ? where tx_hash = ?
+           update funded_account set processed_at = ? where tx_hash = ?;
         """
         cursor = db.cursor()
         cursor.execute(update_sql, [datetime.now(), tx_hash])
+
 
 def get_max_multisig_block():
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
-        cursor.execute("select max(block_number) block from funded_account")
+        cursor.execute("select max(block_number) block from funded_account;")
         return cursor.fetchone()['block']
+
 
 def get_funded_accounts_to_notify():
     sqlite3.register_adapter(Decimal, adapt_decimal)
@@ -32,14 +36,15 @@ def get_funded_accounts_to_notify():
     with sqlite3.connect(get_db_path()) as db:
         notify_sql = """
                 SELECT u.username, fa.* from funded_account fa
-                inner join users u on fa.from_address = u.address COLLATE NOCASE
-                where processed_at is null
+                inner join users u on fa.from_address = u.address
+                where processed_at is null;
             """
 
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
         cursor.execute(notify_sql)
         return cursor.fetchall()
+
 
 def insert_funded_account(from_address, amount, token, block, tx_hash, timestamp):
     sqlite3.register_adapter(Decimal, adapt_decimal)
@@ -54,6 +59,7 @@ def insert_funded_account(from_address, amount, token, block, tx_hash, timestamp
         cursor = db.cursor()
         cursor.execute(insert_sql, [from_address, from_address, amount, token, block,
                                     tx_hash, timestamp, datetime.now(), tx_hash])
+
 
 def get_faucet_eligible(user):
     with sqlite3.connect(get_db_path()) as db:
@@ -102,6 +108,7 @@ def get_users_by_name(users):
         cur.execute('SELECT * FROM users WHERE username IN (%s);' %
                     ','.join('?' * len(users)), users)
         return cur.fetchall()
+
 
 def get_user_by_address(address):
     with sqlite3.connect(get_db_path()) as db:
@@ -163,9 +170,9 @@ def insert_or_update_address(user, address, content_id):
 
 def process_earn2tips(tips):
     sql = """
-    INSERT INTO earn2tip (from_user, from_address, to_user, to_address, amount, token, content_id, 
+    INSERT INTO earn2tip (from_user, to_user, amount, token, content_id, 
                           parent_content_id, submission_content_id, community, created_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ;
     """
 
     history_sql = "INSERT INTO history (content_id) VALUES(?) RETURNING *;"
@@ -176,8 +183,9 @@ def process_earn2tips(tips):
 
     for tip in tips:
         tip.created_date = created_date
-        data.append((tip.sender_name, tip.sender_address, tip.recipient_name, tip.recipient_address,  tip.amount, tip.token,
-                     tip.content_id, tip.parent_content_id, tip.submission_content_id, tip.community, created_date))
+        data.append(
+            (tip.sender_name, tip.recipient_name, tip.amount, tip.token,
+             tip.content_id, tip.parent_content_id, tip.submission_content_id, tip.community, created_date))
 
     with sqlite3.connect(get_db_path()) as db:
         db.isolation_level = None
@@ -210,7 +218,7 @@ def get_sub_status_for_current_round(subreddit):
             where
                 DATE() between from_date
                 and to_date
-        )
+        );
     """
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -227,7 +235,7 @@ def get_tips_sent_for_current_round_by_user(user):
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
       and from_user = ? 
       and DATE() between dr.from_date and dr.to_date
-    GROUP BY from_user, token
+    GROUP BY from_user, token;
     """
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -244,7 +252,7 @@ def get_tips_received_for_current_round_by_user(user):
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
         and to_user = ? 
         and DATE() between dr.from_date and dr.to_date
-    GROUP BY to_user, token
+    GROUP BY to_user, token;
     """
 
     with sqlite3.connect(get_db_path()) as db:
@@ -263,7 +271,7 @@ def get_funded_for_current_round_by_user(user):
     WHERE fund.processed_at BETWEEN dr.from_date and dr.to_date 
         and u.username = ? 
         and DATE() between dr.from_date and dr.to_date
-    GROUP BY u.username, token
+    GROUP BY u.username, token;
     """
 
     with sqlite3.connect(get_db_path()) as db:

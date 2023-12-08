@@ -11,15 +11,13 @@ if __name__ == '__main__':
     db_path = os.path.normpath(db_path)
 
     rounds_query = """
-        select min(distribution_round) 'min', max(distribution_round) 'max' 
-        from distribution_rounds
+        select distribution_round from distribution_rounds
+        where DATE() between from_date and to_date;
     """
 
     tips_query = """
     select
       e.from_user, 
-      e.from_address,
-      e.to_address,
       e.to_user,
       e.amount,
       e.token,
@@ -45,21 +43,20 @@ if __name__ == '__main__':
           distribution_rounds
         where
           distribution_round = ?
-      )
+      );
     """
 
     with sqlite3.connect(db_path) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
         cursor.execute(rounds_query)
-        rounds_result = cursor.fetchone()
+        round_result = cursor.fetchone()
 
-    # I loaded distribution round data for 2 rounds prior to the tip bot
-    # going live - so I add two to the min
-    r_min = rounds_result["min"] + 2
-    r_max = rounds_result["max"]
+    # build tips for last round and current round
+    r_min = int(round_result["distribution_round"]) - 1
+    r_max = int(round_result["distribution_round"])
 
-    for i in range (r_min, r_max):
+    for i in range(r_min, r_max):
         with sqlite3.connect(db_path) as db:
             db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
             cursor.execute(tips_query, [i, i])
@@ -75,4 +72,3 @@ if __name__ == '__main__':
 
         with open(out_file, 'w') as f:
             json.dump(tips, f, indent=4)
-
