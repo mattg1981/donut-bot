@@ -24,7 +24,7 @@ if __name__ == '__main__':
           FROM onchain_tip t
             left join users u1 on t.from_address = u1.address
             left join users u2 on t.to_address = u2.address
-          ORDER BY block desc
+          ORDER BY block desc;
 
         """
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
