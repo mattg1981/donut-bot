@@ -259,11 +259,11 @@ if __name__ == '__main__':
     for original_record in csv_records_original:
         e2t_record = next((x for x in csv_records if x["username"].lower() == original_record["username"].lower()),
                           None)
-        original_record["net e2t"] = round(Decimal(e2t_record['points']) - Decimal(original_record['points']), 5)
+        original_record["net_e2t"] = round(Decimal(e2t_record['points']) - Decimal(original_record['points']), 5)
 
     logger.info("outputting .csv")
     fieldnames = ["username", "comments", "comment_score", "posts", "post_score", "raw_score", "pay2post", "points",
-             "net e2t", "blockchain_address"]
+             "net_e2t", "blockchain_address"]
 
     # write new csv
     with open(f"../out/round_{DISTRIBUTION_ROUND}_adjusted.csv", 'w') as output_file:
