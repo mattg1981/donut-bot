@@ -99,8 +99,7 @@ if __name__ == '__main__':
                 with sqlite3.connect(db_path) as db:
                     insert_ban_sql = """
                         insert into bans (username, note, ban_date, permanent, days_left, community)
-                        values (?,?,?,?,?,?)
-                        returning *;
+                        values (?,?,?,?,?,?);
                     """
 
                     db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
