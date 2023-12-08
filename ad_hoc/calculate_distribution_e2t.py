@@ -84,7 +84,7 @@ if __name__ == '__main__':
         tips = cursor.fetchall()
 
     # get the csv file once it has been published
-    logger.info(f"retrieving final csv file from EthTrader/donut.distribution...")
+    logger.info(f"retrieving final csv file from mydonuts.online...")
     url = f"https://www.mydonuts.online/home/mydonuts/static/rounds/round_{DISTRIBUTION_ROUND}.csv"
     request_result = requests.get(url).text
     reader = csv.DictReader(request_result.splitlines(), delimiter=',')
