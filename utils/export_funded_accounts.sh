@@ -9,7 +9,7 @@ TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
 echo "building off-chain tip output file"
-python3.11 ../ad_hoc/output_funded_accounts.py
+python3.11 ../ad_hoc/export_funded_accounts.py
 
 cd ../out
 cp -fr ./funded_round_* ../../donut-bot-output/funded_accounts/
