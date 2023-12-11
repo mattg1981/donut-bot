@@ -56,7 +56,7 @@ if __name__ == '__main__':
     r_min = int(round_result["distribution_round"]) - 1
     r_max = int(round_result["distribution_round"])
 
-    for i in range(r_min, r_max):
+    for i in range(r_min, r_max + 1):
         with sqlite3.connect(db_path) as db:
             db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
             cursor.execute(tips_query, [i, i])
