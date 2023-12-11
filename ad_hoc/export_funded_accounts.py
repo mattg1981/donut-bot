@@ -18,6 +18,7 @@ if __name__ == '__main__':
     funded_query = """
     SELECT 
        from_user user,
+       from_address address,
        amount,
        token,
        block_number,
