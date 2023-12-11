@@ -261,6 +261,12 @@ if __name__ == '__main__':
                           None)
         original_record["net_e2t"] = round(Decimal(e2t_record['points']) - Decimal(original_record['points']), 5)
 
+        if float(original_record['points']) <= 0:
+            original_record['points'] = float(original_record['net_e2t'])
+
+    # filter out negative scores, unless they have tips
+    csv_records_original = [csv for csv in csv_records_original if float(csv['points']) > 0]
+
     logger.info("outputting .csv")
     fieldnames = ["username", "comments", "comment_score", "posts", "post_score", "raw_score", "pay2post", "points",
              "net_e2t", "blockchain_address"]
