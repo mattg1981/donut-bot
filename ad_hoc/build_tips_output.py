@@ -19,7 +19,7 @@ if __name__ == '__main__':
     select
       e.from_user, 
       e.to_user,
-      CASE WHEN u.username IS NULL THEN 0 ELSE 1 END to_user_registered
+      CASE WHEN u.username IS NULL THEN 0 ELSE 1 END to_user_registered,
       e.amount,
       e.token,
       e.content_id,
