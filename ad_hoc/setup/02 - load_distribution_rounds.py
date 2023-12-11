@@ -36,7 +36,7 @@ def save_distribution_round(round, start_date, end_date):
 
 if __name__ == '__main__':
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
+    db_path = os.path.join(BASE_DIR, "../../database/donut-bot.db")
     db_path = os.path.normpath(db_path)
 
     build_ethtrader_rounds()
