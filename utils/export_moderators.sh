@@ -10,6 +10,7 @@ TIMESTAMP=$( date +%H:%M )
 
 echo "get moderators ..."
 python3.11 ../ad_hoc/get_moderators.py
+python3.11 ../ad_hoc/export_moderators.py
 
 cd ../out
 cp -fr ./moderators_* ../../donut-bot-output/moderators/
