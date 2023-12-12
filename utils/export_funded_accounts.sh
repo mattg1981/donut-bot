@@ -8,7 +8,7 @@ echo "begin building funded accounts output file..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
-echo "building off-chain tip output file"
+echo "building funded accounts output file"
 python3.11 ../ad_hoc/export_funded_accounts.py
 
 cd ../out
