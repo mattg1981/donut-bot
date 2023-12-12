@@ -4,12 +4,12 @@
 #  outputs tip information, commits the file and pushes
 #
 
-echo "begin building funded accounts output file..."
+echo "begin exporting moderators ..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
-echo "building off-chain tip output file"
-python3.11 ../ad_hoc/export_moderators.py
+echo "get moderators ..."
+python3.11 ../ad_hoc/get_moderators.py
 
 cd ../out
 cp -fr ./moderators_* ../../donut-bot-output/moderators/
