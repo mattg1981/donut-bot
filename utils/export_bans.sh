@@ -26,7 +26,7 @@ echo "git add"
 git add --all --force
 
 echo "git commit..."
-git commit -m "updated moderators ${TIMESTAMP_DAY} ${TIMESTAMP}" *
+git commit -m "updated bans ${TIMESTAMP_DAY} ${TIMESTAMP}" *
 
 echo "git push..."
 git push
