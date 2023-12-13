@@ -42,9 +42,6 @@ if __name__ == '__main__':
             cursor.execute(temp_ban_query, [i, i])
             temp_bans = cursor.fetchall()
 
-        if not temp_bans:
-            continue
-
         out_file = f"../out/temp_bans_round_{i}.json"
 
         if os.path.exists(out_file):
