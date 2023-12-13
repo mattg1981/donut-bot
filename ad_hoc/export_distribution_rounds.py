@@ -15,7 +15,7 @@ if __name__ == '__main__':
         where DATE() between from_date and to_date;
     """
 
-    funded_query = """
+    distribution_query = """
     SELECT 
        distribution_round,
        community,
@@ -37,11 +37,11 @@ if __name__ == '__main__':
     for i in range(round_min, round_max + 1):
         with sqlite3.connect(db_path) as db:
             db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-            cursor.execute(funded_query, [i])
-            tips = cursor.fetchall()
+            cursor.execute(distribution_query, [i])
+            distribution_round = cursor.fetchall()
 
-        if not tips:
-            break
+        if not distribution_round:
+            continue
 
         out_file = f"../out/distribution_round_{i}.json"
 
@@ -49,4 +49,4 @@ if __name__ == '__main__':
             os.remove(out_file)
 
         with open(out_file, 'w') as f:
-            json.dump(tips, f, indent=4)
+            json.dump(distribution_round, f, indent=4)

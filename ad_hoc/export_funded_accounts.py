@@ -59,10 +59,10 @@ if __name__ == '__main__':
         with sqlite3.connect(db_path) as db:
             db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
             cursor.execute(funded_query, [i, i])
-            tips = cursor.fetchall()
+            funded_accounts = cursor.fetchall()
 
-        if not tips:
-            break
+        if not funded_accounts:
+            continue
 
         out_file = f"../out/funded_round_{i}.json"
 
@@ -70,4 +70,4 @@ if __name__ == '__main__':
             os.remove(out_file)
 
         with open(out_file, 'w') as f:
-            json.dump(tips, f, indent=4)
+            json.dump(funded_accounts, f, indent=4)

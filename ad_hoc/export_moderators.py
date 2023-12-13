@@ -15,7 +15,7 @@ if __name__ == '__main__':
         where DATE() between from_date and to_date;
     """
 
-    funded_query = """
+    mods_query = """
     SELECT 
        name,
        date_assigned,
@@ -53,11 +53,11 @@ if __name__ == '__main__':
     for i in range(r_min, r_max + 1):
         with sqlite3.connect(db_path) as db:
             db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-            cursor.execute(funded_query, [i, i])
-            tips = cursor.fetchall()
+            cursor.execute(mods_query, [i, i])
+            mods = cursor.fetchall()
 
-        if not tips:
-            break
+        if not mods:
+            continue
 
         out_file = f"../out/moderators_{i}.json"
 
@@ -65,4 +65,4 @@ if __name__ == '__main__':
             os.remove(out_file)
 
         with open(out_file, 'w') as f:
-            json.dump(tips, f, indent=4)
+            json.dump(mods, f, indent=4)
