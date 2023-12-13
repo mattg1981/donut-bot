@@ -15,12 +15,12 @@ python3.11 ../ad_hoc/export_moderators.py
 cd ../out
 cp -fr ./moderators_* ../../donut-bot-output/moderators/
 
-cd ../../donut-bot-output/
+cd ../../donut-bot-output/moderators/
 
 echo "git pull"
 git pull
 
-echo "git add (in case a new file is available"
+echo "git add"
 git add --all --force
 
 echo "git commit..."

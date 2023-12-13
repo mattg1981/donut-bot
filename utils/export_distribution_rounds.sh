@@ -13,12 +13,12 @@ python3.11 ../ad_hoc/export_distribution_rounds.py
 cd ../out
 cp -fr ./distribution_round_* ../../donut-bot-output/distribution_rounds/
 
-cd ../../donut-bot-output/
+cd ../../donut-bot-output/distribution_rounds
 
 echo "git pull"
 git pull
 
-echo "git add (in case a new file is available"
+echo "git add"
 git add --all --force
 
 echo "git commit..."

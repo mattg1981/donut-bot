@@ -26,7 +26,7 @@ cd ../../donut-bot-output/
 echo "git pull"
 git pull
 
-echo "git add (in case a new file is available"
+echo "git add"
 git add --all --force
 
 echo "git commit..."
