@@ -43,7 +43,7 @@ if __name__ == '__main__':
             temp_bans = cursor.fetchall()
 
         if not temp_bans:
-            break
+            continue
 
         out_file = f"../out/temp_bans_round_{i}.json"
 

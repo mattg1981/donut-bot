@@ -15,7 +15,7 @@ echo "begin to add bans to repository"
 
 cd ../out
 cp -fr ./perm_bans* ../../donut-bot-output/bans/
-cp -fr ./temp_bans_round_* ../../donut-bot-output/bans/
+cp -fr ./temp_bans* ../../donut-bot-output/bans/
 
 cd ../../donut-bot-output/bans/
 
