@@ -1,0 +1,25 @@
+[
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "author",
+          "type": "address"
+        },
+        {
+          "name": "_weeks",
+          "type": "uint16"
+        }
+      ],
+      "name": "subscribe",
+      "outputs": [
+        {
+          "name": "proxyTypeId",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ]
