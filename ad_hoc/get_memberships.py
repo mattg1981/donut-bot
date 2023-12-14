@@ -52,6 +52,9 @@ if __name__ == '__main__':
 
     for sm in special_memberships:
         url_result = json.load(urllib.request.urlopen(sm['url']))
+
+        print(url_result['result'][0])
+
         subscribe_txs = [r for r in url_result['result'] if r['methodId'] == "0x5bb80a5f"]
 
         subscribers = []
