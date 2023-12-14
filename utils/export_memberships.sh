@@ -12,7 +12,7 @@ echo "get memberships ..."
 python3.11 ../ad_hoc/get_memberships.py
 
 echo "export membersip data ..."
-python3.11 ../ad_hoc/export_memberships.py.py
+python3.11 ../ad_hoc/export_memberships.py
 
 cd ../out
 cp -fr ./memberships_* ../../donut-bot-output/memberships/
