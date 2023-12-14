@@ -84,6 +84,29 @@ CREATE TABLE moderators (
                              NOT NULL
 );
 
+CREATE TABLE special_membership (
+    id           INTEGER   PRIMARY KEY AUTOINCREMENT
+                           NOT NULL,
+    user         NVARCHAR2 COLLATE NOCASE,
+    address      NVARCHAR2 NOT NULL
+                           COLLATE NOCASE,
+    start_date   DATETIME  NOT NULL,
+    end_date     DATETIME  NOT NULL,
+    community    NVARCHAR2 NOT NULL
+                           COLLATE NOCASE,
+    network      NVARCHAR2 COLLATE NOCASE
+                           NOT NULL,
+    created_date DATETIME  DEFAULT (CURRENT_TIMESTAMP) 
+                           NOT NULL
+);
+
+CREATE UNIQUE INDEX idx_special_membership_address_start_date ON special_membership (
+    address,
+    start_date
+);
+
+
+
 	
 	
 	CREATE TABLE users (
