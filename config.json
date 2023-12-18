@@ -4,7 +4,8 @@
       "AutoModerator",
       "CrispyDonutBot",
       "EthTraderCommunity",
-      "EthTrader_Reposter"
+      "EthTrader_Reposter",
+      "donut-bot"
     ]
   },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
