@@ -56,7 +56,7 @@ if __name__ == '__main__':
            ban_date,
            community
         FROM bans
-            where permanent = 1 
+            where permanent = 1 and is_overturned = 0 
         ORDER by 
             ban_date desc    
         """
