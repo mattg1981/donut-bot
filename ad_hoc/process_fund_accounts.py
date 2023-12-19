@@ -95,7 +95,7 @@ if __name__ == '__main__':
     json_result = json.load(urllib.request.urlopen(
         f"https://api.gnosisscan.io/api?module=account&action=tokentx&address={config['multi_sig_address']}"
         f"&startblock={starting_block}&endblock=99999999&page=1&offset=10000&sort=asc"
-        f"&apikey={os.getenv('GNOSIS_SCAN_API_KEY')}"))
+        f"&apikey={os.getenv('GNOSIS_SCAN_IO_API_KEY')}"))
 
     logger.info(f"{len(json_result['result'])} transaction(s) found")
 
