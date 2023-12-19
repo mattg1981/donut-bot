@@ -312,7 +312,7 @@ if __name__ == '__main__':
         cur = db.cursor()
         cur.executescript(build_table_and_index)
 
-    # set flair for donut-bot once
+    # set flair for community bots once
     reddit.subreddit(subs).flair.update([x for x in config['flair']['ignore']], text='bot',
                                         css_class="flair-default")
 
