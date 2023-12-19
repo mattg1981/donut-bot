@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     query = """
     update earn2tip
-      set to_address = (select address from users u where to_user = u.username COLLATE NOCASE)
+      set to_address = (select address from users u where to_user = u.username)
     where to_address is NULL 
     """
 
