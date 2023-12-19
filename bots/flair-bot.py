@@ -41,32 +41,25 @@ def get_onchain_amounts(user_address):
             logger.info(f"  trying ETH node {public_node}")
             eth_w3 = Web3(Web3.HTTPProvider(public_node))
             if eth_w3.is_connected():
-                # if '.eth' in user_address:
-                #     user_address = eth_w3.ens.address(user_address)
-                #     logger.info(f"    ENS domain [{user_address}] resolved to [{user_address}]...")
-                #
-                #     if user_address is None:
-                #         logger.warning("  ENS did not resolve...")
-                #         return
-
-                if user_address.islower() and '.eth' not in user_address:
+                # if user_address.islower() and '.eth' not in user_address:
+                if '.eth' not in user_address:
                     user_address = Web3.to_checksum_address(user_address)
 
                 # donut token
                 donut_address_eth = '0xC0F9bD5Fa5698B6505F643900FFA515Ea5dF54A9'
-                eth_donut_contract = eth_w3.eth.contract(address=donut_address_eth, abi=eth_abi)
+                eth_donut_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(donut_address_eth), abi=eth_abi)
                 eth_token_balance = eth_donut_contract.functions.balanceOf(user_address).call()
                 eth_balance = Decimal(eth_token_balance) / Decimal(10 ** 18)
 
                 # lp information
                 lp_address_eth = '0x718Dd8B743ea19d71BDb4Cb48BB984b73a65cE06'
-                lp_eth_contract = eth_w3.eth.contract(address=lp_address_eth, abi=lp_mainnet_abi)
+                lp_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(lp_address_eth), abi=lp_mainnet_abi)
                 lp_token_balance = lp_eth_contract.functions.balanceOf(user_address).call()
                 lp_eth = Decimal(lp_token_balance) / Decimal(10 ** 18)
 
                 # stake information
                 stake_address_eth = '0x813fd5A7B6f6d792Bf9c03BBF02Ec3F08C9f98B2'
-                stake_eth_contract = eth_w3.eth.contract(address=stake_address_eth, abi=stake_mainnet_abi)
+                stake_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(stake_address_eth), abi=stake_mainnet_abi)
                 stake_token_balance = stake_eth_contract.functions.balanceOf(user_address).call()
                 stake_eth = Decimal(stake_token_balance) / Decimal(10 ** 18)
 
@@ -88,25 +81,25 @@ def get_onchain_amounts(user_address):
             if gno_w3.is_connected():
                 # donut token
                 donut_address_gno = '0x524B969793a64a602342d89BC2789D43a016B13A'
-                donut_contract = gno_w3.eth.contract(address=donut_address_gno, abi=eth_abi)
+                donut_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(donut_address_gno), abi=eth_abi)
                 gno_token_balance = donut_contract.functions.balanceOf(user_address).call()
                 gno_balance = Decimal(gno_token_balance) / Decimal(10 ** 18)
 
                 # lp information
                 lp_address_gno = '0x077240a400b1740C8cD6f73DEa37DA1F703D8c00'
-                lp_gno_contract = gno_w3.eth.contract(address=lp_address_gno, abi=lp_gno_abi)
+                lp_gno_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(lp_address_gno), abi=lp_gno_abi)
                 lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
                 lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
 
                 # contrib information
                 contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
-                contrib_contract = gno_w3.eth.contract(address=contrib_address, abi=contrib_abi)
+                contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
                 contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
                 contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
 
                 # staking information
                 stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
-                stake_contract_gno = gno_w3.eth.contract(address=stake_address_gno, abi=stake_gno_abi)
+                stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
                 gno_stake_balance = stake_contract_gno.functions.balanceOf(user_address).call()
                 stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
 
