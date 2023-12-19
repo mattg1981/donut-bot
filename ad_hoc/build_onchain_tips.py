@@ -39,26 +39,9 @@ if __name__ == '__main__':
 
     with open(os.path.normpath("../contracts/tipping_contract_abi.json"), 'r') as f:
         tip_abi = json.load(f)
-
-    w3_connected = False
-    tipping_contract = None
-    gno_w3 = None
-
-    public_nodes = config["gno_public_nodes"]
-    random.shuffle(public_nodes)
-    for public_node in public_nodes:
-        try:
-            logger.info(f"  trying GNO node {public_node}")
-            gno_w3 = Web3(Web3.HTTPProvider(public_node))
-            if gno_w3.is_connected():
-                w3_connected = True
-                tipping_contract = gno_w3.eth.contract(address=Web3.to_checksum_address(config['tipping_contract_address']), abi=tip_abi)
-                break
-        except Exception as e:
-            logger.error(f"  {e}")
-
-    if not w3_connected:
-        logger.error(f"  exhausted all public nodes, aborting...")
+    web3 = Web3()
+    tipping_contract = web3.eth.contract(address=Web3.to_checksum_address(config['tipping_contract_address']),
+                                         abi=tip_abi)
 
     with sqlite3.connect(db_path) as db:
         # build the table and index if it is the first run of this application
@@ -128,7 +111,7 @@ if __name__ == '__main__':
         amount = float(int(input[1]['_amount']) / float(1e18))
 
         content_id_bytes = input[1]["_contentId"]
-        content_id = gno_w3.to_text(content_id_bytes.hex()).replace("\x00", "")
+        content_id = web3.to_text(content_id_bytes.hex()).replace("\x00", "")
 
         # special case when content_id is not properly written
         if "t3_" not in content_id and "t1_" not in content_id:
