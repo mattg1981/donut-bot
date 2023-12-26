@@ -21,7 +21,7 @@ if __name__ == '__main__':
        ban_date,
        community
     FROM bans
-        where permanent = 0 
+        where permanent = 0 and is_overturned = 0 
         and ban_date between (select from_date from distribution_rounds where distribution_round = ?) 
           and (select to_date from distribution_rounds where distribution_round = ?)    
     """
