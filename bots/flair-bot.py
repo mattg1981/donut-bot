@@ -220,7 +220,7 @@ if __name__ == '__main__':
     logger = logging.getLogger("flair_bot")
 
     # set to info for more info - lots of logs are generated
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.INFO)
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(base_dir, "../logs/flair-bot.log")
