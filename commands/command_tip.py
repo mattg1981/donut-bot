@@ -8,10 +8,10 @@ from models.offchaintip import OffchainTip
 
 
 class TipCommand(Command):
-    VERSION = 'v0.1.20231114-tip'
+    VERSION = 'v0.1.20240111-tip'
 
-    def __init__(self, config):
-        super(TipCommand, self).__init__(config)
+    def __init__(self, config, reddit):
+        super(TipCommand, self).__init__(config, reddit)
         self.command_text = "!tip"
 
         delimiters = "\r", "\n"
@@ -258,11 +258,27 @@ class TipCommand(Command):
                           "System Default Browser in the Reddit Client (Settings > Open Links > Default Browser)*")
         self.leave_comment_reply(comment, comment_reply)
 
-    def leave_comment_reply(self, comment, reply, set_processed=True):
+    def leave_comment_reply(self, comment, reply, set_processed=True, use_tip_thread=False,):
         sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
-        reply += sig
+
         if set_processed:
             database.set_processed_content(comment.fullname, Path(__file__).stem)
+
+        if use_tip_thread:
+            # check if post meta contains a central comment to attach tips to
+            tip_thread_id = database.get_comment_thread_for_submission(comment.submission.fullname)
+            if tip_thread_id:
+                link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
+                sig = f'\n\n[LINK]({link})' + sig
+                reply += sig
+
+                tip_thread = self.reddit.comment(tip_thread_id)
+                tip_thread.reply(reply)
+                return
+
+        # if no central tip thread or not specified to use it then
+        # reply directly to this comment
+        reply += sig
         comment.reply(reply)
 
     def process_comment(self, comment):
@@ -300,7 +316,7 @@ class TipCommand(Command):
             self.leave_comment_reply(comment, reply)
         elif database.process_earn2tips(valid_tips, Path(__file__).stem):
             self.logger.info("  success...")
-            self.leave_comment_reply(comment, reply, False)
+            self.leave_comment_reply(comment, reply, False, True)
         else:
             self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "
                                               f"tip at this time.  Please try again later!")

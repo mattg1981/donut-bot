@@ -18,9 +18,14 @@ echo $! > pid.txt
 
 echo "donut-bot is now running..."
 
-echo "start flair-bot..."
 cd bots
+
+echo "start flair-bot..."
 nohup python3.11 flair-bot.py > flair.nohup 2>&1 &
 echo $! > flair.pid
-
 echo "flair-bot is now running..."
+
+echo "start post-bot..."
+nohup python3.11 post-bot.py > post.nohup 2>&1 &
+echo $! > post.pid
+echo "post-bot is now running..."

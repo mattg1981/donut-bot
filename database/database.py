@@ -11,6 +11,21 @@ def adapt_decimal(d):
 def convert_decimal(s):
     return Decimal(s)
 
+def get_comment_thread_for_submission(submission_fullname):
+    with sqlite3.connect(get_db_path()) as db:
+        update_sql = """
+           select tip_comment_id
+           from post
+           where submission_id = ?;
+        """
+        cursor = db.cursor()
+        cursor.execute(update_sql, [submission_fullname])
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+
+        return None
 
 def update_funded_account(tx_hash):
     with sqlite3.connect(get_db_path()) as db:

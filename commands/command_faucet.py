@@ -16,8 +16,8 @@ class FaucetCommand(Command):
     VERSION = 'v0.1.20231130-faucet'
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION})'
 
-    def __init__(self, config):
-        super(FaucetCommand, self).__init__(config)
+    def __init__(self, config, reddit):
+        super(FaucetCommand, self).__init__(config, reddit)
 
         self.command_text = "!faucet"
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-#  stops donut-bot if running, creates a backup of the database, pulls down
-#  the newest code, chmods the scripts to executable, and then starts donut-bot
+#  stops all bots if they are running, creates a backup of the database, pulls down
+#  the newest code, chmods the scripts to executable, and then starts all bots
 #
 
 PID=$( cat ../pid.txt )
@@ -21,6 +21,15 @@ if ps -p $FLAIR_PID > /dev/null; then
    kill -9 $FLAIR_PID
 else
    echo "flair-bot not running..."
+fi
+
+POST_PID=$( cat ../bots/post.pid )
+
+if ps -p $POST_PID > /dev/null; then
+   echo "post-bot is running, stopping process..."
+   kill -9 $POST_PID
+else
+   echo "post-bot not running..."
 fi
 
 #LS_STATUS="$(systemctl is-active litestream)"

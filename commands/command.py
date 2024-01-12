@@ -9,8 +9,9 @@ class Command:
     logger = logging.getLogger("donut_bot")
     config = {}
 
-    def __init__(self, config):
+    def __init__(self, config, reddit):
         self.config = config
+        self.reddit = reddit
 
     def can_handle(self, comment):
         p = re.compile(f'{self.command_text}($|\\s)')

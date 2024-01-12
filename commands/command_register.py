@@ -12,8 +12,8 @@ class RegisterCommand(Command):
     VERSION = 'v0.1.20231114-reg'
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION})'
 
-    def __init__(self, config):
-        super(RegisterCommand, self).__init__(config)
+    def __init__(self, config, reddit):
+        super(RegisterCommand, self).__init__(config, reddit)
         self.command_text = "!register"
 
         self.register_address_regex = re.compile(f'{self.command_text}\\s+<*(0x[a-fA-F0-9]{{40}})>*')

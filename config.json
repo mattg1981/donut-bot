@@ -13,6 +13,7 @@
   "praw_user_agent": "donut-bot (by u/mattg1981)",
   "praw_user_agent_ban_bot": "banlist-bot (by u/mattg1981)",
   "praw_user_agent_flair_bot": "flair-bot (by u/mattg1981)",
+  "praw_user_agent_post_bot": "post-bot (by u/mattg1981)",
   "eth_public_nodes": [
     "https://eth.llamarpc.com",
     "https://ethereum.publicnode.com",

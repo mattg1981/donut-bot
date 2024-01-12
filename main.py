@@ -55,12 +55,12 @@ if __name__ == '__main__':
             commands.append(obj())
 
     for cls in Command.__subclasses__():
-        commands.append(cls(config))
+        commands.append(cls(config, reddit))
 
     while True:
         try:
             # for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
-            for comment in reddit.subreddit(subs).stream.comments():
+            for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
                 if not comment.author or comment.author.name == username:
                     continue
 
