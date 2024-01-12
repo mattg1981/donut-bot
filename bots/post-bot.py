@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 
 def create_post_meta(submission):
-    logger.info(f"processing submission: {submission.fullname}")
+    logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
 
     is_daily = False
     # determine if it is the daily
