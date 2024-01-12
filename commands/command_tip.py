@@ -148,7 +148,7 @@ class TipCommand(Command):
 
                     if not sender_exists:
                         is_valid = False
-                        reg = RegisterCommand(None)
+                        reg = RegisterCommand(self.config, self.reddit)
                         self.logger.info("  sender not registered")
                         message = (f"❌ Sorry u/{comment.author.name} - you are not registered.  Please use "
                                    f"the [{reg.command_text} command]({self.config['e2t_post']}) to register.")
@@ -177,7 +177,7 @@ class TipCommand(Command):
 
         if not result or not result["address"]:
             self.logger.info("  user not registered")
-            reg = RegisterCommand(None)
+            reg = RegisterCommand(self.config, self.reddit)
             self.leave_comment_reply(comment,
                                      f"Sorry u/{comment.author.name}, you are not registered.  Please use the {reg.command_text} command to register!")
             return
