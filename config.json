@@ -38,6 +38,9 @@
     "https://endpoints.omniatech.io/v1/gnosis/mainnet/public",
     "https://1rpc.io/gnosis"
   ],
+  "cannot_change_registration_address": [
+    "DonutBurner"
+  ],
   "multi_sig_address":"0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
   "tipping_contract_address": "0xF40e98033eb722CC6B4a64F7b37737d56eCB17EF",
   "faucet_wallet_address": "0x478a4523ca9ac05FA91a1bB5b38131B55f9647b6",
@@ -47,7 +50,13 @@
   "funded_accounts_to_ignore": [
     {
       "account": "EthTraderCommunity",
-      "address": "0xf7927bf0230c7b0e82376ac944aeedc3ea8dfa25"
+      "address": "0xf7927bf0230c7b0e82376ac944aeedc3ea8dfa25",
+      "reason": "community fund"
+    },
+    {
+      "account": "kysarkoin",
+      "address": "0x2b35D88052c8b6f4bCa7Dc643Cb95dcC3710c836",
+      "reason": "banner renting"
     }
   ],
   "e2t_post": "https://www.reddit.com/r/ethtrader/comments/17q24e7/introducing_donutbot_register_and_tip_commands/",
