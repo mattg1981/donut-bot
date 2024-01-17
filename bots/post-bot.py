@@ -79,10 +79,7 @@ if __name__ == '__main__':
     # set up logging
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger("post_bot")
-
-    # set to info for more info - lots of logs are generated
     logger.setLevel(logging.INFO)
-
     base_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(base_dir, "../logs/post-bot.log")
     handler = RotatingFileHandler(os.path.normpath(log_path), maxBytes=2500000, backupCount=4)
