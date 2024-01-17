@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     rounds_query = """
         select distribution_round from distribution_rounds
-        where DATE() between from_date and to_date;
+        where DATETIME() between from_date and to_date;
     """
 
     membership_query = """
