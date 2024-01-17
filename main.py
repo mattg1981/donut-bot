@@ -60,7 +60,8 @@ if __name__ == '__main__':
     while True:
         try:
             # for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
-            for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
+            # for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
+            for comment in reddit.subreddit(subs).stream.comments():
                 if not comment.author or comment.author.name == username:
                     continue
 
