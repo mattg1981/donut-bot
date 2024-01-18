@@ -229,7 +229,7 @@ def get_sub_status_for_current_round(subreddit):
             from
                 distribution_rounds
             where
-                DATE() between from_date
+                DATETIME() between from_date
                 and to_date
         );
     """
@@ -247,7 +247,7 @@ def get_tips_sent_for_current_round_by_user(user):
       inner join distribution_rounds dr 
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
       and from_user = ? 
-      and DATE() between dr.from_date and dr.to_date
+      and DATETIME() between dr.from_date and dr.to_date
     GROUP BY from_user, token;
     """
     with sqlite3.connect(get_db_path()) as db:
@@ -264,7 +264,7 @@ def get_tips_received_for_current_round_by_user(user):
       inner join distribution_rounds dr 
     WHERE tip.created_date BETWEEN dr.from_date and dr.to_date 
         and to_user = ? 
-        and DATE() between dr.from_date and dr.to_date
+        and DATETIME() between dr.from_date and dr.to_date
     GROUP BY to_user, token;
     """
 
@@ -283,7 +283,7 @@ def get_funded_for_current_round_by_user(user):
       inner join distribution_rounds dr
     WHERE fund.processed_at BETWEEN dr.from_date and dr.to_date 
         and u.username = ? 
-        and DATE() between dr.from_date and dr.to_date
+        and DATETIME() between dr.from_date and dr.to_date
     GROUP BY u.username, token;
     """
 
