@@ -80,9 +80,9 @@ def get_onchain_amounts(user_address):
             logger.info(f"  connect to ankr rpc service ... attempt {i}")
             gno_w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
             if gno_w3.is_connected():
-                logger.info("  connected to ankr")
+                logger.info("    connected to ankr")
             else:
-                logger.warning("  failed to connect to ankr, attempting to retry...")
+                logger.warning("    failed to connect to ankr, attempting to retry...")
                 continue
 
             # donut token
@@ -110,7 +110,7 @@ def get_onchain_amounts(user_address):
             stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
 
             gno_success = True
-            # break
+            break
         except Exception as e:
             logger.error(f"[gno] {e}")
 
