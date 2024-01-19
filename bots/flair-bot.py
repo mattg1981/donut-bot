@@ -162,7 +162,7 @@ def set_flair_for_user(user):
             user_lookup = cur.fetchone()
 
     if not registered_lookup:
-        logger.info(f"  not registered.")
+        logger.debug(f"  not registered.")
         if user in UNREGISTERED:
             return
 
