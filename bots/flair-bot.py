@@ -177,7 +177,7 @@ def set_flair_for_user(user):
         logger.debug(f"  not eligible to have their flair updated at this time.")
         return
 
-    logger.info(f"  get onchain amounts for [user] {user}...")
+    logger.info(f"get onchain amounts for [user] {user}...")
     result = get_onchain_amounts(user_lookup["address"])
 
     if not result:
