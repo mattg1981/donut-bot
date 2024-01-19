@@ -194,9 +194,8 @@ def set_flair_for_user(user):
 
     flair_hash = hash(flair_text)
 
-    logger.info(f"  [db]: {user_lookup['hash']} -- [hash]: {flair_hash}")
-
     if flair_hash != user_lookup['hash']:
+        logger.info(f"  hash lookup | [db]: {user_lookup['hash']} -- [current]: {flair_hash}")
         logger.info("  setting flair...")
         reddit.subreddit(subs).flair.set(user,
                                          text=flair_text,
