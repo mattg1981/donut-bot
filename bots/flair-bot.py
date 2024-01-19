@@ -83,6 +83,7 @@ def get_onchain_amounts(user_address):
                 logger.info("    connected to ankr")
             else:
                 logger.warning("    failed to connect to ankr, attempting to retry...")
+                time.sleep(2)
                 continue
 
             # donut token
@@ -134,7 +135,7 @@ def get_onchain_amounts(user_address):
 
 def set_flair_for_user(user):
     logger.info(f"processing comment from [user]: {user}...")
-    logger.info("  get user from sql...")
+    logger.debug("  get user from sql...")
 
     # get address for user
     with sqlite3.connect(db_path) as db:
@@ -173,10 +174,10 @@ def set_flair_for_user(user):
         return
 
     if not user_lookup:
-        logger.info(f"  not eligible to have their flair updated at this time.")
+        logger.debug(f"  not eligible to have their flair updated at this time.")
         return
 
-    logger.info("  get onchain amounts...")
+    logger.debug("  get onchain amounts...")
     result = get_onchain_amounts(user_lookup["address"])
 
     if not result:
@@ -201,7 +202,7 @@ def set_flair_for_user(user):
     else:
         logger.info("  flair unchanged since last update...")
 
-    logger.info("  update last_update for flair")
+    logger.debug("  update last_update for flair")
     with sqlite3.connect(db_path) as db:
         update_sql = """       
             INSERT OR REPLACE INTO flair (user_id, hash, last_update) 
@@ -343,7 +344,7 @@ if __name__ == '__main__':
 
                 set_flair_for_user(comment.author.name)
 
-            time.sleep(6)
+            time.sleep(10)
 
         except Exception as e:
             logger.error(e)
