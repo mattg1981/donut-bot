@@ -66,7 +66,7 @@ def get_onchain_amounts(user_address):
                 eth_success = True
                 break
         except Exception as e:
-            logger.error(f"eth: {e}")
+            logger.error(f"[eth] {e}")
 
     if not eth_success:
         # dont lookup gnosis information if the eth lookup failed
@@ -106,7 +106,7 @@ def get_onchain_amounts(user_address):
                 gno_success = True
                 break
         except Exception as e:
-            logger.error(f"gno: {e}")
+            logger.error(f"[gno] {e}")
 
     if eth_success and gno_success:
         ret_val = types.SimpleNamespace()
