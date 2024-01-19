@@ -72,39 +72,45 @@ def get_onchain_amounts(user_address):
         # dont lookup gnosis information if the eth lookup failed
         return None
 
-    gno_public_nodes = config["gno_public_nodes"]
-    random.shuffle(gno_public_nodes)
-    for public_node in gno_public_nodes:
+    # gno_public_nodes = config["gno_public_nodes"]
+    # random.shuffle(gno_public_nodes)
+    # for public_node in gno_public_nodes:
+    for i in range(1, 8):
         try:
-            logger.info(f"  trying GNO node {public_node}")
-            gno_w3 = Web3(Web3.HTTPProvider(public_node))
+            logger.info(f"  connect to ankr rpc service ... attempt {i}")
+            gno_w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
             if gno_w3.is_connected():
-                # donut token
-                donut_address_gno = '0x524B969793a64a602342d89BC2789D43a016B13A'
-                donut_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(donut_address_gno), abi=eth_abi)
-                gno_token_balance = donut_contract.functions.balanceOf(user_address).call()
-                gno_balance = Decimal(gno_token_balance) / Decimal(10 ** 18)
+                logger.info("  connected to ankr")
+            else:
+                logger.warning("  failed to connect to ankr, attempting to retry...")
+                continue
 
-                # lp information
-                lp_address_gno = '0x077240a400b1740C8cD6f73DEa37DA1F703D8c00'
-                lp_gno_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(lp_address_gno), abi=lp_gno_abi)
-                lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
-                lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
+            # donut token
+            donut_address_gno = '0x524B969793a64a602342d89BC2789D43a016B13A'
+            donut_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(donut_address_gno), abi=eth_abi)
+            gno_token_balance = donut_contract.functions.balanceOf(user_address).call()
+            gno_balance = Decimal(gno_token_balance) / Decimal(10 ** 18)
 
-                # contrib information
-                contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
-                contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
-                contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
-                contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
+            # lp information
+            lp_address_gno = '0x077240a400b1740C8cD6f73DEa37DA1F703D8c00'
+            lp_gno_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(lp_address_gno), abi=lp_gno_abi)
+            lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
+            lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
 
-                # staking information
-                stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
-                stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
-                gno_stake_balance = stake_contract_gno.functions.balanceOf(user_address).call()
-                stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
+            # contrib information
+            contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
+            contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
+            contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
+            contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
 
-                gno_success = True
-                break
+            # staking information
+            stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
+            stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
+            gno_stake_balance = stake_contract_gno.functions.balanceOf(user_address).call()
+            stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
+
+            gno_success = True
+            # break
         except Exception as e:
             logger.error(f"[gno] {e}")
 
@@ -220,7 +226,7 @@ if __name__ == '__main__':
     logger = logging.getLogger("flair_bot")
 
     # set to info for more info - lots of logs are generated
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.INFO)
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(base_dir, "../logs/flair-bot.log")
