@@ -113,7 +113,7 @@ def get_onchain_amounts(user_address):
             gno_success = True
             break
         except Exception as e:
-            logger.error(f"[gno] {e}")
+            logger.error(f"  [gno] {e}")
 
     if eth_success and gno_success:
         ret_val = types.SimpleNamespace()
@@ -193,6 +193,8 @@ def set_flair_for_user(user):
         flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
 
     flair_hash = hash(flair_text)
+
+    logger.info(f"  [db]: {user_lookup['hash']} -- [hash]: {flair_hash}")
 
     if flair_hash != user_lookup['hash']:
         logger.info("  setting flair...")
