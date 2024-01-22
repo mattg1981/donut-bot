@@ -36,6 +36,7 @@ def get_onchain_amounts(user_address):
 
     eth_public_nodes = config["eth_public_nodes"]
     random.shuffle(eth_public_nodes)
+    eth_w3 = None
     for public_node in eth_public_nodes:
         try:
             logger.info(f"  trying ETH node {public_node}")
@@ -77,6 +78,16 @@ def get_onchain_amounts(user_address):
     # for public_node in gno_public_nodes:
     for i in range(1, 8):
         try:
+            if '.eth' in user_address.lower():
+                logger.info("  ENS name detected, do lookup...")
+                user_address = eth_w3.ens.address(user_address)
+
+                if user_address is None:
+                    logger.warning("  ENS did not resolve...")
+                    return None
+
+                logger.info("  ENS success...")
+
             logger.info(f"  connect to ankr rpc service ... attempt {i}")
             gno_w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
             if gno_w3.is_connected():
