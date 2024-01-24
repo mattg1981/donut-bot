@@ -81,7 +81,7 @@ def get_onchain_amounts(user_address):
             logger.error(f"[eth] {e}")
 
     if not eth_success:
-        # dont lookup gnosis information if the eth lookup failed
+        logger.warning(f"[eth] exhausted all public nodes, fail ...")
         return None
 
     # gno_public_nodes = config["gno_public_nodes"]
