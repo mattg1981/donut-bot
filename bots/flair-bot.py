@@ -36,13 +36,12 @@ def get_onchain_amounts(user_address):
 
     eth_public_nodes = config["eth_public_nodes"]
     random.shuffle(eth_public_nodes)
-    eth_w3 = None
     for public_node in eth_public_nodes:
         try:
             logger.info(f"  trying ETH node {public_node}")
             eth_w3 = Web3(Web3.HTTPProvider(public_node))
             if eth_w3.is_connected():
-                # if user_address.islower() and '.eth' not in user_address:
+
                 if '.eth' not in user_address:
                     user_address = Web3.to_checksum_address(user_address)
 
@@ -64,6 +63,18 @@ def get_onchain_amounts(user_address):
                 stake_token_balance = stake_eth_contract.functions.balanceOf(user_address).call()
                 stake_eth = Decimal(stake_token_balance) / Decimal(10 ** 18)
 
+                # resolve ENS name for additional chain lookups
+                if '.eth' in user_address.lower():
+                    logger.info("  ENS name detected, do lookup...")
+
+                    # translate from xxx.eth to 0x1234...
+                    user_address = eth_w3.ens.address(user_address)
+
+                    if user_address is None:
+                        raise Exception(f"ENS did not resolve for {user_address}")
+
+                    logger.info("  ENS success...")
+
                 eth_success = True
                 break
         except Exception as e:
@@ -78,16 +89,6 @@ def get_onchain_amounts(user_address):
     # for public_node in gno_public_nodes:
     for i in range(1, 8):
         try:
-            if '.eth' in user_address.lower():
-                logger.info("  ENS name detected, do lookup...")
-                user_address = eth_w3.ens.address(user_address)
-
-                if user_address is None:
-                    logger.warning("  ENS did not resolve...")
-                    return None
-
-                logger.info("  ENS success...")
-
             logger.info(f"  connect to ankr rpc service ... attempt {i}")
             gno_w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
             if gno_w3.is_connected():
