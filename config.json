@@ -6,8 +6,14 @@
       "EthTraderCommunity",
       "EthTrader_Reposter",
       "donut-bot",
-      "Trudahamzik"
-    ]
+      "Trudahamzik",
+      "danielcota"
+    ],
+    "verified": {
+      "user": "danielcota",
+      "text": "Salty.IO - Verified :verified:",
+      "css_class": "salty-ama"
+    }
   },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",

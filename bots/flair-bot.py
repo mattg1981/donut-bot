@@ -328,8 +328,12 @@ if __name__ == '__main__':
     # set flair for community bots once
     reddit.subreddit(subs).flair.update([x for x in config['flair']['ignore']], text='bot',
                                         css_class="flair-default")
+    # set verified addresses
+    # for v in config['flair']['verified']:
+    #     reddit.subreddit(subs).flair.update(v["user"], text=v["text"], css_class=[v["css_class"]])
 
     ignore_list = [x.lower() for x in config['flair']['ignore']]
+    # ignore_list.append([x.lower() for x in config['flair']['verified']])
 
     while True:
         try:
