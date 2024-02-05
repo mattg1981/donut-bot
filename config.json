@@ -5,15 +5,41 @@
       "CrispyDonutBot",
       "EthTraderCommunity",
       "EthTrader_Reposter",
-      "donut-bot",
-      "Trudahamzik",
-      "danielcota"
+      "donut-bot"
+
     ],
-    "verified": {
-      "user": "danielcota",
-      "text": "Salty.IO - Verified :verified:",
-      "css_class": "salty-ama"
-    }
+    "verified": [
+      {
+        "user": "Trudahamzik",
+        "text": "Sushi - Verified :verified:",
+        "css_class": "sushi"
+      },
+      {
+        "user": "danielcota",
+        "text": "Salty.IO - Verified :verified:",
+        "css_class": "salty"
+      },
+      {
+        "user": "irrelephantoops",
+        "text": "Banano - Verified :verified:",
+        "css_class": "banano"
+      },
+      {
+        "user": "howtobanano",
+        "text": "Banano - Verified :verified:",
+        "css_class": "banano"
+      },
+      {
+        "user": "LincHamilton",
+        "text": "Banano - Verified :verified:",
+        "css_class": "banano"
+      },
+      {
+        "user": "Airtune",
+        "text": "Banano - Verified :verified:",
+        "css_class": "banano"
+      }
+    ]
   },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
