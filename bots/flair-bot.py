@@ -333,8 +333,7 @@ if __name__ == '__main__':
         reddit.subreddit(subs).flair.update(v["user"], text=v["text"], css_class=[v["css_class"]])
 
     ignore_list = [x.lower() for x in config['flair']['ignore']]
-    ignore_list.extend([x["user"] for x in config['flair']['verified']])
-
+    ignore_list.extend([x["user"].lower() for x in config['flair']['verified']])
     ignore_list.extend([x.lower() for x in config['flair']['arb1-pioneers']])
 
     while True:
