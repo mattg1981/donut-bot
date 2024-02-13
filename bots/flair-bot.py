@@ -335,6 +335,8 @@ if __name__ == '__main__':
     ignore_list = [x.lower() for x in config['flair']['ignore']]
     ignore_list.extend([x["user"] for x in config['flair']['verified']])
 
+    ignore_list.extend([x for x in config['flair']['arb1-pioneers']])
+
     while True:
         try:
             for submission in reddit.subreddit(subs).stream.submissions(pause_after=-1):
