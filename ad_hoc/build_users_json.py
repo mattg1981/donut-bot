@@ -8,9 +8,6 @@ from web3 import Web3
 
 
 def get_address(address):
-    if '.eth' not in address:
-        return address
-
     public_nodes = config["eth_public_nodes"]
     random.shuffle(public_nodes)
     for public_node in public_nodes:
@@ -18,6 +15,10 @@ def get_address(address):
             print(f"  trying ETH node {public_node}...")
 
             w3 = Web3(Web3.HTTPProvider(public_node))
+
+            if '.eth' not in address:
+                return w3.to_checksum_address(address)
+
             if w3.is_connected():
                 # dont do any error handling, let the process fail
                 eth_address = w3.ens.address(address)
