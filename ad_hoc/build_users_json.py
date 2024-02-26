@@ -13,10 +13,6 @@ def get_address(address):
     # random.shuffle(public_nodes)
     # for public_node in public_nodes:
     try:
-        print(f"  connecting to INFURA...")
-
-        w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ETH_PROVIDER')))
-
         if '.eth' not in address:
             return w3.to_checksum_address(address)
 
@@ -35,6 +31,8 @@ if __name__ == '__main__':
 
     with open(os.path.normpath("../config.json"), 'r') as c:
         config = json.load(c)
+
+    w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ETH_PROVIDER')))
 
     user_json = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
 
