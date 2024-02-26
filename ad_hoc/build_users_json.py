@@ -4,31 +4,35 @@ import random
 import urllib.request
 import sqlite3
 
+from dotenv import load_dotenv
 from web3 import Web3
 
 
 def get_address(address):
-    public_nodes = config["eth_public_nodes"]
-    random.shuffle(public_nodes)
-    for public_node in public_nodes:
-        try:
-            print(f"  trying ETH node {public_node}...")
+    # public_nodes = config["eth_public_nodes"]
+    # random.shuffle(public_nodes)
+    # for public_node in public_nodes:
+    try:
+        print(f"  connecting to INFURA...")
 
-            w3 = Web3(Web3.HTTPProvider(public_node))
+        w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ETH_PROVIDER')))
 
-            if '.eth' not in address:
-                return w3.to_checksum_address(address)
+        if '.eth' not in address:
+            return w3.to_checksum_address(address)
 
-            if w3.is_connected():
-                # dont do any error handling, let the process fail
-                eth_address = w3.ens.address(address)
-                return eth_address
+        if w3.is_connected():
+            # dont do any error handling, let the process fail
+            eth_address = w3.ens.address(address)
+            return eth_address
 
-        except Exception as e:
-            print(f"error: {e}")
+    except Exception as e:
+        print(f"error: {e}")
 
 
 if __name__ == '__main__':
+    # load environment variables
+    load_dotenv()
+
     with open(os.path.normpath("../config.json"), 'r') as c:
         config = json.load(c)
 
