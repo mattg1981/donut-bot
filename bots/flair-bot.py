@@ -30,108 +30,99 @@ def display_number(number):
 
 
 def get_onchain_amounts(user_address):
-    eth_balance = gno_balance = arb1_balance = contrib_balance = 0
-
-    # get mainnet balance
     try:
-        logger.info(f"  connecting to ETH node...")
+        # ---- get mainnet balance ----------------
+        logger.info(f"  connecting to INFURA_ETH_PROVIDER...")
         eth_w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ETH_PROVIDER')))
-        if eth_w3.is_connected():
-            if '.eth' not in user_address.lower():
-                user_address = Web3.to_checksum_address(user_address)
-            else:
-                logger.info("  ENS name detected, do lookup...")
 
-                # translate from xxx.eth to 0x1234...
-                user_address = eth_w3.ens.address(user_address)
+        if not eth_w3.is_connected():
+            logger.error("failed to connect to INFURA_ETH_PROVIDER")
+            raise Exception("failed to connect to INFURA_ETH_PROVIDER")
 
-                if user_address is None:
-                    raise Exception(f"ENS did not resolve for {user_address}")
+        if '.eth' in user_address.lower():
+            logger.info("  ENS name detected, do lookup...")
 
-            # donut token
-            donut_address_eth = '0xC0F9bD5Fa5698B6505F643900FFA515Ea5dF54A9'
-            eth_donut_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(donut_address_eth), abi=eth_abi)
-            eth_token_balance = eth_donut_contract.functions.balanceOf(user_address).call()
-            # eth_balance = Decimal(eth_token_balance) / Decimal(10 ** 18)
-            eth_balance = eth_w3.from_wei(eth_token_balance, "ether")
+            user_address = eth_w3.ens.address(user_address)
 
-            # lp information
-            # lp_address_eth = '0x718Dd8B743ea19d71BDb4Cb48BB984b73a65cE06'
-            # lp_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(lp_address_eth), abi=lp_mainnet_abi)
-            # lp_token_balance = lp_eth_contract.functions.balanceOf(user_address).call()
-            # lp_eth = Decimal(lp_token_balance) / Decimal(10 ** 18)
+            if user_address is None:
+                raise Exception(f"ENS did not resolve for {user_address}")
+        else:
+            user_address = Web3.to_checksum_address(user_address)
 
-            # stake information
-            # stake_address_eth = '0x813fd5A7B6f6d792Bf9c03BBF02Ec3F08C9f98B2'
-            # stake_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(stake_address_eth), abi=stake_mainnet_abi)
-            # stake_token_balance = stake_eth_contract.functions.balanceOf(user_address).call()
-            # stake_eth = Decimal(stake_token_balance) / Decimal(10 ** 18)
+        # donut token
+        donut_address_eth = '0xC0F9bD5Fa5698B6505F643900FFA515Ea5dF54A9'
+        eth_donut_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(donut_address_eth), abi=eth_abi)
+        eth_token_balance = eth_donut_contract.functions.balanceOf(user_address).call()
+        eth_balance = eth_w3.from_wei(eth_token_balance, "ether")
 
-    except Exception as e:
-        logger.error(f"[eth] {e}")
-        return None
+        # lp information
+        # lp_address_eth = '0x718Dd8B743ea19d71BDb4Cb48BB984b73a65cE06'
+        # lp_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(lp_address_eth), abi=lp_mainnet_abi)
+        # lp_token_balance = lp_eth_contract.functions.balanceOf(user_address).call()
+        # lp_eth = Decimal(lp_token_balance) / Decimal(10 ** 18)
 
-    # get gnosis balance
-    try:
-        logger.info(f"  connecting to ankr rpc service")
+        # stake information
+        # stake_address_eth = '0x813fd5A7B6f6d792Bf9c03BBF02Ec3F08C9f98B2'
+        # stake_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(stake_address_eth), abi=stake_mainnet_abi)
+        # stake_token_balance = stake_eth_contract.functions.balanceOf(user_address).call()
+        # stake_eth = Decimal(stake_token_balance) / Decimal(10 ** 18)
+
+        # ---- get gnosis balance ----------------------
+        logger.info(f"  connecting to ANKR_API_PROVIDER")
         gno_w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
-        if gno_w3.is_connected():
-            logger.info("    connected to ankr")
 
-            # donut token
-            donut_address_gno = '0x524B969793a64a602342d89BC2789D43a016B13A'
-            donut_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(donut_address_gno), abi=eth_abi)
-            gno_token_balance = donut_contract.functions.balanceOf(user_address).call()
-            # gno_balance = Decimal(gno_token_balance) / Decimal(10 ** 18)
-            gno_balance = eth_w3.from_wei(gno_token_balance, "ether")
+        if not gno_w3.is_connected():
+            logger.error("failed to connect to ANKR_API_PROVIDER")
+            raise Exception("failed to connect to ANKR_API_PROVIDER")
 
-            # lp information
-            # lp_address_gno = '0x077240a400b1740C8cD6f73DEa37DA1F703D8c00'
-            # lp_gno_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(lp_address_gno), abi=lp_gno_abi)
-            # lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
-            # lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
+        # donut token
+        donut_address_gno = '0x524B969793a64a602342d89BC2789D43a016B13A'
+        donut_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(donut_address_gno), abi=eth_abi)
+        gno_token_balance = donut_contract.functions.balanceOf(user_address).call()
+        gno_balance = eth_w3.from_wei(gno_token_balance, "ether")
 
-            # contrib information
-            # todo comment out when migration to ARB1 is complete
-            contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
-            contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
-            contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
-            # contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
-            contrib_balance = eth_w3.from_wei(contrib_token_balance, "ether")
+        # lp information
+        # lp_address_gno = '0x077240a400b1740C8cD6f73DEa37DA1F703D8c00'
+        # lp_gno_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(lp_address_gno), abi=lp_gno_abi)
+        # lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
+        # lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
 
-            # staking information
-            # stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
-            # stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
-            # gno_stake_balance = stake_contract_gno.functions.balanceOf(user_address).call()
-            # stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
+        # contrib information
+        # todo comment out when migration to ARB1 is complete
+        contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
+        contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
+        contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
+        contrib_balance = eth_w3.from_wei(contrib_token_balance, "ether")
 
-    except Exception as e:
-        logger.error(f"  [gno] {e}")
-        return None
+        # staking information
+        # stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
+        # stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
+        # gno_stake_balance = stake_contract_gno.functions.balanceOf(user_address).call()
+        # stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
 
-    try:
+        # ---- get arb 1 balances ----------------------
+        logger.info(f"  connecting to INFURA_ARB1_PROVIDER")
         arb1_w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
-        if arb1_w3.is_connected():
-            logger.info("  successfully connected to INFURA_ARB1_PROVIDER.")
 
-            # donut token on ARB1
-            donut_address_arb1 = '0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5'
-            arb1_donut_contract = arb1_w3.eth.contract(address=arb1_w3.to_checksum_address(donut_address_arb1),
-                                                       abi=eth_abi)
-            arb1_token_balance = arb1_donut_contract.functions.balanceOf(user_address).call()
-            # arb1_balance = Decimal(arb1_token_balance) / Decimal(10 ** 18)
-            arb1_balance = arb1_w3.from_wei(arb1_token_balance, "ether")
+        if not arb1_w3.is_connected():
+            logger.error("failed to connect to INFURA_ARB1_PROVIDER")
+            raise Exception("failed to connect to INFURA_ARB1_PROVIDER")
 
-            # contrib information
-            contrib_address_arb1 = "0xF28831db80a616dc33A5869f6F689F54ADd5b74C"
-            contrib_contract_arb1 = arb1_w3.eth.contract(address=arb1_w3.to_checksum_address(contrib_address_arb1),
-                                                         abi=contrib_abi)
-            contrib_token_balance_arb1 = contrib_contract_arb1.functions.balanceOf(user_address).call()
-            # contrib_balance_arb1 = Decimal(contrib_token_balance_arb1) / Decimal(10 ** 18)
-            contrib_balance_arb1 = arb1_w3.from_wei(contrib_token_balance_arb1, "ether")
+        # donut token on ARB1
+        donut_address_arb1 = '0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5'
+        arb1_donut_contract = arb1_w3.eth.contract(address=arb1_w3.to_checksum_address(donut_address_arb1),
+                                                   abi=eth_abi)
+        arb1_token_balance = arb1_donut_contract.functions.balanceOf(user_address).call()
+        arb1_balance = arb1_w3.from_wei(arb1_token_balance, "ether")
 
-    except Exception as e:
-        logger.error(f"[arb1] {e}")
+        # contrib information
+        contrib_address_arb1 = "0xF28831db80a616dc33A5869f6F689F54ADd5b74C"
+        contrib_contract_arb1 = arb1_w3.eth.contract(address=arb1_w3.to_checksum_address(contrib_address_arb1),
+                                                     abi=contrib_abi)
+        contrib_token_balance_arb1 = contrib_contract_arb1.functions.balanceOf(user_address).call()
+        contrib_balance_arb1 = arb1_w3.from_wei(contrib_token_balance_arb1, "ether")
+
+    except Exception as ex:
         return None
 
     ret_val = types.SimpleNamespace()
