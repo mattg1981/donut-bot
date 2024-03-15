@@ -23,7 +23,8 @@
       "FattestLion",
       "DBRiMatt",
       "PoojaaPriyaa",
-      "MonitorFlat229"
+      "MonitorFlat229",
+      "reddito321"
     ],
     "verified": [
       {
@@ -92,6 +93,7 @@
     "DonutBurner"
   ],
   "multi_sig_address":"0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
+  "multi_sig_address_arb1": "0x439ceE4cC4EcBD75DC08D9a17E92bDdCc11CDb8C",
   "tipping_contract_address": "0xF40e98033eb722CC6B4a64F7b37737d56eCB17EF",
   "faucet_wallet_address": "0x478a4523ca9ac05FA91a1bB5b38131B55f9647b6",
   "eth_membership_address": "0xd1Dc1A5b56EA321A921c74F8307153A58b1EfA4D",
