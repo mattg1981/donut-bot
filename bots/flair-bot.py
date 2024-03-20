@@ -89,10 +89,10 @@ def get_onchain_amounts(user_address):
 
         # contrib information
         # todo comment out when migration to ARB1 is complete
-        contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
-        contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
-        contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
-        contrib_balance = eth_w3.from_wei(contrib_token_balance, "ether")
+        # # contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
+        # # contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
+        # # contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
+        # # contrib_balance = eth_w3.from_wei(contrib_token_balance, "ether")
 
         # staking information
         # stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
@@ -120,7 +120,7 @@ def get_onchain_amounts(user_address):
         contrib_contract_arb1 = arb1_w3.eth.contract(address=arb1_w3.to_checksum_address(contrib_address_arb1),
                                                      abi=contrib_abi)
         contrib_token_balance_arb1 = contrib_contract_arb1.functions.balanceOf(user_address).call()
-        contrib_balance_arb1 = arb1_w3.from_wei(contrib_token_balance_arb1, "ether")
+        contrib_balance = arb1_w3.from_wei(contrib_token_balance_arb1, "ether")
 
     except Exception as ex:
         return None
