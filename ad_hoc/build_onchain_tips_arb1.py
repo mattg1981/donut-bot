@@ -4,6 +4,7 @@ import os
 import random
 import sqlite3
 import urllib.request
+from decimal import Decimal
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from time import strftime, localtime
@@ -100,7 +101,6 @@ if __name__ == '__main__':
         block = event.blockNumber
         tx_hash = event.transactionHash.hex()
         timestamp = w3.eth.get_block(event.blockNumber).timestamp
-        chain_id = 42161
         from_address = event.args["from"]
         to_address = event.args["to"]
         amount = w3.from_wei(int(event.args["amount"]), "ether")
@@ -116,8 +116,9 @@ if __name__ == '__main__':
         else:
             token = event.args["token"]
 
+        # 42161 hardcoded below is arb 1 chain_id
         tips.append((
-            from_address, to_address, tx_hash, block, amount, token, content_id,
+            from_address, to_address, tx_hash, 42161, block, amount, token, content_id,
             datetime.fromtimestamp(timestamp)
         ))
 
@@ -125,11 +126,14 @@ if __name__ == '__main__':
 
     # save the tips to db
     with sqlite3.connect(db_path) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        def adapt_decimal(d):
+            return str(d)
+
+        sqlite3.register_adapter(Decimal, adapt_decimal)
 
         sql = """
-            insert or replace into onchain_tip (from_address, to_address, tx_hash, block, amount, token, content_id, timestamp)
-            values (?,?,?,?,?,?,?,?)
+            insert or replace into onchain_tip (from_address, to_address, tx_hash, chain_id, block, amount, token, content_id, timestamp)
+            values (?,?,?,?,?,?,?,?,?)
         """
 
         cursor = db.cursor()
