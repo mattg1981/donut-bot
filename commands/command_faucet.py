@@ -24,8 +24,11 @@ class FaucetCommand(Command):
         with open(os.path.normpath("contracts/contrib_gnosis_abi.json"), 'r') as f:
             self.contrib_abi = json.load(f)
 
-        # todo: move to config file
-        self.contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
+        # gnosis
+        # self.contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
+
+        # arb 1
+        self.contrib_address = "0xF28831db80a616dc33A5869f6F689F54ADd5b74C"
 
     def leave_comment_reply(self, comment, reply):
         reply += f"\n\n💥 Please help support this faucet by sending xDai (on the Gnosis chain) to: `{self.config['faucet_wallet_address']}`."
@@ -73,12 +76,18 @@ class FaucetCommand(Command):
                 if user_address.islower() and '.eth' not in user_address:
                     user_address = Web3.to_checksum_address(user_address)
 
+
+                w3_arb1 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
+                if not w3_arb1.is_connected():
+                    continue
+
                 # connected, now find contrib for user
                 contrib_contract = w3.eth.contract(address=w3.to_checksum_address(self.contrib_address),
                                                    abi=self.contrib_abi)
                 contrib_token_balance = contrib_contract.functions.balanceOf(
                     w3.to_checksum_address(user_address)).call()
-                contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
+                # contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
+                contrib_balance = w3_arb1.from_wei(contrib_token_balance, "ether")
 
                 if contrib_balance < 50:
                     self.logger.warning(f"  not enough contrib.  contrib_balance: [{contrib_balance}]")
