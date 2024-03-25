@@ -7,6 +7,8 @@ Donut bot is a reddit bot that runs in the [r/EthTrader](https://reddit.com/r/et
 - **Tipping:** Allows users to tip Donut tokens to each other.  This is performed off chain and the tips are deducted from the users next distribution.
 - **Data Retrieval:** Performs data retrieval and outputs to the [Donut-Bot-Output](https://github.com/mattg1981/donut-bot-output) repository.  This data is used during distribution time to calculate the amount a user will receive.
 
+It is currently the #1 rated bot according to [b0trank](https://botrank.pastimes.eu) (caution, error certificate, but no input is requested).
+
 # Adapting this bot
 To adapt this bot for use within other subreddits:
 - Build the database using the scripts provided in ad_hoc > setup
