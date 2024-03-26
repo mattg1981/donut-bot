@@ -82,10 +82,10 @@ class FaucetCommand(Command):
                     continue
 
                 # connected, now find contrib for user
-                contrib_contract = w3.eth.contract(address=w3.to_checksum_address(self.contrib_address),
+                contrib_contract = w3_arb1.eth.contract(address=w3_arb1.to_checksum_address(self.contrib_address),
                                                    abi=self.contrib_abi)
                 contrib_token_balance = contrib_contract.functions.balanceOf(
-                    w3.to_checksum_address(user_address)).call()
+                    w3_arb1.to_checksum_address(user_address)).call()
                 # contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
                 contrib_balance = w3_arb1.from_wei(contrib_token_balance, "ether")
 
