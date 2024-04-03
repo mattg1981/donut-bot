@@ -34,6 +34,7 @@ def notify_user(username, tx_hash, amount):
 
     logger.info("  successfully updated db... ")
 
+
 def process_notifications():
     # notify any transactions that need to be notified (if any)
     logger.info("finding transactions that need notifications ...")
@@ -59,6 +60,7 @@ def process_notifications():
             notify_user(n["username"], n["tx_hash"], n["amount"])
         except Exception as e:
             logger.error(e)
+
 
 if __name__ == '__main__':
     # load environment variables
@@ -92,7 +94,7 @@ if __name__ == '__main__':
                          client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
                          username=os.getenv('REDDIT_USERNAME'),
                          password=os.getenv('REDDIT_PASSWORD'),
-                         user_agent=config["praw_user_agent"])
+                         user_agent='inbound-faucet-bot (by u/mattg1981)')
 
     with sqlite3.connect(db_path) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
