@@ -9,20 +9,11 @@ from web3 import Web3
 
 
 def get_address(address):
-    # public_nodes = config["eth_public_nodes"]
-    # random.shuffle(public_nodes)
-    # for public_node in public_nodes:
-    try:
-        if '.eth' not in address:
-            return w3.to_checksum_address(address)
-
-        if w3.is_connected():
-            # dont do any error handling, let the process fail
-            eth_address = w3.ens.address(address)
-            return eth_address
-
-    except Exception as e:
-        print(f"error: {e}")
+    if '.eth' not in address.lower():
+        return w3.to_checksum_address(address)
+    else:
+        eth_address = w3.ens.address(address)
+        return eth_address
 
 
 if __name__ == '__main__':
@@ -33,6 +24,9 @@ if __name__ == '__main__':
         config = json.load(c)
 
     w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ETH_PROVIDER')))
+    if not w3.is_connected():
+        print('w3 failed to connect...')
+        exit(4)
 
     user_json = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
 
