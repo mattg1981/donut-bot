@@ -51,7 +51,7 @@ if __name__ == '__main__':
                          client_secret=os.getenv('BAN_LIST_CLIENT_SECRET'),
                          username=os.getenv('BAN_LIST_USERNAME'),
                          password=os.getenv('BAN_LIST_PASSWORD'),
-                         user_agent=config["praw_user_agent_ban_bot"])
+                         user_agent='ban-bot (by u/mattg1981)')
 
     with sqlite3.connect(db_path) as db:
         build_table_and_index = """

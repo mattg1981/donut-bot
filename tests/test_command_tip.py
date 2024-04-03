@@ -123,7 +123,7 @@ class TestTipCommand(TestCase):
                              client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
                              username=os.getenv('REDDIT_USERNAME'),
                              password=os.getenv('REDDIT_PASSWORD'),
-                             user_agent=config["praw_user_agent"])
+                             user_agent='automated-test-bot (by u/mattg1981')
 
         comment = reddit.comment(id='kasy9fi')
         if not tip.can_handle(comment.body):

@@ -98,7 +98,7 @@ if __name__ == '__main__':
                          client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
                          username=username,
                          password=os.getenv('REDDIT_PASSWORD'),
-                         user_agent=config["praw_user_agent_post_bot"])
+                         user_agent='post-bot (by u/mattg1981)')
 
     subs = ""
     for idx, community_token in enumerate(config["community_tokens"]):
