@@ -87,13 +87,6 @@ def get_onchain_amounts(user_address):
         # lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
         # lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
 
-        # contrib information
-        # todo comment out when migration to ARB1 is complete
-        # # contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
-        # # contrib_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(contrib_address), abi=contrib_abi)
-        # # contrib_token_balance = contrib_contract.functions.balanceOf(user_address).call()
-        # # contrib_balance = eth_w3.from_wei(contrib_token_balance, "ether")
-
         # staking information
         # stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
         # stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
@@ -253,7 +246,7 @@ if __name__ == '__main__':
                          client_secret=os.getenv('FLAIR_BOT_CLIENT_SECRET'),
                          username=username,
                          password=os.getenv('FLAIR_BOT_PASSWORD'),
-                         user_agent=config["praw_user_agent_flair_bot"])
+                         user_agent='flair-bot (by u/mattg1981)')
 
     subs = ""
     for idx, community_token in enumerate(config["community_tokens"]):
