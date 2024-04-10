@@ -8,9 +8,13 @@ from decimal import Decimal
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from time import strftime, localtime
+from urllib import request
 
+import praw
 from dotenv import load_dotenv
 from web3 import Web3
+
+from database import database
 
 ARB1_TIPPING_CONTRACT = "0x403EB731A37cf9e41d72b9A97aE6311ab44bE7b9"
 ARB1_DONUT = "0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5"
@@ -75,7 +79,7 @@ if __name__ == '__main__':
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
         cursor.executescript(build_table_and_index)
-        cursor.execute("select max(block) 'block' from onchain_tip where chain_id = 42161")
+        cursor.execute("select max(block) as 'block' from onchain_tip where chain_id = 42161")
         max_block = cursor.fetchone()['block']
 
     if not max_block:
@@ -106,6 +110,7 @@ if __name__ == '__main__':
         amount = w3.from_wei(int(event.args["amount"]), "ether")
 
         content_id = w3.to_text(event.args["contentId"].hex()).replace("\x00", "")
+
         # special case when content_id is not properly written
         if "t3_" not in content_id and "t1_" not in content_id:
             logger.warning(f" direct tip to multisig, tx_hash {tx_hash}")
@@ -122,6 +127,59 @@ if __name__ == '__main__':
             datetime.fromtimestamp(timestamp)
         ))
 
+    if not tips:
+        exit(0)
+
+    logger.info("notify about new tips")
+
+    users = json.load(request.urlopen(f"https://ethtrader.github.io/donut.distribution/users.json"))
+
+    # creating an authorized reddit instance
+    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
+                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+                         username=os.getenv('REDDIT_USERNAME'),
+                         password=os.getenv('REDDIT_PASSWORD'),
+                         user_agent='donut-bot (by u/mattg1981)')
+
+    sig = f'\n\n^(donut-bot v0.1.20240411-onchain-tip)'
+
+    content_id_index = 7
+    from_address_index = 0
+    to_address_index = 1
+    amount_index = 5
+    token_index = 6
+    tx_hash_index = 2
+
+    for tip in tips:
+        if 't1_' in tip[content_id_index]:
+            # get the submission that the comment was made on
+            submission_id = reddit.comment(tip[content_id_index]).submission.fullname
+            tip_thread_id = database.get_comment_thread_for_submission(submission_id)
+        else:
+            tip_thread_id = database.get_comment_thread_for_submission(tip[content_id_index])
+
+        sender = [u['username'] for u in users if u['address'] == tip[from_address_index]]
+        if sender:
+            sender = sender[0]
+
+        receiver = [u['username'] for u in users if u['address'] == tip[to_address_index]]
+        if receiver:
+            receiver = receiver[0]
+
+        if sender and receiver:
+            reply = f"u/{sender} has tipped u/{receiver} {round(float(tip[amount_index]), 5)} {tip[token_index]}"
+            link = f"https://arbiscan.io/tx/{tip[tx_hash_index]}"
+            reply += f'\n\n[LINK (arbiscan.io)]({link})' + sig
+
+            if tip_thread_id:
+                tip_thread = reddit.comment(tip_thread_id)
+            elif 't1_' in tip[content_id_index]:
+                tip_thread = reddit.submission(submission_id)
+            else:
+                tip_thread = reddit.comment(tip[content_id_index])
+
+            tip_thread.reply(reply)
+
     logger.info("saving tips to database")
 
     # save the tips to db
@@ -132,8 +190,8 @@ if __name__ == '__main__':
         sqlite3.register_adapter(Decimal, adapt_decimal)
 
         sql = """
-            insert or replace into onchain_tip (from_address, to_address, tx_hash, chain_id, block, amount, token, content_id, timestamp)
-            values (?,?,?,?,?,?,?,?,?)
+            insert or replace into onchain_tip (from_address, to_address, tx_hash, chain_id, block, amount, 
+            token, content_id, timestamp) values (?,?,?,?,?,?,?,?,?)
         """
 
         cursor = db.cursor()
