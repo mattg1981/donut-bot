@@ -162,16 +162,11 @@ if __name__ == '__main__':
         else:
             tip_thread_id = database.get_comment_thread_for_submission(tip[content_id_index])
 
-        sender = [u['username'] for u in users if u['address'] == tip[from_address_index]]
-        if sender:
-            sender = sender[0]
-
-        receiver = [u['username'] for u in users if u['address'] == tip[to_address_index]]
-        if receiver:
-            receiver = receiver[0]
+        sender = next((u for u in users if u['address'] == tip[from_address_index]), None)
+        receiver = next((u for u in users if u['address'] == tip[to_address_index]), None)
 
         if sender and receiver:
-            reply = f"u/{sender} has tipped u/{receiver} {round(float(tip[amount_index]), 5)} {tip[token_index]}"
+            reply = f"u/{sender['username']} has tipped u/{receiver['username']} {round(float(tip[amount_index]), 5)} {tip[token_index]}"
             link = f"https://arbiscan.io/tx/{tip[tx_hash_index]}"
             reply += f'\n\n[LINK (arbiscan.io)]({link})' + sig
 
