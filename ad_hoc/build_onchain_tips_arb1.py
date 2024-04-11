@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import sqlite3
+import sys
 import urllib.request
 from decimal import Decimal
 from logging.handlers import RotatingFileHandler
@@ -14,6 +15,8 @@ import praw
 from dotenv import load_dotenv
 from web3 import Web3
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 from database import database
 
 ARB1_TIPPING_CONTRACT = "0x403EB731A37cf9e41d72b9A97aE6311ab44bE7b9"
