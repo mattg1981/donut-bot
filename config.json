@@ -63,7 +63,7 @@
   "cannot_change_registration_address": [
     "DonutBurner"
   ],
-  "multi_sig_address":"0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
+  "multi_sig_address": "0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
   "multi_sig_address_arb1": "0x439ceE4cC4EcBD75DC08D9a17E92bDdCc11CDb8C",
   "tipping_contract_address": "0xF40e98033eb722CC6B4a64F7b37737d56eCB17EF",
   "faucet_wallet_address": "0x478a4523ca9ac05FA91a1bB5b38131B55f9647b6",
@@ -97,5 +97,29 @@
         }
       ]
     }
-  ]
- }
+  ],
+  "contracts": {
+    "mainnet": {
+      "donut": "0xC0F9bD5Fa5698B6505F643900FFA515Ea5dF54A9",
+      "lp": "0x718Dd8B743ea19d71BDb4Cb48BB984b73a65cE06",
+      "staking": "0x813fd5A7B6f6d792Bf9c03BBF02Ec3F08C9f98B2",
+      "multi-sig": "0x367b68554f9CE16A87fD0B6cE4E70d465A0C940E",
+      "speicial-membership": "0xd1Dc1A5b56EA321A921c74F8307153A58b1EfA4D"
+    },
+    "gnosis": {
+      "contrib": "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F",
+      "donut": "0x524B969793a64a602342d89BC2789D43a016B13A",
+      "lp": "0x077240a400b1740C8cD6f73DEa37DA1F703D8c00",
+      "staking": "0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D",
+      "multi-sig": "0x682b5664C2b9a6a93749f2159F95c23fEd654F0A",
+      "tipping": "0xF40e98033eb722CC6B4a64F7b37737d56eCB17EF"
+    },
+    "arb1": {
+      "contrib": "0xF28831db80a616dc33A5869f6F689F54ADd5b74C",
+      "donut": "0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5",
+      "distribute": "0xf4d6a6585BDaebB6456050Ae456Bc69ea7f51838",
+      "multi-sig": "0x439ceE4cC4EcBD75DC08D9a17E92bDdCc11CDb8C",
+      "faucet": ""
+    }
+  }
+}
