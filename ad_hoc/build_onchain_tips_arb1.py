@@ -46,6 +46,13 @@ if __name__ == '__main__':
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
+    # create a reddit instance
+    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
+                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+                         username=os.getenv('REDDIT_USERNAME'),
+                         password=os.getenv('REDDIT_PASSWORD'),
+                         user_agent='donut-bot (by u/mattg1981)')
+
     with sqlite3.connect(db_path) as db:
         # build the table and index if it is the first run of this application
         build_table_and_index = """
@@ -72,8 +79,6 @@ if __name__ == '__main__':
                 chain_id,
                 tx_hash
             );
-
-
         """
 
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -116,8 +121,10 @@ if __name__ == '__main__':
             logger.warning(f" direct tip to multisig, tx_hash {tx_hash}")
             content_id = None
 
-        if event.args["token"] == "0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5":
+        if event.args["token"] == config["contracts"]["arb1"]["donut"]:
             token = "donut"
+
+            # todo change to 'in community_tokens' - then copy the logic over to off-chain tips
         else:
             token = event.args["token"]
 
@@ -128,18 +135,12 @@ if __name__ == '__main__':
         ))
 
     if not tips:
+        logger.info("No tips found")
         exit(0)
 
     logger.info("notify about new tips")
 
     users = json.load(request.urlopen(f"https://ethtrader.github.io/donut.distribution/users.json"))
-
-    # creating an authorized reddit instance
-    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
-                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-                         username=os.getenv('REDDIT_USERNAME'),
-                         password=os.getenv('REDDIT_PASSWORD'),
-                         user_agent='donut-bot (by u/mattg1981)')
 
     sig = f'\n\n^(donut-bot v0.1.20240411-onchain-tip)'
 
