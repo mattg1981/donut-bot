@@ -4,8 +4,8 @@ echo "begin building new users.json file..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
-python3.11 ../ad_hoc/build_users_json.py
-cp -fr ../temp/users.json ../../donut-bot-output/liquidity/
+python3.11 ../ad_hoc/build_liquidity_leaders.py
+cp -fr ../temp/liquidity_leaders ../../donut-bot-output/liquidity/
 cd ../../donut-bot-output/liquidity/
 
 echo "git pull"
