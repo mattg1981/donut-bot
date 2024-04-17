@@ -12,7 +12,7 @@ echo "git pull"
 git pull
 
 echo "git commit..."
-git commit -m "updated liquidity_leaders.json ${TIMESTAMP_DAY} ${TIMESTAMP}" ./users.json
+git commit -m "updated liquidity_leaders.json ${TIMESTAMP_DAY} ${TIMESTAMP}" ./liquidity_leaders.json
 
 echo "git push..."
 git push
