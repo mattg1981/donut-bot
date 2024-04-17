@@ -119,7 +119,7 @@
       "donut": "0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5",
       "distribute": "0xf4d6a6585BDaebB6456050Ae456Bc69ea7f51838",
       "multi-sig": "0x439ceE4cC4EcBD75DC08D9a17E92bDdCc11CDb8C",
-      "lp": "0x65f7a98d87bc21a3748545047632fef4d3ff9a67",
+      "sushi_pool": "0x65f7a98d87bc21a3748545047632fef4d3ff9a67",
       "faucet": "",
       "tipping": "0x403EB731A37cf9e41d72b9A97aE6311ab44bE7b9"
     }
