@@ -14,14 +14,13 @@ if __name__ == '__main__':
     with open(os.path.normpath("../config.json"), 'r') as conf:
         config = json.load(conf)
 
-    user_json = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
-
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
     db_path = os.path.normpath(db_path)
 
     out_file = "../temp/liquidity_leaders.json"
 
+    # user_json = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
     sql = """
         select username, address from users;
     """
