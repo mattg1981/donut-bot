@@ -90,8 +90,6 @@ if __name__ == '__main__':
     for s in sushi_lp:
         s['percent_of_pool'] = s['liquidity'] / total_pool * 100
 
-    # do I need to group by user/owner here and sum()? - i'll let the real world data decide
-
     sushi_lp = sorted(sushi_lp, key=lambda k: k['liquidity'], reverse=True)
 
     if os.path.exists(out_file):
