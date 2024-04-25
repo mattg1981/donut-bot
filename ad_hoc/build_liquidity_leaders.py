@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
-
-
 if __name__ == '__main__':
     # load environment variables
     load_dotenv()
@@ -67,11 +65,18 @@ if __name__ == '__main__':
         if int(position['liquidity']) == 0:
             continue
 
-        total_pool += int(position['liquidity']);
+        total_pool += int(position['liquidity'])
+
+        if position['owner'].lower() == config["contracts"]["arb1"]["multi-sig"].lower():
+            user = 'r/EthTrader Multi-Sig Wallet'
+        else:
+            user = next((u['username'] for u in registered_users if
+                         u['address'].lower() == position['owner'].lower()), None)
 
         existing_owner = next((s for s in sushi_lp if s['owner'].lower() == position['owner']), None)
+
         if existing_owner:
-            # sum up their holdings
+            # sum up their liquidity
             existing_owner['id'] = f"{existing_owner['id']},{position['id']}"
             existing_owner['liquidity'] = int(existing_owner['liquidity']) + int(position['liquidity'])
         else:
@@ -79,8 +84,7 @@ if __name__ == '__main__':
                 'id': position['id'],
                 'owner': position['owner'],
                 'liquidity': int(position['liquidity']),
-                'user': next((u['username'] for u in registered_users if
-                              u['address'].lower() == position['owner'].lower()), None)
+                'user': user
             })
 
     for s in sushi_lp:
@@ -95,4 +99,3 @@ if __name__ == '__main__':
 
     with open(out_file, 'w') as f:
         json.dump(sushi_lp, f, indent=4)
-
