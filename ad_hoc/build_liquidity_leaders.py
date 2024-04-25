@@ -1,13 +1,12 @@
 import json
 import os.path
-import random
 import urllib.request
 import sqlite3
 
 from dotenv import load_dotenv
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
-from web3 import Web3
+
 
 
 if __name__ == '__main__':
@@ -70,13 +69,19 @@ if __name__ == '__main__':
 
         total_pool += int(position['liquidity']);
 
-        sushi_lp.append({
-            'id': position['id'],
-            'owner': position['owner'],
-            'liquidity': int(position['liquidity']),
-            'user': next((u['username'] for u in registered_users if
-                          u['address'].lower() == position['owner'].lower()), None)
-        })
+        existing_owner = next((s for s in sushi_lp if s['owner'].lower() == position['owner']), None)
+        if existing_owner:
+            # sum up their holdings
+            existing_owner['id'] = f"{existing_owner['id']},{position['id']}"
+            existing_owner['liquidity'] = int(existing_owner['liquidity']) + int(position['liquidity'])
+        else:
+            sushi_lp.append({
+                'id': position['id'],
+                'owner': position['owner'],
+                'liquidity': int(position['liquidity']),
+                'user': next((u['username'] for u in registered_users if
+                              u['address'].lower() == position['owner'].lower()), None)
+            })
 
     for s in sushi_lp:
         s['percent_of_pool'] = s['liquidity'] / total_pool * 100

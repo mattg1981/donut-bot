@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "begin building new users.json file..."
+echo "begin building updated liquidity leader file..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
