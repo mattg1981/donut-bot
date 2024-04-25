@@ -52,7 +52,6 @@ if __name__ == '__main__':
 
     variables = {"pool_id": config["contracts"]["arb1"]["sushi_pool"]}
 
-    # get pool info for current price
     response = client.execute(gql(position_query), variable_values=variables)
 
     if len(response['positions']) == 0:
