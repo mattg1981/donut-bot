@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
+TICK_BASE = 1.0001
+
+
+def tick_to_price(tick):
+    return TICK_BASE ** tick
+
+
 if __name__ == '__main__':
     # load environment variables
     load_dotenv()
@@ -35,12 +42,30 @@ if __name__ == '__main__':
 
     # get sushi lp position holders
     position_query = """query get_positions($pool_id: ID!) {
-              positions(where: {pool: $pool_id}) {
-                id
-                owner
-                liquidity
-              }
-            }"""
+      positions(where: {pool: $pool_id}) {
+        id
+        owner
+        liquidity
+        tickLower { tickIdx }
+        tickUpper { tickIdx }
+        token0 {
+          symbol
+          decimals
+        }
+        token1 {
+          symbol
+          decimals
+        }
+      }
+    }"""
+
+    # return the tick and the sqrt of the current price
+    pool_query = """query get_pools($pool_id: ID!) {
+      pools(where: {id: $pool_id}) {
+        tick
+        sqrtPrice
+      }
+    }"""
 
     client = Client(
         transport=RequestsHTTPTransport(
@@ -50,6 +75,17 @@ if __name__ == '__main__':
         ))
 
     variables = {"pool_id": config["contracts"]["arb1"]["sushi_pool"]}
+
+    # get pool info for current price
+    response = client.execute(gql(pool_query), variable_values=variables)
+
+    if len(response['pools']) == 0:
+        print("position not found")
+        exit(-1)
+
+    pool = response['pools'][0]
+    current_tick = int(pool["tick"])
+    current_sqrt_price = int(pool["sqrtPrice"]) / (2 ** 96)
 
     response = client.execute(gql(position_query), variable_values=variables)
 
@@ -65,6 +101,32 @@ if __name__ == '__main__':
 
         total_pool += int(position['liquidity'])
 
+        # calculate holdings
+        liquidity = int(position["liquidity"])
+        tick_lower = int(position["tickLower"]["tickIdx"])
+        tick_upper = int(position["tickUpper"]["tickIdx"])
+        decimals0 = int(position["token0"]["decimals"])
+        decimals1 = int(position["token1"]["decimals"])
+        current_price = tick_to_price(current_tick)
+        sa = tick_to_price(tick_lower / 2)
+        sb = tick_to_price(tick_upper / 2)
+
+        if tick_upper <= current_tick:
+            # Only token1 locked
+            amount0 = 0
+            amount1 = liquidity * (sb - sa)
+        elif tick_lower < current_tick < tick_upper:
+            # Both tokens present
+            amount0 = liquidity * (sb - current_sqrt_price) / (current_sqrt_price * sb)
+            amount1 = liquidity * (current_sqrt_price - sa)
+        else:
+            # Only token0 locked
+            amount0 = liquidity * (sb - sa) / (sa * sb)
+            amount1 = 0
+
+        eth_in_lp = amount0 / (10 ** decimals0)
+        donut_in_lp = amount1 / (10 ** decimals1)
+
         if position['owner'].lower() == config["contracts"]["arb1"]["multi-sig"].lower():
             user = 'r/EthTrader Multi-Sig Wallet'
         else:
@@ -77,12 +139,16 @@ if __name__ == '__main__':
             # sum up their liquidity
             existing_owner['id'] = f"{existing_owner['id']},{position['id']}"
             existing_owner['liquidity'] = int(existing_owner['liquidity']) + int(position['liquidity'])
+            existing_owner['eth_in_lp'] = existing_owner['eth_in_lp'] + eth_in_lp
+            existing_owner['donut_in_lp'] = existing_owner['donut_in_lp'] + donut_in_lp
         else:
             sushi_lp.append({
                 'id': position['id'],
                 'owner': position['owner'],
                 'liquidity': int(position['liquidity']),
-                'user': user
+                'user': user,
+                "eth_in_lp": eth_in_lp,
+                "donut_in_lp": donut_in_lp
             })
 
     for s in sushi_lp:
