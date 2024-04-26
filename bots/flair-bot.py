@@ -4,8 +4,8 @@ import os
 import sqlite3
 import time
 import types
-from datetime import datetime
-from decimal import Decimal
+from datetime import datetime, timedelta
+import urllib.request
 
 import praw
 from web3 import Web3
@@ -14,7 +14,7 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
 UNREGISTERED = []
-
+LP_PROVIDERS = {}
 
 def display_number(number):
     if 1000 <= number < 1000000:
@@ -118,6 +118,16 @@ def get_onchain_amounts(user_address):
     except Exception as ex:
         return None
 
+    lp = 0
+    try:
+        if "last_update" not in LP_PROVIDERS or datetime.now() - timedelta(minutes=20) >= LP_PROVIDERS["last_update"]:
+            LP_PROVIDERS['last_update'] = datetime.now()
+            LP_PROVIDERS['providers'] = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/liquidity/liquidity_leaders.json"))
+
+        lp = next((l['percent_of_pool'] for l in LP_PROVIDERS["providers"] if l["owner"].lower() == user_address.lower()), None)
+    except Exception as ex:
+        pass
+
     ret_val = types.SimpleNamespace()
     ret_val.donuts = int(eth_balance + gno_balance + arb1_balance)
     ret_val.contrib = int(contrib_balance)
@@ -126,7 +136,11 @@ def get_onchain_amounts(user_address):
     # ret_val.lp = int(lp_eth + lp_gno)
     # ret_val.stake = int(stake_eth + stake_gno)
 
-    ret_val.lp = 0
+    if lp:
+        ret_val.lp = lp
+    else:
+        ret_val.lp = 0
+
     ret_val.stake = 0
     return ret_val
 
@@ -175,6 +189,10 @@ def set_flair_for_user(user):
         logger.debug(f"  not eligible to have their flair updated at this time.")
         return
 
+    ##
+    # TODO: check special membership here ...
+    ##
+
     logger.info(f"get onchain amounts for [user] {user}...")
     result = get_onchain_amounts(user_lookup["address"])
 
@@ -185,7 +203,7 @@ def set_flair_for_user(user):
     flair_text = f":donut: {display_number(result.donuts)} | ⚖️ {display_number(result.contrib)}"
 
     if result.lp > 0:
-        flair_text = flair_text + f" | 💰 {display_number(result.lp)}"
+        flair_text = flair_text + f" | :sushi: {format(result.lp, '.4f')} %"
 
     if result.stake > 0:
         flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
