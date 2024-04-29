@@ -203,7 +203,7 @@ def set_flair_for_user(user):
     flair_text = f":donut: {display_number(result.donuts)} | ⚖️ {display_number(result.contrib)}"
 
     if result.lp > 0:
-        flair_text = flair_text + f" | :sushi: {format(result.lp, '.4f')} %"
+        flair_text = flair_text + f" | :sushi: {format(result.lp, '.4f')}%"
 
     if result.stake > 0:
         flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
