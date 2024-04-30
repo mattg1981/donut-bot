@@ -41,7 +41,7 @@ def create_post_meta(submission):
     if not is_daily:
         onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
         reply_message = f"[Tip this post.]({onchain_link})\n\n"
-        reply_message += "Offchain tip confirmations below.\n\n"
+        reply_message += "On-chain and off-chain tip confirmations below.\n\n"
 
         logger.info(f"  send reply...")
         reply = submission.reply(reply_message)
