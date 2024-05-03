@@ -298,3 +298,20 @@ def get_db_path():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(base_dir, "donut-bot.db")
     return os.path.normpath(db_path)
+
+
+def get_post_status(user):
+    sql = """
+    select datetime('now') as now,  DATETIME(created_date, '+24 hour') as 'next_post'
+    from ( select row_number() over (order by created_date desc) row_number, created_date
+           from post
+           where author = ?
+             and created_date >= datetime('now', '-24 hour'))
+    where row_number = 3;
+        """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(sql, [user])
+        return cur.fetchall()
