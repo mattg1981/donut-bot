@@ -1,15 +1,9 @@
 import json
 import logging
 import os
-import random
 import sqlite3
 import time
-import types
-from datetime import datetime
-from decimal import Decimal
-
 import praw
-from web3 import Web3
 
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
@@ -38,6 +32,7 @@ def create_post_meta(submission):
     logger.info(f"  submission does not exist...")
 
     comment_thread_id = None
+
     if not is_daily:
         onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
         reply_message = f"[Tip this post.]({onchain_link})\n\n"
@@ -56,7 +51,6 @@ def create_post_meta(submission):
     if submission.author:
         author = submission.author.name
 
-
     with sqlite3.connect(db_path) as db:
         sql = """
             INSERT INTO post (submission_id, tip_comment_id, author, is_daily)
@@ -66,6 +60,35 @@ def create_post_meta(submission):
         cursor.execute(sql, [submission.fullname, comment_thread_id, author, is_daily])
 
     logger.info(f"  done.")
+
+
+def eligible_to_submit(submission):
+    max_posts_per_24_hours = int(config['posts']['max_per_24_hours'])
+
+    post_sql = f"""
+        select count(*) < {max_posts_per_24_hours} as eligible_to_post
+        from post
+        where author = ?
+          and created_date >= datetime('now','-24 hour');
+    """
+
+    with sqlite3.connect(db_path) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cursor = db.cursor()
+        cursor.execute(post_sql, [submission.author.name])
+        eligibility_check = cursor.fetchone()
+
+    if not eligibility_check['eligible_to_post']:
+        submission.reply(
+            f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a 24-hour window. "
+            f"Please try again later.")
+        submission.mod.lock()
+        submission.mod.remove(f"{submission.author.name} exceeded {max_posts_per_24_hours} posts per a 24 hour window.",
+                              False,
+                              config['posts']['removal_id'])
+        return False
+
+    return True
 
 
 if __name__ == '__main__':
@@ -138,7 +161,8 @@ if __name__ == '__main__':
                 if submission is None:
                     continue
 
-                create_post_meta(submission)
+                if eligible_to_submit(submission):
+                    create_post_meta(submission)
 
         except Exception as e:
             logger.error(e)

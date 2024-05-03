@@ -58,6 +58,10 @@
       }
     ]
   },
+  "posts": {
+    "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
+    "max_per_24_hours": 3
+  },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
   "cannot_change_registration_address": [
@@ -85,7 +89,7 @@
   "e2t_post": "https://www.reddit.com/r/ethtrader/comments/17q24e7/introducing_donutbot_register_and_tip_commands/",
   "community_tokens": [
     {
-      "community": "r/ethtrader",
+      "community": "r/ethtrader_test",
       "tokens": [
         {
           "name": "donut",
