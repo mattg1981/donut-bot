@@ -45,6 +45,6 @@ class PostCommand(Command):
                 self.logger.info("  not currently eligible to post")
                 self.leave_comment_reply(comment,
                                          f'**Status**: u/{user} is not currently eligible to post.'
-                                         f'\n\n**Current time UTC**: `{result[0]["now"]}`'
-                                         f'\n\n**Eligible to Post**: `{result[0]["next_post"]}`')
+                                         f'\n\n**Current Time**: `{result[0]["now"]} UTC`'
+                                         f'\n\n**Eligible to Post**: `{result[0]["next_post"]} UTC`')
             return
