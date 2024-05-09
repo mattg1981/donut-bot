@@ -6,8 +6,8 @@ import time
 import praw
 
 from logging.handlers import RotatingFileHandler
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 def create_post_meta(submission):
     logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
@@ -155,14 +155,24 @@ if __name__ == '__main__':
         cur = db.cursor()
         cur.executescript(build_table_and_index)
 
+    # users listed in ignore_list are not restricted to a limited number of posts
+    # be sure to user lowercase when adding to this list
+    ignore_list = ["ethtrader_reposter"]
+
     while True:
         try:
             for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
-                if eligible_to_submit(submission):
+                if not submission.author or submission.author.name == username:
+                    continue
+
+                if submission.author.name.lower() in ignore_list:
                     create_post_meta(submission)
+                else:
+                    if eligible_to_submit(submission):
+                        create_post_meta(submission)
 
         except Exception as e:
             logger.error(e)
