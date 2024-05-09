@@ -6,6 +6,7 @@ import sqlite3
 from dotenv import load_dotenv
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
+from web3 import Web3
 
 TICK_BASE = 1.0001
 
@@ -95,7 +96,52 @@ if __name__ == '__main__':
 
     total_pool = 0
 
-    for position in response['positions']:
+    # 2024-05-09 - it has come to my attention that there is at least 1 NFT not being returned by the sushi subgraph
+    # call, so we will manually add these positions here.
+
+    unindexed_nft_ids = [11340]
+    unindexed_positions = []
+
+    with open(os.path.normpath("../contracts/sushi_position_manager_abi.json"), 'r') as f:
+        nft_manager_abi = json.load(f)
+
+    w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
+
+    if not w3.is_connected():
+        raise Exception("failed to connect to INFURA_ARB1_PROVIDER")
+
+    sushi_nft_manager_address = config["contracts"]["arb1"]["sushi_nft_manager"]
+    sushi_nft_manager_contract = w3.eth.contract(address=w3.to_checksum_address(sushi_nft_manager_address), abi=nft_manager_abi)
+
+    for id in unindexed_nft_ids:
+        owner = sushi_nft_manager_contract.functions.ownerOf(id).call()
+        position = sushi_nft_manager_contract.functions.positions(id).call()
+
+        unindexed_positions.append({
+            "id": id,
+            "owner": owner,
+            "liquidity": position[7],
+            "tickLower": {
+                "tickIdx": position[5]
+            },
+            "tickUpper": {
+                "tickIdx": position[6]
+            },
+            "pool": config["contracts"]["arb1"]["sushi_pool"],
+            "token0": {
+              "symbol": "WETH",
+              "decimals": "18"
+            },
+            "token1": {
+              "symbol": "DONUT",
+              "decimals": "18"
+            }
+        })
+
+    positions = response['positions']
+    positions.extend(unindexed_positions)
+
+    for position in positions:
         if int(position['liquidity']) == 0:
             continue
 
