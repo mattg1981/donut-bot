@@ -99,7 +99,8 @@ if __name__ == '__main__':
     # 2024-05-09 - it has come to my attention that there is at least 1 NFT not being returned by the sushi subgraph
     # call, so we will manually add these positions here.
 
-    unindexed_nft_ids = [11340]
+    unindexed_nfts = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/mattg1981/"
+                                                          "donut-bot-output/main/liquidity/unindexed_nfts.json"))
     unindexed_positions = []
 
     with open(os.path.normpath("../contracts/sushi_position_manager_abi.json"), 'r') as f:
@@ -113,10 +114,14 @@ if __name__ == '__main__':
     sushi_nft_manager_address = config["contracts"]["arb1"]["sushi_nft_manager"]
     sushi_nft_manager_contract = w3.eth.contract(address=w3.to_checksum_address(sushi_nft_manager_address), abi=nft_manager_abi)
 
-    for id in unindexed_nft_ids:
+    for id in unindexed_nfts["nft_id"]:
         try:
             owner = sushi_nft_manager_contract.functions.ownerOf(id).call()
             position = sushi_nft_manager_contract.functions.positions(id).call()
+
+            # if no liquidity
+            if position[7] <= 0:
+                continue
 
             unindexed_positions.append({
                 "id": id,
