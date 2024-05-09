@@ -143,7 +143,9 @@ if __name__ == '__main__':
             pass
 
     positions = response['positions']
-    positions.extend(unindexed_positions)
+
+    if len(unindexed_positions) > 0:
+        positions.extend(unindexed_positions)
 
     for position in positions:
         if int(position['liquidity']) == 0:
