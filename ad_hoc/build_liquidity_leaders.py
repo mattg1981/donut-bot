@@ -114,29 +114,33 @@ if __name__ == '__main__':
     sushi_nft_manager_contract = w3.eth.contract(address=w3.to_checksum_address(sushi_nft_manager_address), abi=nft_manager_abi)
 
     for id in unindexed_nft_ids:
-        owner = sushi_nft_manager_contract.functions.ownerOf(id).call()
-        position = sushi_nft_manager_contract.functions.positions(id).call()
+        try:
+            owner = sushi_nft_manager_contract.functions.ownerOf(id).call()
+            position = sushi_nft_manager_contract.functions.positions(id).call()
 
-        unindexed_positions.append({
-            "id": id,
-            "owner": owner,
-            "liquidity": position[7],
-            "tickLower": {
-                "tickIdx": position[5]
-            },
-            "tickUpper": {
-                "tickIdx": position[6]
-            },
-            "pool": config["contracts"]["arb1"]["sushi_pool"],
-            "token0": {
-              "symbol": "WETH",
-              "decimals": "18"
-            },
-            "token1": {
-              "symbol": "DONUT",
-              "decimals": "18"
-            }
-        })
+            unindexed_positions.append({
+                "id": id,
+                "owner": owner,
+                "liquidity": position[7],
+                "tickLower": {
+                    "tickIdx": position[5]
+                },
+                "tickUpper": {
+                    "tickIdx": position[6]
+                },
+                "pool": config["contracts"]["arb1"]["sushi_pool"],
+                "token0": {
+                  "symbol": "WETH",
+                  "decimals": "18"
+                },
+                "token1": {
+                  "symbol": "DONUT",
+                  "decimals": "18"
+                }
+            })
+        except Exception as e:
+            # either the nft no longer exists or we are having trouble connecting to infura
+            pass
 
     positions = response['positions']
     positions.extend(unindexed_positions)
