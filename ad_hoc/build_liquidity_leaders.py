@@ -97,7 +97,7 @@ if __name__ == '__main__':
     total_pool = 0
 
     # 2024-05-09 - it has come to my attention that there is at least 1 NFT not being returned by the sushi subgraph
-    # call, so we will manually add these positions here.
+    # call, so we will use web3 to add these positions here.
 
     unindexed_nfts = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/mattg1981/"
                                                           "donut-bot-output/main/liquidity/unindexed_nfts.json"))
@@ -112,7 +112,8 @@ if __name__ == '__main__':
         raise Exception("failed to connect to INFURA_ARB1_PROVIDER")
 
     sushi_nft_manager_address = config["contracts"]["arb1"]["sushi_nft_manager"]
-    sushi_nft_manager_contract = w3.eth.contract(address=w3.to_checksum_address(sushi_nft_manager_address), abi=nft_manager_abi)
+    sushi_nft_manager_contract = w3.eth.contract(address=w3.to_checksum_address(sushi_nft_manager_address),
+                                                 abi=nft_manager_abi)
 
     for id in unindexed_nfts["nft_id"]:
         try:
