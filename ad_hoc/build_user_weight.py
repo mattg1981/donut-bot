@@ -68,7 +68,7 @@ def get_sushi_providers():
             retries=5,
         ))
 
-    variables = {"pool_id": config["contracts"]["arb1"]["lp"]}
+    variables = {"pool_id": config["contracts"]["arb1"]["sushi_pool"]}
 
     # get pool info for current price
     response = client.execute(gql(pool_query), variable_values=variables)
