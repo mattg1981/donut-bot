@@ -324,7 +324,7 @@ if __name__ == '__main__':
                        LEFT JOIN
                        flair f ON u.id = f.user_id
                  WHERE f.last_update IS NULL OR 
-                       f.last_update <= Datetime('now', '-30 minutes', 'localtime');
+                       f.last_update <= Datetime('now', '-60 minutes', 'localtime');
         """
         cur = db.cursor()
         cur.executescript(build_table_and_index)
