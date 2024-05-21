@@ -2,6 +2,7 @@ import json
 import os.path
 import random
 import sys
+import time
 import urllib.request
 import sqlite3
 
@@ -144,7 +145,9 @@ if __name__ == '__main__':
     sushi_lp = get_sushi_providers()
 
     print('process users')
+    count = 0
     for u in user_json:
+        count += 1
         print(f"processing user {u['username']}")
 
         user_address = u["address"]
@@ -165,6 +168,9 @@ if __name__ == '__main__':
         u["weight"] = weight
 
         print(f" contrib: [{contrib}] - donut: [{total_donut}] (eth: {eth_donuts}, gno: {gno_donuts}, arb1: {arb_donuts}) - weight: [{weight}]")
+
+        if count % 50 == 0:
+            time.sleep(3)
 
     if os.path.exists(out_file):
         os.remove(out_file)
