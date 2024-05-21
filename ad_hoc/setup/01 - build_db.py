@@ -27,6 +27,7 @@ if __name__ == '__main__':
         from_user             NVARCHAR2       COLLATE NOCASE,
         to_user               NVARCHAR2       COLLATE NOCASE,
         amount                DECIMAL (10, 5) NOT NULL,
+        weight                REAL,
         token                 NVARCHAR2       NOT NULL
                                               COLLATE NOCASE,
         content_id            NVARCHAR2,
