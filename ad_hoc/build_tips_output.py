@@ -20,6 +20,7 @@ if __name__ == '__main__':
       e.from_user, 
       e.to_user,
       CASE WHEN u.username IS NULL THEN 0 ELSE 1 END to_user_registered,
+      e.weight,
       e.amount,
       e.token,
       e.content_id,

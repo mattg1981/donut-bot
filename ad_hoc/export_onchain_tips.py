@@ -18,6 +18,7 @@ if __name__ == '__main__':
            tx_hash,
            block,
            amount,
+           weight,
            token,
            t.content_id,
            timestamp

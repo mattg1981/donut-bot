@@ -67,6 +67,7 @@ if __name__ == '__main__':
                 to_address   NVARCHAR2       NOT NULL
                                              COLLATE NOCASE,
                 chain_id     INTEGER,
+                weight       REAL,
                 tx_hash      NVARCHAR2       NOT NULL
                                              COLLATE NOCASE,
                 block        BIGINT,
@@ -104,6 +105,13 @@ if __name__ == '__main__':
 
     tips = []
     events = tipping_contract.events.Tip().get_logs(fromBlock=max_block+1)
+
+    if not events:
+        exit(0)
+
+    print("tips detected, grabbing users.json file...")
+    users = json.load(request.urlopen(f"https://ethtrader.github.io/donut.distribution/users.json"))
+
     for event in events:
         receipt = w3.eth.get_transaction_receipt(event.transactionHash)
 
@@ -116,6 +124,12 @@ if __name__ == '__main__':
         from_address = event.args["from"]
         to_address = event.args["to"]
         amount = w3.from_wei(int(event.args["amount"]), "ether")
+
+        user = next((u for u in users if u['address'].lower() == from_address.lower()), None)
+        if not user or int(amount) < 1:
+            weight = 0
+        else:
+            weight = round(min(int(user['weight']) / config['comment2vote']['max_weight'], 1.0), 4)
 
         content_id = w3.to_text(event.args["contentId"].hex()).replace("\x00", "")
 
@@ -134,7 +148,7 @@ if __name__ == '__main__':
         # 42161 hardcoded below is arb 1 chain_id
         tips.append((
             from_address, to_address, tx_hash, 42161, block, amount, token, content_id,
-            datetime.fromtimestamp(timestamp)
+            datetime.fromtimestamp(timestamp), weight
         ))
 
     if not tips:
@@ -142,8 +156,6 @@ if __name__ == '__main__':
         exit(0)
 
     logger.info("notify about new tips")
-
-    users = json.load(request.urlopen(f"https://ethtrader.github.io/donut.distribution/users.json"))
 
     sig = f'\n\n^(donut-bot v0.1.20240411-onchain-tip)'
 
@@ -190,7 +202,7 @@ if __name__ == '__main__':
 
         sql = """
             insert or replace into onchain_tip (from_address, to_address, tx_hash, chain_id, block, amount, 
-            token, content_id, timestamp) values (?,?,?,?,?,?,?,?,?)
+            token, content_id, timestamp, weight) values (?,?,?,?,?,?,?,?,?,?)
         """
 
         cursor = db.cursor()

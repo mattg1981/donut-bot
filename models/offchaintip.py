@@ -1,10 +1,11 @@
 class OffchainTip:
-    def __init__(self, sender_name, recipient_name, amount, token, content_id, parent_content_id,
+    def __init__(self, sender_name, recipient_name, amount, weight, token, content_id, parent_content_id,
                  submission_content_id, community, is_valid, message):
 
         self.sender_name = sender_name
         self.recipient_name = recipient_name
         self.amount = amount
+        self.weight = weight
         self.token = token
         self.content_id = content_id
         self.parent_content_id = parent_content_id

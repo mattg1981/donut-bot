@@ -1,10 +1,16 @@
+import json
+import os
 import re
-from pathlib import Path
+import urllib.request
 
+from datetime import datetime, timedelta
+from pathlib import Path
 from database import database
 from commands.command import Command
 from commands.command_register import RegisterCommand
 from models.offchaintip import OffchainTip
+
+USERS = {}
 
 
 class TipCommand(Command):
@@ -136,7 +142,6 @@ class TipCommand(Command):
                 sender_exists = False
                 recipient_exists = False
                 if is_valid:
-
                     result = database.get_users_by_name([sender, recipient])
                     for r in result:
                         if r["username"].lower() == sender.lower():
@@ -153,7 +158,15 @@ class TipCommand(Command):
                         message = (f"❌ Sorry u/{comment.author.name} - you are not registered.  Please use "
                                    f"the [{reg.command_text} command]({self.config['e2t_post']}) to register.")
 
+                user = next((u for u in USERS['users'] if u['username'].lower() == sender.lower()), None)
+                if not user or int(amount) < 1:
+                    weight = 0
+                else:
+                    weight = round(min(int(user['weight']) / self.config['comment2vote']['max_weight'], 1.0), 4)
+
                 if is_valid:
+                    # todo: uncomment with tip2vote
+                    # message = f"u/{sender} has tipped u/{recipient} {amount} {token} (weight: {weight})"
                     message = f"u/{sender} has tipped u/{recipient} {amount} {token}"
 
                     if not recipient_exists:
@@ -161,7 +174,7 @@ class TipCommand(Command):
                         message += (f"\n\n⚠️ u/{recipient} is not currently registered and will not receive "
                                     f"this tip unless they [register]({self.config['e2t_post']}) before this round ends.")
 
-                tip = OffchainTip(sender, recipient, amount, token,
+                tip = OffchainTip(sender, recipient, amount, weight, token,
                                   comment.fullname, comment.parent().fullname,
                                   comment.submission.id, community, is_valid, message)
 
@@ -223,8 +236,6 @@ class TipCommand(Command):
                 amount = round(float(tip["amount"]), 5)
                 tip_text += f"&ensp;&ensp;{amount} {tip['token']} ({tip['tip_count']} tips total, {round(tip['average_tip_amount'], 2)} average)\n\n"
 
-        # todo pull this logic out into a def
-        #  it is repeated in another place and it will also make the code testable
         community_tokens = self.config["community_tokens"]
         for ct in community_tokens:
             if ct["community"].lower() == f"r/{comment.subreddit.display_name.lower()}":
@@ -258,7 +269,7 @@ class TipCommand(Command):
                           "System Default Browser in the Reddit Client (Settings > Open Links > Default Browser)*")
         self.leave_comment_reply(comment, comment_reply)
 
-    def leave_comment_reply(self, comment, reply, set_processed=True, use_tip_thread=False,):
+    def leave_comment_reply(self, comment, reply, set_processed=True, use_tip_thread=False, archive_result=None):
         sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
 
         if set_processed:
@@ -268,8 +279,21 @@ class TipCommand(Command):
             # check if post meta contains a central comment to attach tips to
             tip_thread_id = database.get_comment_thread_for_submission(comment.submission.fullname)
             if tip_thread_id:
+                # we have a 'pinned' message that we should tuck this comment
+                # under (instead of replying to this comment)
+                # todo: uncomment for tip2vote
+                # if not archive_result['should_remove']:
                 link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
                 sig = f'\n\n[LINK]({link})' + sig
+
+                # archive_link = (self.config['comment2vote']['archive_url']
+                #                 .replace('#y#', archive_result['year'])
+                #                 .replace('#m#', archive_result['month'])
+                #                 .replace('#d#', archive_result['day'])
+                #                 .replace('#f#', archive_result['filename']))
+                #
+                # sig = f'\n\n[ARCHIVE]({archive_link})' + sig
+
                 reply += sig
 
                 tip_thread = self.reddit.comment(tip_thread_id)
@@ -289,6 +313,15 @@ class TipCommand(Command):
             return
 
         self.logger.info(f"  comment link: https://reddit.com/comments/{comment.submission.id}/_/{comment.id}")
+
+        # maintain a fresh copy of the users file which will be used later to determine tip weight
+        try:
+            if "last_update" not in USERS or datetime.now() - timedelta(hours=self.config['comment2vote']['update_interval_hours']) >= USERS["last_update"]:
+                USERS['users'] = json.load(urllib.request.urlopen(self.config['users_location']))
+                USERS['last_update'] = datetime.now()
+        except Exception as e:
+            self.logger.error(f"  failed to download updated users file | {e}")
+            pass
 
         # handle '!tip status' command
         if self.tip_status_regex.search(comment.body.lower()):
@@ -316,7 +349,43 @@ class TipCommand(Command):
             self.leave_comment_reply(comment, reply)
         elif database.process_earn2tips(valid_tips, Path(__file__).stem):
             self.logger.info("  success...")
-            self.leave_comment_reply(comment, reply, False, True)
+            archive_result = self.archive_comment(comment, max(valid_tips, key=lambda x: x.amount).amount)
+            self.leave_comment_reply(comment, reply, False, True, archive_result)
+
+            # if archive_result['should_remove']:
+            #    comment.mod.remove(spam=False)
         else:
             self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "
                                               f"tip at this time.  Please try again later!")
+
+    def archive_comment(self, comment, max_tip):
+        """
+        Archives the given comment if meets requirements.
+        :param comment: The comment to archive
+        :param max_tip: The max tip amount from all tips sent in this comment
+        :return: A dict containing all the portions of the archive path
+        """
+        tip_directory = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"../tip_archive/"))
+        created_utc = datetime.utcfromtimestamp(comment.created_utc)
+
+        save_dir = f'{tip_directory}/{created_utc.year}/{created_utc.month:02}/{created_utc.day:02}'
+        os.makedirs(save_dir, exist_ok=True)
+
+        filename = comment.fullname + ".txt"
+        with open(os.path.join(save_dir, filename).replace('\\', '/'), 'w') as f:
+            f.write(comment.body)  # could also use body_html
+
+        should_remove = False
+        if len(comment.body) <= 50:
+            should_remove = True
+
+        if max_tip >= self.config['comment2vote']['min_tip_to_avoid_archive']:
+            should_remove = False
+
+        return {
+            'should_remove': should_remove,
+            'year': created_utc.year,
+            'month': f'{created_utc.month:02}',
+            'day': f'{created_utc.day:02}',
+            'filename': filename,
+        }

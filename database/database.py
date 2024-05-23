@@ -11,6 +11,7 @@ def adapt_decimal(d):
 def convert_decimal(s):
     return Decimal(s)
 
+
 def get_comment_thread_for_submission(submission_fullname):
     with sqlite3.connect(get_db_path()) as db:
         update_sql = """
@@ -26,6 +27,7 @@ def get_comment_thread_for_submission(submission_fullname):
             return result[0]
 
         return None
+
 
 def update_funded_account(tx_hash):
     with sqlite3.connect(get_db_path()) as db:
@@ -140,6 +142,7 @@ def has_processed_content(content_id, command):
         cur.execute('SELECT id FROM history WHERE content_id = ? and command = ?;', [content_id, command])
         return cur.fetchone()
 
+
 def set_processed_content(content_id, command):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
@@ -147,14 +150,14 @@ def set_processed_content(content_id, command):
         cur.execute('INSERT INTO history (content_id, command) VALUES(?,?) RETURNING *;', [content_id, command])
         return cur.fetchone()
 
-def remove_processed_content(content_id, command):
-    with sqlite3.connect(get_db_path()) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cur = db.cursor()
-        cur.execute("DELETE FROM history_tips WHERE content_id = ? and command = ?;", [content_id, command])
+
+# def remove_processed_content(content_id, command):
+#     with sqlite3.connect(get_db_path()) as db:
+#         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+#         cur = db.cursor()
+#         cur.execute("DELETE FROM history_tips WHERE content_id = ? and command = ?;", [content_id, command])
 
 
-# todo use insert or update
 def insert_or_update_address(user, address, content_id):
     user_result = get_user_by_name(user)
 
@@ -183,9 +186,9 @@ def insert_or_update_address(user, address, content_id):
 
 def process_earn2tips(tips, command):
     sql = """
-    INSERT INTO earn2tip (from_user, to_user, amount, token, content_id, 
-                          parent_content_id, submission_content_id, community, created_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ;
+        INSERT INTO earn2tip (from_user, to_user, amount, weight, token, content_id, 
+                              parent_content_id, submission_content_id, community, created_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ;
     """
 
     history_sql = "INSERT INTO history (content_id, command) VALUES(?,?) RETURNING *;"
@@ -197,7 +200,7 @@ def process_earn2tips(tips, command):
     for tip in tips:
         tip.created_date = created_date
         data.append(
-            (tip.sender_name, tip.recipient_name, tip.amount, tip.token,
+            (tip.sender_name, tip.recipient_name, tip.amount, tip.weight, tip.token,
              tip.content_id, tip.parent_content_id, tip.submission_content_id, tip.community, created_date))
 
     with sqlite3.connect(get_db_path()) as db:
@@ -315,3 +318,42 @@ def get_post_status(user):
         cur = db.cursor()
         cur.execute(sql, [user])
         return cur.fetchall()
+
+
+def get_potd_eligible(user, post_id):
+    sql = """
+        -- have they posted today?
+        select count(*) < 1 as potd_eligibile
+                , 'you have already voted today.  Your POTD vote resets at midnight UTC and the current time is: ' 
+                || datetime() || ' UTC' as reason
+        from potd
+        where redditor = ?
+          and created_date between datetime('now', 'start of day')
+            and datetime(datetime(datetime('now', 'start of day'), '+1 day'), '-1 second')
+        
+        UNION ALL
+        
+        -- have they voted on this post in the past?
+        select count(*) = 0 as potd_eligible
+            , 'you have previously voted on this post' as reason
+        from potd
+        where redditor = ? and post_id = ?;
+
+        """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(sql, [user, user, post_id])
+        return cur.fetchall()
+
+
+def insert_potd_vote(post_id, redditor, weight):
+    sql = """
+        insert into potd (post_id, redditor, weight, created_date)
+        values (?, ?, ?, ?)
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        cursor = db.cursor()
+        cursor.execute(sql, [post_id, redditor, weight, datetime.now()])
