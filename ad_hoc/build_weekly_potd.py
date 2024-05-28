@@ -1,0 +1,154 @@
+import json
+import os.path
+import urllib.request
+import sqlite3
+import praw
+
+from datetime import datetime
+from dotenv import load_dotenv
+
+if __name__ == '__main__':
+    print('begin...')
+
+    # load environment variables
+    load_dotenv()
+
+    with open(os.path.normpath("../config.json"), 'r') as c:
+        config = json.load(c)
+
+    # creating an authorized reddit instance
+    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
+                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+                         username=os.getenv('REDDIT_USERNAME'),
+                         password=os.getenv('REDDIT_PASSWORD'),
+                         user_agent='potd-bot (by u/mattg1981)')
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
+    db_path = os.path.normpath(db_path)
+
+    now = datetime.now()
+    this_week = int(datetime.now().strftime("%U")) + 1
+
+    potd_json = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/posts/potd_current.json"))
+
+    last_update = datetime.fromtimestamp(potd_json['last_update'])
+    last_update_week = int(potd_json['last_update_week'])
+
+    # check if we have already calculated the potd for last week
+    if this_week == last_update_week:
+        pass # exit(0)
+
+    dist_round_query = """
+            select distribution_round from distribution_rounds
+            where DATETIME() between from_date and to_date;
+        """
+
+    sql = """
+        select res.week_number,
+           res.post_id,
+           res.weight,
+           res.votes,
+           (select count(*) from earn2tip where parent_content_id = res.post_id) +  (select count(*) from onchain_tip where content_id = res.post_id) as tips,
+           (select sum(amount) from earn2tip where parent_content_id = res.post_id) +  (select sum(amount) from onchain_tip where content_id = res.post_id) as tips_sum,
+           res.rank
+        from (select strftime('%W', created_date)    as 'week_number',
+                              post_id,
+                              sum(weight)                     as 'weight',
+                              count(id)                       as 'votes',
+                              ROW_NUMBER() OVER (ORDER BY Id) as 'rank'
+                       from potd
+                       where cast(strftime('%W', created_date) as int) = cast(strftime('%W', datetime()) as int) - 1
+                       group by strftime('%W', created_date), post_id
+                       order by sum(weight) desc
+                       limit 4
+        ) res ;
+    """
+
+    with sqlite3.connect(db_path) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+
+        cur.execute(dist_round_query)
+        dist_round = int(cur.fetchall()[0]['distribution_round'])
+
+        cur.execute(sql, )
+        query_result = cur.fetchall()
+
+    try:
+        potd_winners_this_round = json.load(urllib.request.urlopen(
+            f"https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/posts/potd_round{dist_round}.json"))
+    except Exception as e:
+        print(f'potd_current_round not found: {e}')
+        potd_winners_this_round = []
+
+    potd_results = {
+        'last_update': int(now.timestamp()),
+        'last_update_week': this_week,
+        'winners': []
+    }
+
+    for post in query_result:
+        submission = reddit.submission(id=post['post_id'][3:])
+
+        try:
+            shortlink = submission.shortlink
+            author = submission.author.name
+            title = submission.title
+            created_date = int(submission.created_utc)
+            flair = submission.link_flair_text
+            selftext = submission.selftext.replace('"', '\'')
+            upvotes = submission.ups
+        except Exception:
+            shortlink = shortlink if shortlink else None
+            author = author if author else None
+            title = title if title else None
+            created_date = created_date if created_date else None
+            flair = flair if flair else None
+            selftext = selftext if selftext else None
+            upvotes = upvotes if upvotes else None
+
+
+        potd_results['last_update_week'] = this_week
+        potd_results["winners"].append({
+            'rank': post['rank'],
+            'nominations': post['votes'],
+            'weight': post['weight'],
+            'week_number': int(post['week_number']),
+            'post': {
+                'post_id': post['post_id'],
+                'author': author,
+                'reddit_upvotes': upvotes,
+                'title': title,
+                'tips': post['tips'],
+                'tips_amount': post['tips_sum'] or 0,
+                'url': shortlink,
+                'created_date': datetime.fromtimestamp(created_date),
+                'flair': flair,
+                'selftext': selftext
+            }
+        })
+
+        potd_winners_this_round.append({
+            'rank': post['rank'],
+            'author': author,
+            'post_id': post['post_id']
+        })
+
+
+    current_file = "../temp/potd_current.json"
+    round_file = f"../temp/potd_round_{dist_round}.json"
+
+    if os.path.exists(current_file):
+        os.remove(current_file)
+
+    if os.path.exists(round_file):
+        os.remove(round_file)
+
+    with open(current_file, 'w') as f:
+        json.dump(potd_results, f, indent=4, default=str)
+
+    with open(round_file, 'w') as f:
+        json.dump(potd_winners_this_round, f, indent=4, default=str)
+
+
