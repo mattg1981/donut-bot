@@ -83,9 +83,7 @@ def eligible_to_submit(submission):
             f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a 24-hour window. "
             f"Please try again later.\n\nYou may also use the `!post status` command to check your posting eligibility.")
         submission.mod.lock()
-        submission.mod.remove(f"{submission.author.name} exceeded {max_posts_per_24_hours} posts per a 24 hour window.",
-                              False,
-                              config['posts']['removal_id'])
+        submission.mod.remove(spam=False)
         return False
 
     return True
