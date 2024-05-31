@@ -161,6 +161,7 @@ if __name__ == '__main__':
 
     while True:
         try:
+            # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
             for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
