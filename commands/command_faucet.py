@@ -13,7 +13,7 @@ from commands.command import Command
 
 
 class FaucetCommand(Command):
-    VERSION = 'v0.1.20231130-faucet'
+    VERSION = 'v0.1.20240531-faucet'
     COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION})'
 
     def __init__(self, config, reddit):
@@ -23,12 +23,6 @@ class FaucetCommand(Command):
 
         with open(os.path.normpath("contracts/contrib_gnosis_abi.json"), 'r') as f:
             self.contrib_abi = json.load(f)
-
-        # gnosis
-        # self.contrib_address = "0xFc24F552fa4f7809a32Ce6EE07C09Dcd7A41988F"
-
-        # arb 1
-        self.contrib_address = "0xF28831db80a616dc33A5869f6F689F54ADd5b74C"
 
     def leave_comment_reply(self, comment, reply):
         reply += f"\n\n💥 Please help support this faucet by sending xDai (on the Gnosis chain) to: `{self.config['faucet_wallet_address']}`."
@@ -82,8 +76,9 @@ class FaucetCommand(Command):
                     continue
 
                 # connected, now find contrib for user
-                contrib_contract = w3_arb1.eth.contract(address=w3_arb1.to_checksum_address(self.contrib_address),
-                                                   abi=self.contrib_abi)
+                contrib_contract = w3_arb1.eth.contract(
+                    address=w3_arb1.to_checksum_address(self.config['contracts']['arb1']['contrib']),
+                    abi=self.contrib_abi)
                 contrib_token_balance = contrib_contract.functions.balanceOf(
                     w3_arb1.to_checksum_address(user_address)).call()
                 # contrib_balance = Decimal(contrib_token_balance) / Decimal(10 ** 18)
