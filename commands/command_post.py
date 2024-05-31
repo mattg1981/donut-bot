@@ -32,7 +32,7 @@ class PostCommand(Command):
 
         user = comment.author.name
 
-        # handle `!register status` command
+        # handle `!post status` command
         if f'{self.command_text} status' in comment.body.lower():
             self.logger.info("  checking status")
             result = database.get_post_status(user)
