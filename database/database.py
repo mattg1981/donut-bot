@@ -324,15 +324,16 @@ def get_potd_eligible(user, post_id):
     sql = """
         -- have they posted today?
         select count(*) < 1 as potd_eligibile
-                , 'you have already voted today.  Your POTD vote resets at midnight UTC and the current time is: ' 
+                , 'you have already voted today in r/' || community || '.  Your post-of-the-week vote resets at midnight UTC and the current time is: '
                 || datetime() || ' UTC' as reason
         from potd
         where redditor = ?
           and created_date between datetime('now', 'start of day')
             and datetime(datetime(datetime('now', 'start of day'), '+1 day'), '-1 second')
-        
+            and community=?
+
         UNION ALL
-        
+
         -- have they voted on this post in the past?
         select count(*) = 0 as potd_eligible
             , 'you have previously voted on this post' as reason
@@ -348,12 +349,12 @@ def get_potd_eligible(user, post_id):
         return cur.fetchall()
 
 
-def insert_potd_vote(post_id, redditor, weight):
+def insert_potd_vote(post_id, redditor, weight, community):
     sql = """
-        insert into potd (post_id, redditor, weight, created_date)
-        values (?, ?, ?, ?)
+        insert into potd (post_id, redditor, weight, created_date, community)
+        values (?, ?, ?, ?, ?)
     """
 
     with sqlite3.connect(get_db_path()) as db:
         cursor = db.cursor()
-        cursor.execute(sql, [post_id, redditor, weight, datetime.now()])
+        cursor.execute(sql, [post_id, redditor, weight, datetime.now(), community])
