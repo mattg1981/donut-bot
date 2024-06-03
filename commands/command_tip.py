@@ -166,8 +166,8 @@ class TipCommand(Command):
 
                 if is_valid:
                     # todo: uncomment with tip2vote
-                    # message = f"u/{sender} has tipped u/{recipient} {amount} {token} (weight: {weight})"
-                    message = f"u/{sender} has tipped u/{recipient} {amount} {token}"
+                    message = f"u/{sender} has tipped u/{recipient} {amount} {token} (weight: {weight})"
+                    # message = f"u/{sender} has tipped u/{recipient} {amount} {token}"
 
                     if not recipient_exists:
                         self.logger.info("  parent is not registered")
@@ -285,17 +285,17 @@ class TipCommand(Command):
                 # we have a 'pinned' message that we should tuck this comment
                 # under (instead of replying to this comment)
                 # todo: uncomment for tip2vote
-                # if not archive_result['should_remove']:
-                link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
-                sig = f'\n\n[LINK]({link})' + sig
+                if not archive_result['should_remove']:
+                    link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
+                    sig = f'\n\n[LINK]({link})' + sig
 
-                # archive_link = (self.config['comment2vote']['archive_url']
-                #                 .replace('#y#', archive_result['year'])
-                #                 .replace('#m#', archive_result['month'])
-                #                 .replace('#d#', archive_result['day'])
-                #                 .replace('#f#', archive_result['filename']))
-                #
-                # sig = f'\n\n[ARCHIVE]({archive_link})' + sig
+                    archive_link = (self.config['comment2vote']['archive_url']
+                                    .replace('#y#', archive_result['year'])
+                                    .replace('#m#', archive_result['month'])
+                                    .replace('#d#', archive_result['day'])
+                                    .replace('#f#', archive_result['filename']))
+
+                    sig = f'\n\n[ARCHIVE]({archive_link})' + sig
 
                 reply += sig
 

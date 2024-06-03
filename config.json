@@ -60,7 +60,8 @@
   },
   "posts": {
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
-    "max_per_24_hours": 3
+    "max_per_24_hours": 3,
+    "approve_weight": 100000
   },
   "comment2vote": {
     "max_weight": 20000,
@@ -96,6 +97,16 @@
   "community_tokens": [
     {
       "community": "r/ethtrader",
+      "features": {
+        "flair-bot": true,
+        "post-bot": true,
+        "post-command": true,
+        "faucet": true,
+        "tips": true,
+        "archive": true,
+        "max_posts_per_24h": true,
+        "post_of_the_week": true
+      },
       "tokens": [
         {
           "name": "donut",
