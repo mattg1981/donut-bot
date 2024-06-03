@@ -290,10 +290,10 @@ class TipCommand(Command):
                     sig = f'\n\n[LINK]({link})' + sig
 
                     archive_link = (self.config['comment2vote']['archive_url']
-                                    .replace('#y#', archive_result['year'])
-                                    .replace('#m#', archive_result['month'])
-                                    .replace('#d#', archive_result['day'])
-                                    .replace('#f#', archive_result['filename']))
+                                    .replace('#y#', str(archive_result['year']))
+                                    .replace('#m#', str(archive_result['month']))
+                                    .replace('#d#', str(archive_result['day']))
+                                    .replace('#f#', str(archive_result['filename'])))
 
                     sig = f'\n\n[ARCHIVE]({archive_link})' + sig
 
