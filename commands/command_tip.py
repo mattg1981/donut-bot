@@ -199,28 +199,31 @@ class TipCommand(Command):
         received_result = database.get_tips_received_for_current_round_by_user(comment.author.name)
         funded_result = database.get_funded_for_current_round_by_user(comment.author.name)
 
-        reply = ""
+        reply = f" u/{comment.author.name} has had the following tip activity this round:"
         if len(sent_result) == 0:
-            reply = f"u/{comment.author.name} has not **sent** any earn2tips this round"
+            reply += f"- **SENT:** u/{comment.author.name} 0 donut (0 tips sent)\n"
         else:
-            reply = f"u/{comment.author.name} has **sent** the following earn2tips this round:\n\n"
+            # reply += f"- **SENT:** u/{comment.author.name} has **sent** the following earn2tips this round:\n\n"
             for tip in sent_result:
                 amount = round(float(tip["amount"]), 5)
-                reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
+                reply += f"- **SENT:** {amount} {tip['token']} ({tip['count']} tips sent)\n"
 
         if len(received_result) == 0:
-            reply += f"\n\nu/{comment.author.name} has not **received** any earn2tips this round"
+            # reply += f"\n\nu/{comment.author.name} has not **received** any earn2tips this round"
+            reply += f"- **RECEIVED:** u/{comment.author.name} 0 donut (0 tips received)\n"
         else:
-            reply += f"\n\nu/{comment.author.name} has **received** the following earn2tips this round:\n\n"
+            # reply += f"\n\nu/{comment.author.name} has **received** the following earn2tips this round:\n\n"
             for tip in received_result:
                 amount = round(float(tip["amount"]), 5)
-                reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
+                # reply += f"&ensp;&ensp;{amount} {tip['token']} ({tip['count']} total)\n\n"
+                reply += f"- **RECEIVED:** {amount} {tip['token']} ({tip['count']} tips received)\n"
 
         if len(funded_result) > 0:
-            reply += f"\n\nu/{comment.author.name} has **funded** the following to their account this round:\n\n"
+            # reply += f"\n\nu/{comment.author.name} has **funded** the following to their account this round:\n\n"
             for fund in funded_result:
                 amount = round(float(fund["amount"]), 5)
-                reply += f"&ensp;&ensp;{amount} {fund['token']}\n\n"
+                #reply += f"&ensp;&ensp;{amount} {fund['token']}\n\n"
+                reply += f"- **FUNDED:** {amount} {fund['token']}\n\n"
 
         self.leave_comment_reply(comment, reply)
 
@@ -352,6 +355,7 @@ class TipCommand(Command):
             archive_result = self.archive_comment(comment, max(valid_tips, key=lambda x: x.amount).amount)
             self.leave_comment_reply(comment, reply, False, True, archive_result)
 
+            # todo: uncomment for tip2vote
             # if archive_result['should_remove']:
             #    comment.mod.remove(spam=False)
         else:
@@ -370,6 +374,8 @@ class TipCommand(Command):
 
         save_dir = f'{tip_directory}/{created_utc.year}/{created_utc.month:02}/{created_utc.day:02}'
         os.makedirs(save_dir, exist_ok=True)
+
+        # archive_text = f'author: {comment.author}\ndate: {created_utc} UTC\n\n{comment.body}'
 
         filename = comment.fullname + ".txt"
         with open(os.path.join(save_dir, filename).replace('\\', '/'), 'w') as f:
