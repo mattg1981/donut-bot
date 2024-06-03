@@ -199,7 +199,7 @@ class TipCommand(Command):
         received_result = database.get_tips_received_for_current_round_by_user(comment.author.name)
         funded_result = database.get_funded_for_current_round_by_user(comment.author.name)
 
-        reply = f" u/{comment.author.name} has had the following tip activity this round:"
+        reply = f" u/{comment.author.name} has had the following tip activity this round:\n"
         if len(sent_result) == 0:
             reply += f"- **SENT:** u/{comment.author.name} 0 donut (0 tips sent)\n"
         else:
