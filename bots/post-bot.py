@@ -3,11 +3,14 @@ import logging
 import os
 import sqlite3
 import time
+from datetime import datetime
+
 import praw
 
 from logging.handlers import RotatingFileHandler
 
 from dotenv import load_dotenv
+
 
 def create_post_meta(submission):
     logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
@@ -17,19 +20,21 @@ def create_post_meta(submission):
     if "daily general discussion" in submission.title.lower():
         is_daily = True
 
-    with sqlite3.connect(db_path) as db:
-        sql = """
-            SELECT id from post where submission_id = ?;
-        """
-        cursor = db.cursor()
-        cursor.execute(sql, [submission.fullname])
-        exists = cursor.fetchone()
+    # this check is now handled with previously_processed()
 
-    if exists:
-        logger.info(f"  submission meta exists - return.")
-        return
+    # with sqlite3.connect(db_path) as db:
+    #     sql = """
+    #         SELECT id from post where submission_id = ?;
+    #     """
+    #     cursor = db.cursor()
+    #     cursor.execute(sql, [submission.fullname])
+    #     exists = cursor.fetchone()
+    #
+    # if exists:
+    #     logger.info(f"  submission meta exists - return.")
+    #     return
 
-    logger.info(f"  submission does not exist...")
+    # logger.info(f"  submission does not exist...")
 
     comment_thread_id = None
 
@@ -53,11 +58,16 @@ def create_post_meta(submission):
 
     with sqlite3.connect(db_path) as db:
         sql = """
-            INSERT INTO post (submission_id, tip_comment_id, author, is_daily)
-            VALUES (?, ?, ?, ?);
+            INSERT INTO post (submission_id, tip_comment_id, author, is_daily, created_date, community)
+            VALUES (?, ?, ?, ?, ?, ?);
         """
         cursor = db.cursor()
-        cursor.execute(sql, [submission.fullname, comment_thread_id, author, is_daily])
+        cursor.execute(sql, [submission.fullname,
+                             comment_thread_id,
+                             author,
+                             is_daily,
+                             datetime.fromtimestamp(submission.created_utc),
+                             submission.subreddit.display_name.lower()])
 
     logger.info(f"  done.")
 
@@ -87,6 +97,20 @@ def eligible_to_submit(submission):
         return False
 
     return True
+
+
+def previously_processed(submission):
+    sql = f"""
+            select *
+            from post
+            where submission_id = ? and community = ?
+        """
+
+    with sqlite3.connect(db_path) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cursor = db.cursor()
+        cursor.execute(sql, [submission.fullname, submission.subreddit.display_name.lower()])
+        return cursor.fetchone()
 
 
 if __name__ == '__main__':
@@ -136,6 +160,7 @@ if __name__ == '__main__':
               post (
                 id             INTEGER   NOT NULL
                                          PRIMARY KEY AUTOINCREMENT,
+                community       TEXT     COLLATE NOCASE,
                 submission_id  NVARCHAR2 NOT NULL
                                          COLLATE NOCASE,
                 tip_comment_id NVARCHAR2 COLLATE NOCASE,
@@ -159,12 +184,16 @@ if __name__ == '__main__':
 
     while True:
         try:
-            # for submission in reddit.subreddit(subs).stream.submissions():
-            for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
+            for submission in reddit.subreddit(subs).stream.submissions():
+            # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
                 if not submission.author or submission.author.name == username:
+                    continue
+
+                if previously_processed(submission):
+                    logger.info(f"  {submission.fullname} already processed.")
                     continue
 
                 if submission.author.name.lower() in ignore_list:
