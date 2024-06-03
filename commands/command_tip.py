@@ -296,6 +296,7 @@ class TipCommand(Command):
                                     .replace('#f#', str(archive_result['filename'])))
 
                     sig = f'\n\n[ARCHIVE]({archive_link})' + sig
+                    sig = f'\n(note: the archived content can take up to 30 minutes before it is available for viewing)' + sig
 
                 reply += sig
 
