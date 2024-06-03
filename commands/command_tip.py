@@ -284,19 +284,19 @@ class TipCommand(Command):
             if tip_thread_id:
                 # we have a 'pinned' message that we should tuck this comment
                 # under (instead of replying to this comment)
+
+                archive_link = (self.config['comment2vote']['archive_url']
+                                .replace('#y#', str(archive_result['year']))
+                                .replace('#m#', str(archive_result['month']))
+                                .replace('#d#', str(archive_result['day']))
+                                .replace('#f#', str(archive_result['filename'])))
+
+                sig = f'\n\n[ARCHIVE]({archive_link})\n\n(note: archived content can take up to 30 minutes before it is available for viewing)' + sig
+
                 # todo: uncomment for tip2vote
-                if not archive_result['should_remove']:
-                    link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
-                    sig = f'\n\n[LINK]({link})' + sig
-
-                    archive_link = (self.config['comment2vote']['archive_url']
-                                    .replace('#y#', str(archive_result['year']))
-                                    .replace('#m#', str(archive_result['month']))
-                                    .replace('#d#', str(archive_result['day']))
-                                    .replace('#f#', str(archive_result['filename'])))
-
-                    sig = f'\n\n[ARCHIVE]({archive_link})' + sig
-                    sig = f'\n\n(note: the archived content can take up to 30 minutes before it is available for viewing)' + sig
+                # if not archive_result['should_remove']:
+                link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
+                sig = f'\n\n[LINK]({link})' + sig
 
                 reply += sig
 
