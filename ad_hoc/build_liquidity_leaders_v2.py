@@ -193,7 +193,7 @@ if __name__ == '__main__':
             user = next((u['username'] for u in registered_users if
                          u['address'].lower() == position['owner'].lower()), None)
 
-        existing_owner = next((s for s in sushi_lp if s['owner'].lower() == position['owner']), None)
+        existing_owner = next((s for s in sushi_lp if s['owner'].lower() == position['owner'].lower()), None)
 
         if existing_owner:
             # sum up their liquidity
