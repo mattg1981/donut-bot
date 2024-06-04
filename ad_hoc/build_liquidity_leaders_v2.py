@@ -211,10 +211,10 @@ if __name__ == '__main__':
                 "donut_in_lp": donut_in_lp
             })
 
-    with sqlite3.connect(db_path) as db:
-        cursor = db.cursor()
-        cursor.execute(sql)
-        registered_users = cursor.fetchall()
+    # with sqlite3.connect(db_path) as db:
+    #     cursor = db.cursor()
+    #     cursor.execute(sql)
+    #     registered_users = cursor.fetchall()
 
     out_file = "../temp/liquidity_leaders.json"
 
