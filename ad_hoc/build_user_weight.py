@@ -27,7 +27,7 @@ def calc_gno_donut(address):
 
 def calc_arb_donut(address, lp_providers):
     arb1_donut_balance = donut_arb1_contract.functions.balanceOf(address).call()
-    sushi_lp_donuts = sum([int(s["tokens"]) for s in sushi_lp if s["owner"].lower() == address.lower()])
+    sushi_lp_donuts = sum([int(s["tokens"]) for s in lp_providers if s["owner"].lower() == address.lower()])
     return w3_arb.from_wei(arb1_donut_balance + sushi_lp_donuts, "ether")
 
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         print(f" contrib: [{contrib}] - donut: [{total_donut}] (eth: {eth_donuts}, gno: {gno_donuts}, arb1: {arb_donuts}) - weight: [{weight}]")
 
         # getting a http 429 code, so we need to self throttle
-        time.sleep(1)
+        time.sleep(.75)
 
     if os.path.exists(out_file):
         os.remove(out_file)
