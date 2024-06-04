@@ -291,7 +291,7 @@ class TipCommand(Command):
                                 .replace('#d#', str(archive_result['day']))
                                 .replace('#f#', str(archive_result['filename'])))
 
-                sig = f'\n\n[ARCHIVE]({archive_link})\n\n(note: archived content can take up to 30 minutes before it is available for viewing)' + sig
+                sig = f'\n\n[ARCHIVE]({archive_link})\n\n^(note: archived content can take up to 10 minutes before it is available for viewing)' + sig
 
                 # todo: uncomment for tip2vote
                 # if not archive_result['should_remove']:
