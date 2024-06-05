@@ -165,7 +165,6 @@ class TipCommand(Command):
                     weight = round(min(int(user['weight']) / self.config['comment2vote']['max_weight'], 1.0), 4)
 
                 if is_valid:
-                    # todo: uncomment with tip2vote
                     message = f"u/{sender} has tipped u/{recipient} {amount} {token} (weight: {weight})"
                     # message = f"u/{sender} has tipped u/{recipient} {amount} {token}"
 
@@ -281,6 +280,7 @@ class TipCommand(Command):
         if use_tip_thread:
             # check if post meta contains a central comment to attach tips to
             tip_thread_id = database.get_comment_thread_for_submission(comment.submission.fullname)
+
             if tip_thread_id:
                 # we have a 'pinned' message that we should tuck this comment
                 # under (instead of replying to this comment)
@@ -294,9 +294,9 @@ class TipCommand(Command):
                 sig = f'\n\n[ARCHIVE]({archive_link})\n\n^(note: archived content can take up to 10 minutes before it is available for viewing)' + sig
 
                 # todo: uncomment for tip2vote
-                # if not archive_result['should_remove']:
-                link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
-                sig = f'\n\n[LINK]({link})' + sig
+                if not archive_result['should_remove']:
+                    link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
+                    sig = f'\n\n[LINK]({link})' + sig
 
                 reply += sig
 
@@ -304,8 +304,13 @@ class TipCommand(Command):
                 tip_thread.reply(reply)
                 return
 
-        # if no central tip thread or not specified to use it then
-        # reply directly to this comment
+            else:
+                # we are told to use a tip thread but there is not one available - this happens in the daily (and posts
+                # where the post meta is not captured for some reason).  Do not send a tip confirmation in this case.
+                return
+
+        # if not specified to use the central tip thread (e.g. notifying on tip failure) then reply directly to
+        # this comment
         reply += sig
         comment.reply(reply)
 
@@ -320,7 +325,8 @@ class TipCommand(Command):
 
         # maintain a fresh copy of the users file which will be used later to determine tip weight
         try:
-            if "last_update" not in USERS or datetime.now() - timedelta(hours=self.config['comment2vote']['update_interval_hours']) >= USERS["last_update"]:
+            if "last_update" not in USERS or datetime.now() - timedelta(
+                    hours=self.config['comment2vote']['update_interval_hours']) >= USERS["last_update"]:
                 USERS['users'] = json.load(urllib.request.urlopen(self.config['users_location']))
                 USERS['last_update'] = datetime.now()
         except Exception as e:
@@ -357,8 +363,8 @@ class TipCommand(Command):
             self.leave_comment_reply(comment, reply, False, True, archive_result)
 
             # todo: uncomment for tip2vote
-            # if archive_result['should_remove']:
-            #    comment.mod.remove(spam=False)
+            if archive_result['should_remove']:
+                comment.mod.remove(spam=False)
         else:
             self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "
                                               f"tip at this time.  Please try again later!")
