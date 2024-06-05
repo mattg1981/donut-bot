@@ -307,6 +307,7 @@ class TipCommand(Command):
             else:
                 # we are told to use a tip thread but there is not one available - this happens in the daily (and posts
                 # where the post meta is not captured for some reason).  Do not send a tip confirmation in this case.
+                self.logger.info("  [leaving no tip confirmation]")
                 return
 
         # if not specified to use the central tip thread (e.g. notifying on tip failure) then reply directly to
@@ -364,6 +365,7 @@ class TipCommand(Command):
 
             # todo: uncomment for tip2vote
             if archive_result['should_remove']:
+                self.logger.info("  remove comment...")
                 comment.mod.remove(spam=False)
         else:
             self.leave_comment_reply(comment, f"❌ Sorry u/{comment.author.name}, I was unable to process your "
