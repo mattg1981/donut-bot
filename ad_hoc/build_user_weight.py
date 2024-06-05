@@ -28,7 +28,7 @@ def calc_gno_donut(address):
 def calc_arb_donut(address, lp_providers):
     arb1_donut_balance = donut_arb1_contract.functions.balanceOf(address).call()
     sushi_lp_donuts = sum([int(s["tokens"]) for s in lp_providers if s["owner"].lower() == address.lower()])
-    return w3_arb.from_wei(arb1_donut_balance + sushi_lp_donuts, "ether")
+    return w3_arb.from_wei(arb1_donut_balance, "ether") + sushi_lp_donuts
 
 
 def get_sushi_providers():
@@ -143,6 +143,14 @@ if __name__ == '__main__':
 
     print('finding all sushi lp providers')
     sushi_lp = get_sushi_providers()
+
+    user_json = [{
+        "username": "DBRiMatt",
+        "address": "0xFEdD14d3a32FaAbfbd6E290fAA73Aec58e894650",
+        "contrib": 110710,
+        "donut": 24079,
+        "weight": 24079
+    }]
 
     print('process users')
     count = 0
