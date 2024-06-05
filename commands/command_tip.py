@@ -391,7 +391,7 @@ class TipCommand(Command):
             f.write(comment.body)  # could also use body_html
 
         should_remove = False
-        if len(comment.body) < self.config['min_chars_needed_to_avoid_archive']:
+        if len(comment.body) < self.config['comment2vote']['min_chars_needed_to_avoid_archive']:
             should_remove = True
 
         if max_tip >= self.config['comment2vote']['min_tip_to_avoid_archive']:
