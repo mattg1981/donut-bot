@@ -61,12 +61,13 @@
   "posts": {
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
     "max_per_24_hours": 3,
-    "approve_weight": 100000
+    "approve_weight": 60000
   },
   "comment2vote": {
     "max_weight": 20000,
     "update_interval_hours": 6,
     "min_tip_to_avoid_archive": 5,
+    "min_chars_needed_to_avoid_archive": 13,
     "archive_url": "https://raw.githubusercontent.com/mattg1981/ethtrader-tip-archive/main/#y#/#m#/#d#/#f#"
   },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
