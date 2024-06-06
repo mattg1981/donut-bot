@@ -144,13 +144,14 @@ if __name__ == '__main__':
     print('finding all sushi lp providers')
     sushi_lp = get_sushi_providers()
 
-    user_json = [{
-        "username": "DBRiMatt",
-        "address": "0xFEdD14d3a32FaAbfbd6E290fAA73Aec58e894650",
-        "contrib": 110710,
-        "donut": 24079,
-        "weight": 24079
-    }]
+    # used for debugging
+    # user_json = [{
+    #     "username": "DBRiMatt",
+    #     "address": "0xFEdD14d3a32FaAbfbd6E290fAA73Aec58e894650",
+    #     "contrib": 110710,
+    #     "donut": 24079,
+    #     "weight": 24079
+    # }]
 
     print('process users')
     count = 0
