@@ -66,7 +66,7 @@ def create_post_meta(submission):
                              comment_thread_id,
                              author,
                              is_daily,
-                             datetime.fromtimestamp(submission.created_utc),
+                             datetime.utcfromtimestamp(submission.created_utc),
                              submission.subreddit.display_name.lower()])
 
     logger.info(f"  done.")
