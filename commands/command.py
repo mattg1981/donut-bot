@@ -14,8 +14,17 @@ class Command:
         self.reddit = reddit
 
     def can_handle(self, comment):
-        p = re.compile(f'{self.command_text}($|\\s)')
-        return p.search(comment.lower())
+        if isinstance(self.command_text, str):
+            p = re.compile(f'{self.command_text.lower()}($|\\s)')
+            return p.search(comment.lower())
+
+        elif isinstance(self.command_text, list):
+            for cmd in self.command_text:
+                p = re.compile(f'{cmd.lower()}($|\\s)')
+                if p.search(comment.lower()):
+                    return True
+
+        return False
 
     @abc.abstractmethod
     def process_comment(self, comment):
