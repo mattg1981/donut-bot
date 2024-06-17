@@ -53,6 +53,11 @@
         "user": "Airtune",
         "text": "Banano - Verified :verified:",
         "css_class": "banano"
+      },
+      {
+        "user": "Toob-Finance",
+        "text": "Toob-Finance - Verified :verified:",
+        "css_class": "toob"
       }
     ]
   },
