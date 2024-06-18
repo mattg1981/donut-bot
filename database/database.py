@@ -358,3 +358,30 @@ def insert_potd_vote(post_id, redditor, weight, community):
     with sqlite3.connect(get_db_path()) as db:
         cursor = db.cursor()
         cursor.execute(sql, [post_id, redditor, weight, datetime.now(), community])
+
+
+def set_daily_pin(submission_id, comment_id):
+    sql = """
+            update post 
+            set tip_comment_id = ?
+            where submission_id = ? and is_daily = 1
+            returning *
+        """
+
+    with sqlite3.connect(get_db_path()) as db:
+        cursor = db.cursor()
+        cursor.execute(sql, [comment_id, submission_id])
+        return cursor.fetchone()
+
+
+def get_distribution_round():
+    sql = """
+     select distribution_round
+     from distribution_rounds
+     where DATETIME() between from_date and to_date
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        cursor = db.cursor()
+        cursor.execute(sql)
+        return cursor.fetchone()

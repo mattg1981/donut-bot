@@ -293,7 +293,6 @@ class TipCommand(Command):
 
                 sig = f'\n\n[ARCHIVE]({archive_link})\n\n^(note: archived content can take up to 10 minutes before it is available for viewing)' + sig
 
-                # todo: uncomment for tip2vote
                 if not archive_result['should_remove']:
                     link = f"https://reddit.com/comments/{comment.submission.id}/_/{comment.id}"
                     sig = f'\n\n[LINK]({link})' + sig
@@ -305,13 +304,11 @@ class TipCommand(Command):
                 return
 
             else:
-                # we are told to use a tip thread but there is not one available - this happens in the daily (and posts
-                # where the post meta is not captured for some reason).  Do not send a tip confirmation in this case.
+                # Do not send a tip confirmation in this case.
                 self.logger.info("  [leaving no tip confirmation]")
                 return
 
-        # if not specified to use the central tip thread (e.g. notifying on tip failure) then reply directly to
-        # this comment
+        # reply directly to the comment
         reply += sig
         comment.reply(reply)
 

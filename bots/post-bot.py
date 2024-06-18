@@ -17,7 +17,7 @@ def create_post_meta(submission):
 
     is_daily = False
     # determine if it is the daily
-    if "daily general discussion" in submission.title.lower():
+    if "daily general discussion - " in submission.title.lower() and "(utc+0)" in submission.title.lower():
         is_daily = True
 
     # this check is now handled with previously_processed()
@@ -180,7 +180,7 @@ if __name__ == '__main__':
 
     # users listed in ignore_list are not restricted to a limited number of posts
     # be sure to user lowercase when adding to this list
-    ignore_list = ["ethtrader_reposter"]
+    ignore_list = ["ethtrader_reposter", "automoderator"]
 
     while True:
         try:

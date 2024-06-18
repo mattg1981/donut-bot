@@ -20,8 +20,9 @@ class Command:
 
         elif isinstance(self.command_text, list):
             for cmd in self.command_text:
+                cmd = cmd.replace('[', '\[').replace(']', '\]')
                 p = re.compile(f'{cmd.lower()}($|\\s)')
-                if p.search(comment.lower()):
+                if p.search(comment.lower().replace('\\[', '[').replace('\\]', ']')):
                     return True
 
         return False
