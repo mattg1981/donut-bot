@@ -58,6 +58,11 @@
         "user": "Toob-Finance",
         "text": "Toob-Finance - Verified :verified:",
         "css_class": "toob"
+      },
+      {
+        "user": "blobcitos",
+        "text": "Arbitrum Foundation - Verified :verified:",
+        "css_class": "arbfoundation"
       }
     ]
   },
