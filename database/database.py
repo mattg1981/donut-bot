@@ -320,7 +320,7 @@ def get_post_status(user):
         return cur.fetchall()
 
 
-def get_potd_eligible(user, post_id):
+def get_potd_eligible(user, post_id, community):
     sql = """
         -- have they posted today?
         select count(*) < 1 as potd_eligibile
@@ -345,7 +345,7 @@ def get_potd_eligible(user, post_id):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(sql, [user, user, post_id])
+        cur.execute(sql, [user, community, user, post_id])
         return cur.fetchall()
 
 
@@ -384,4 +384,18 @@ def get_distribution_round():
     with sqlite3.connect(get_db_path()) as db:
         cursor = db.cursor()
         cursor.execute(sql)
+        return cursor.fetchone()
+
+
+def set_custom_flair(user, custom_flair):
+    sql = """
+        update flair 
+        set custom_flair = ?
+        where user_id = (select id from users where username = ?)
+        returning *
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        cursor = db.cursor()
+        cursor.execute(sql, [custom_flair, user])
         return cursor.fetchone()
