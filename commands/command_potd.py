@@ -75,7 +75,7 @@ class PotdCommand(Command):
 
             # update governance weight (if needed)
             if ("last_update" not in GOVERNANCE_WEIGHT or
-                    datetime.now() - timedelta(hours=8) >= GOVERNANCE_WEIGHT["last_update"]):
+                    datetime.now() - timedelta(minutes=60) >= GOVERNANCE_WEIGHT["last_update"]):
 
                 GOVERNANCE_WEIGHT['users'] = json.load(urllib.request.urlopen(self.config["users_location"]))
                 GOVERNANCE_WEIGHT['last_update'] = datetime.now()
