@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import time
 
 import praw
@@ -59,15 +58,10 @@ if __name__ == '__main__':
 
     while True:
         try:
-            # for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
             # for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
             for comment in reddit.subreddit(subs).stream.comments():
-                if not comment.author or comment.author.name == username:
+                if not comment.author or comment.author.name == username or comment.author == "EthTrader_Reposter":
                     continue
-
-                # if using pause_after, uncomment the code below
-                # if comment is None:
-                #     time.sleep(5)
 
                 # find any command that can handle this comment and then process that comment
                 for command in commands:
