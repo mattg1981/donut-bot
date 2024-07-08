@@ -97,7 +97,7 @@ if __name__ == '__main__':
             title = submission.title
             created_date = int(submission.created_utc)
             flair = submission.link_flair_text
-            selftext = submission.selftext.replace('"', '\'')
+            #selftext = submission.selftext.replace('"', '\'')
             upvotes = submission.ups
         except Exception:
             shortlink = shortlink if shortlink else None
@@ -105,7 +105,7 @@ if __name__ == '__main__':
             title = title if title else None
             created_date = created_date if created_date else None
             flair = flair if flair else None
-            selftext = selftext if selftext else None
+            #selftext = selftext if selftext else None
             upvotes = upvotes if upvotes else None
 
 
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                 'url': shortlink,
                 'created_date': datetime.fromtimestamp(created_date),
                 'flair': flair,
-                'selftext': selftext
+                #'selftext': selftext
             }
         })
 
