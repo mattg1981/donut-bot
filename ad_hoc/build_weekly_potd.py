@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     try:
         potd_winners_this_round = json.load(urllib.request.urlopen(
-            f"https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/posts/potd_round{dist_round}.json"))
+            f"https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/posts/potd_round_{dist_round}.json"))
     except Exception as e:
         print(f'potd_current_round not found: {e}')
         potd_winners_this_round = []
