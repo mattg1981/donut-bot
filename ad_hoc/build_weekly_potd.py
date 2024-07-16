@@ -45,24 +45,25 @@ if __name__ == '__main__':
         """
 
     sql = """
-        select res.week_number,
-           res.post_id,
-           res.weight,
-           res.votes,
-           (select count(*) from earn2tip where parent_content_id = res.post_id) +  (select count(*) from onchain_tip where content_id = res.post_id) as tips,
-           (select sum(amount) from earn2tip where parent_content_id = res.post_id) +  (select sum(amount) from onchain_tip where content_id = res.post_id) as tips_sum,
-           res.rank
-        from (select strftime('%W', created_date)    as 'week_number',
-                              post_id,
-                              sum(weight)                     as 'weight',
-                              count(id)                       as 'votes',
-                              ROW_NUMBER() OVER (ORDER BY Id) as 'rank'
-                       from potd
-                       where cast(strftime('%W', created_date) as int) = cast(strftime('%W', datetime()) as int) - 1
-                       group by strftime('%W', created_date), post_id
-                       order by sum(weight) desc
-                       limit 4
-        ) res ;
+        select week_number,
+               post_id,
+               res.weight,
+               votes,
+               count(e2t.id) as tips,
+               sum(e2t.amount) as tips_sum,
+               ROW_NUMBER() OVER (ORDER BY res.weight desc) as 'rank'
+        from (select strftime('%W', created_date) as 'week_number',
+                     post_id,
+                     sum(weight)                  as 'weight',
+                     count(id)                    as 'votes'
+              from potd
+              where cast(strftime('%W', created_date) as int) = cast(strftime('%W', datetime()) as int) - 1
+              group by strftime('%W', created_date), post_id
+              order by sum(weight) desc) res
+        left join earn2tip e2t on e2t.parent_content_id = res.post_id
+        group by res.post_id
+        order by res.weight desc
+        limit 4;
     """
 
     with sqlite3.connect(db_path) as db:
