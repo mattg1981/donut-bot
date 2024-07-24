@@ -43,7 +43,9 @@ def create_post_meta(submission):
         reply_message = f"[Tip this post.]({onchain_link})\n\n"
         reply_message += "On-chain and off-chain tip confirmations below.\n\n"
 
-        reply_message += """**New Voting and Reward System**
+        reply_message += """----------\n\n
+
+**New Voting and Reward System**
  
 To promote quality content and reduce spam, we've implemented a new tip-voting system! Here's how it works:
  
