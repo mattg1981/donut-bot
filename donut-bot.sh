@@ -30,4 +30,6 @@ nohup python3.11 post-bot.py > post.nohup 2>&1 &
 echo $! > post.pid
 echo "post-bot is now running..."
 
+# have to sleep 1 otherwise it sometimes will not pick up the newly started python processes
+sleep 1
 ps -ef | grep 'python3.11'
