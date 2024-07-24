@@ -43,6 +43,35 @@ def create_post_meta(submission):
         reply_message = f"[Tip this post.]({onchain_link})\n\n"
         reply_message += "On-chain and off-chain tip confirmations below.\n\n"
 
+        reply_message += """🚨  **New Voting and Reward System**  🚨
+ 
+To promote quality content and reduce spam, we've implemented a new tip-voting system! Here's how it works:
+ 
+1. **Upvoting with Tips:**
+   * Use the `!tip` command to upvote comments/posts. These are special upvotes that determine a user's DONUT reward at the end of the month.
+   * Example: `!tip 5` to tip 5 DONUTS.
+   * Any tip of 1 or more DONUTS counts as 1 vote.
+2. **Weighted Votes:**
+   * Vote weight is based on your [governance score](https://donut-dashboard.com/#/governance).
+   * A governance score of 20K or more has a full vote weight (1.0).
+   * Scores below 20K have a proportional weight (e.g., 1K score = 0.05 weight).
+3. **Anti-Spam Measures:**
+   * Comments with tips below 5 DONUTS and less than 12 characters will be removed, but the vote will still count.
+   * All tips are recorded under a stickied comment for transparency, including tips included in removed comments.
+4. **Transparency:**
+   * Tip records will look like this:
+ 
+      `u/[username] tipped u/[anotheruser] 1.0 DONUT (weight: 0.4) [ARCHIVE](link to snapshot)`
+ 
+**Guidelines:**
+ 
+* Tip votes should be based solely on the quality of the content, not on the author or expectations of reciprocation.
+* As a tipper, you are acting as a judge, ensuring that valuable contributions are rewarded impartially.
+* Quid pro quo tipping behavior will be penalized. Moderators will monitor tips for misuse and take appropriate action.
+ 
+Let's make EthTrader a better place by contributing valuable content and rewarding it fairly! 🚀
+        """
+
         logger.info(f"  send reply...")
         reply = submission.reply(reply_message)
 
@@ -184,8 +213,8 @@ if __name__ == '__main__':
 
     while True:
         try:
-            for submission in reddit.subreddit(subs).stream.submissions():
-            # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
+            #for submission in reddit.subreddit(subs).stream.submissions():
+            for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
