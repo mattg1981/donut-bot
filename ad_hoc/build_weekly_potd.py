@@ -125,15 +125,15 @@ if __name__ == '__main__':
                 'tips_amount': post['tips_sum'] or 0,
                 'url': shortlink,
                 'created_date': datetime.fromtimestamp(created_date),
-                'flair': flair,
-                #'selftext': selftext
+                'flair': flair
             }
         })
 
         potd_winners_this_round.append({
+            'week_number': int(post['week_number']),
             'rank': post['rank'],
             'author': author,
-            'post_id': post['post_id']
+            'post_id': post['post_id'],
         })
 
 
