@@ -68,8 +68,25 @@
         "user": "Ricardo__Gordon",
         "text": "Arbitrum Foundation - Verified :verified:",
         "css_class": "arbfoundation"
+      },
+      {
+        "user": "cryptocurrencyfrenzy",
+        "text": "Cypherock X1 - Verified :verified:",
+        "css_class": "cypherock"
+      },{
+        "user": "rohanagarwal94",
+        "text": "Cypherock X1 - Verified :verified:",
+        "css_class": "cypherock"
+      },
+      {
+        "user": "SelfCustody",
+        "text": "Cypherock X1 - Verified :verified:",
+        "css_class": "cypherock"
       }
     ]
+  },
+  "membership": {
+    "members": "https://raw.githubusercontent.com/EthTrader/memberships/main/members.json"
   },
   "posts": {
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
@@ -119,7 +136,8 @@
         "tips": true,
         "archive": true,
         "max_posts_per_24h": true,
-        "post_of_the_week": true
+        "post_of_the_week": true,
+        "topic_limiting": true
       },
       "tokens": [
         {
