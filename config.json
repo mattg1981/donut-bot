@@ -73,10 +73,16 @@
         "user": "cryptocurrencyfrenzy",
         "text": "Cypherock X1 - Verified :verified:",
         "css_class": "cypherock"
-      },{
+      },
+      {
         "user": "rohanagarwal94",
         "text": "Cypherock X1 - Verified :verified:",
         "css_class": "cypherock"
+      },
+      {
+        "user": "0xpolygonlabs",
+        "text": "Polygon - Verified :verified:",
+        "css_class": "polygon"
       }
     ]
   },
