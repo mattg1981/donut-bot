@@ -387,6 +387,20 @@ def get_distribution_round():
         return cursor.fetchone()
 
 
+def get_active_membership_seasons():
+    query = """
+                    select * from membership_season
+                    where datetime() between start_date and end_date
+                     or datetime() >= start_date and end_date is null;
+                """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cursor = db.cursor()
+
+        cursor.execute(query).execute(query)
+        return cursor.fetchall()
+
 def set_custom_flair(user, custom_flair):
     sql = """
         update flair 
