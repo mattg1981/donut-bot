@@ -399,3 +399,17 @@ def set_custom_flair(user, custom_flair):
         cursor = db.cursor()
         cursor.execute(sql, [custom_flair, user])
         return cursor.fetchone()
+
+
+def reset_custom_flair(user):
+    sql = """
+        update flair 
+        set custom_flair = null
+        where user_id = (select id from users where username = ?)
+        returning *
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        cursor = db.cursor()
+        cursor.execute(sql, [user])
+        return cursor.fetchone()

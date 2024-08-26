@@ -10,7 +10,7 @@ def get_user_weight(user: str) -> int:
     config = json.load(open('config.json'))
 
     # update user list weight (if needed)
-    if "last_update" not in USERS or datetime.now() - timedelta(hours=8) >= USERS["last_update"]:
+    if "last_update" not in USERS or datetime.now() - timedelta(minutes=30) >= USERS["last_update"]:
         USERS['users'] = json.load(urllib.request.urlopen(config["users_location"]))
         USERS['last_update'] = datetime.now()
 

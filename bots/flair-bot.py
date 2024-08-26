@@ -4,27 +4,29 @@ import os
 import sqlite3
 import time
 import types
-from datetime import datetime, timedelta
 import urllib.request
-
 import praw
-from web3 import Web3
+import hashlib
 
+from web3 import Web3
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
 UNREGISTERED = []
 LP_PROVIDERS = {}
+SPECIAL_MEMBERS = {}
+
 
 def display_number(number):
-    if 1000 <= number < 1000000:
-        return str(round(number / 1000, 1)) + "K"
-    elif number >= 1000000:
-        return str(round(number / 1000000, 2)) + "M"
-    elif number >= 1000000000:
-        return str(round(number / 1000000000, 2)) + "B"
-    elif number >= 1000000000000:
-        return str(round(number / 1000000000000, 2)) + "T"
+    if 1_000 <= number < 1_000_000:
+        return str(round(number / 1_000, 1)) + "K"
+    elif number >= 1_000_000:
+        return str(round(number / 1_000_000, 2)) + "M"
+    elif number >= 1_000_000_000:
+        return str(round(number / 1_000_000_000, 2)) + "B"
+    elif number >= 1_000_000_000_000:
+        return str(round(number / 1_000_000_000_000, 2)) + "T"
 
     return str(int(number))
 
@@ -122,9 +124,12 @@ def get_onchain_amounts(user_address):
     try:
         if "last_update" not in LP_PROVIDERS or datetime.now() - timedelta(minutes=20) >= LP_PROVIDERS["last_update"]:
             LP_PROVIDERS['last_update'] = datetime.now()
-            LP_PROVIDERS['providers'] = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/liquidity/liquidity_leaders.json"))
+            LP_PROVIDERS['providers'] = json.load(urllib.request.urlopen(
+                "https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/liquidity/liquidity_leaders.json"))
 
-        lp = next((l['percent_of_pool'] for l in LP_PROVIDERS["providers"] if l["owner"].lower() == user_address.lower()), None)
+        lp = next(
+            (l['percent_of_pool'] for l in LP_PROVIDERS["providers"] if l["owner"].lower() == user_address.lower()),
+            None)
     except Exception as ex:
         pass
 
@@ -145,7 +150,11 @@ def get_onchain_amounts(user_address):
     return ret_val
 
 
-def set_flair_for_user(user):
+def set_flair_for_user(user, community):
+
+    if not user.lower() == "mattg1981":
+        return
+
     logger.debug(f"processing [user]: {user}...")
     logger.debug("  get user from sql...")
 
@@ -158,7 +167,7 @@ def set_flair_for_user(user):
         """
 
         can_update_sql = """
-            select username, address, hash
+            select username, address, hash, custom_flair, eligible
             from view_flair_can_update 
             where username=?;
         """
@@ -185,30 +194,45 @@ def set_flair_for_user(user):
                                          css_class="flair-default")
         return
 
-    if not user_lookup:
+    special_member_lp = False
+    special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
+                           and m['type'] == 'lp'), None)
+
+    if special_member:
+        special_member_lp = True
+    if not special_member:
+        special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
+                           and m['community'].lower() == community), None)
+
+    if not user_lookup['eligible'] and not special_member:
         logger.debug(f"  not eligible to have their flair updated at this time.")
         return
 
-    ##
-    # TODO: check special membership here ...
-    ##
+    if special_member and user_lookup['custom_flair']:
+        flair_text = user_lookup['custom_flair']
+    else:
+        logger.info(f"get onchain amounts for [user] {user}...")
+        result = get_onchain_amounts(user_lookup["address"])
 
-    logger.info(f"get onchain amounts for [user] {user}...")
-    result = get_onchain_amounts(user_lookup["address"])
+        if not result:
+            logger.error(f"  onchain lookup failed, no flair to be applied!")
+            return
 
-    if not result:
-        logger.error(f"  onchain lookup failed, no flair to be applied!")
-        return
+        flair_text = f":donut: {display_number(result.donuts)} / ⚖️ {display_number(result.contrib)}"
 
-    flair_text = f":donut: {display_number(result.donuts)} | ⚖️ {display_number(result.contrib)}"
+        if result.lp > 0:
+            flair_text = flair_text + f" / :sushi: {format(result.lp, '.4f')}%"
 
-    if result.lp > 0:
-        flair_text = flair_text + f" | :sushi: {format(result.lp, '.4f')}%"
+    if special_member:
+        if special_member_lp:
+            flair_text = f":sm: :lp: {flair_text}"
+        else:
+            # prevent users from using the :lp: emoji if they are not in the LP
+            flair_text = f":sm: {flair_text.replace(':lp:', '')}"
 
-    if result.stake > 0:
-        flair_text = flair_text + f" | 🥩 {display_number(result.stake)}"
-
-    flair_hash = hash(flair_text)
+    # use md5 hash instead of built-in python hash to have the same hashes between program restarts
+    # flair_hash = hash(flair_text)
+    flair_hash = hashlib.md5(flair_text.encode('utf-8')).hexdigest()
 
     if flair_hash != user_lookup['hash']:
         logger.info(f"  hash lookup | [db]: {user_lookup['hash']} -- [current]: {flair_hash}")
@@ -222,11 +246,11 @@ def set_flair_for_user(user):
     logger.debug("  update last_update for flair")
     with sqlite3.connect(db_path) as db:
         update_sql = """       
-            INSERT OR REPLACE INTO flair (user_id, hash, last_update) 
-            VALUES ((select id from users where username=?), ?, ?)
+            INSERT OR REPLACE INTO flair (user_id, hash, last_update, custom_flair) 
+            VALUES ((select id from users where username=?), ?, ?, ?)
         """
         cur = db.cursor()
-        cur.execute(update_sql, [user, flair_hash, datetime.now()])
+        cur.execute(update_sql, [user, flair_hash, datetime.now(), flair_text])
 
     logger.info("  success.")
 
@@ -338,10 +362,17 @@ if __name__ == '__main__':
 
     ignore_list = [x.lower() for x in config['flair']['ignore']]
     ignore_list.extend([x["user"].lower() for x in config['flair']['verified']])
-    ignore_list.extend([x.lower() for x in config['flair']['arb1-pioneers']])
+
+    # remove the arb1 pioneers flair - but keeping this in to show how to add a custom flair
+    # that cannot be changed by users
+    # ignore_list.extend([x.lower() for x in config['flair']['arb1-pioneers']])
 
     while True:
         try:
+            if "last_update" not in SPECIAL_MEMBERS or datetime.now() - timedelta(minutes=12) >= SPECIAL_MEMBERS["last_update"]:
+                SPECIAL_MEMBERS['last_update'] = datetime.now()
+                SPECIAL_MEMBERS['members'] = json.load(urllib.request.urlopen(config['membership']['members']))
+
             for submission in reddit.subreddit(subs).stream.submissions(pause_after=-1):
                 if submission is None:
                     break
@@ -352,7 +383,7 @@ if __name__ == '__main__':
                 if submission.author.name.lower() in ignore_list:
                     continue
 
-                set_flair_for_user(submission.author.name)
+                set_flair_for_user(submission.author.name, submission.subreddit.display_name.lower())
 
             for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
                 if comment is None:
@@ -364,9 +395,9 @@ if __name__ == '__main__':
                 if comment.author.name.lower() in ignore_list:
                     continue
 
-                set_flair_for_user(comment.author.name)
+                set_flair_for_user(comment.author.name, comment.subreddit.display_name.lower())
 
-            time.sleep(10)
+            time.sleep(180)
 
         except Exception as e:
             logger.error(e)

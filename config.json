@@ -77,16 +77,12 @@
         "user": "rohanagarwal94",
         "text": "Cypherock X1 - Verified :verified:",
         "css_class": "cypherock"
-      },
-      {
-        "user": "SelfCustody",
-        "text": "Cypherock X1 - Verified :verified:",
-        "css_class": "cypherock"
       }
     ]
   },
   "membership": {
-    "members": "https://raw.githubusercontent.com/EthTrader/memberships/main/members.json"
+    "members": "https://raw.githubusercontent.com/EthTrader/memberships/main/members.json",
+    "donut_count_in_lp": 25000
   },
   "posts": {
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
