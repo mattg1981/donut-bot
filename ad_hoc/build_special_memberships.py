@@ -34,7 +34,7 @@ if __name__ == '__main__':
         cursor.execute(user_sql)
         registered_users = cursor.fetchall()
 
-        cursor.execute(community_memberships).execute(community_memberships)
+        cursor.execute(community_memberships)
         active_seasons = cursor.fetchall()
 
     w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
