@@ -13,22 +13,49 @@ from web3 import Web3
 
 
 def calc_mainnet_donut(address):
-    eth_donut_balance = donut_eth_contract.functions.balanceOf(address).call()
-    staked_mainnet_balance = staking_eth_contract.functions.balanceOf(
-        address).call() * mainnet_multiplier
-    return w3_eth.from_wei(eth_donut_balance + staked_mainnet_balance, "ether")
+    for j in range(1, 8):
+        try:
+            eth_donut_balance = donut_eth_contract.functions.balanceOf(address).call()
+            staked_mainnet_balance = staking_eth_contract.functions.balanceOf(
+                address).call() * mainnet_multiplier
+            return w3_eth.from_wei(eth_donut_balance + staked_mainnet_balance, "ether")
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+            continue
+
+    print("  unable to query calc_mainnet_donut() at this time, attempt at a later time...")
+    exit(4)
 
 
 def calc_gno_donut(address):
-    gno_donut_balance = donut_gno_contract.functions.balanceOf(address).call()
-    staked_gno_balance = staking_gno_contract.functions.balanceOf(address).call() * gno_multiplier
-    return w3_gno.from_wei(gno_donut_balance + staked_gno_balance, "ether")
+    for j in range(1, 8):
+        try:
+            gno_donut_balance = donut_gno_contract.functions.balanceOf(address).call()
+            staked_gno_balance = staking_gno_contract.functions.balanceOf(address).call() * gno_multiplier
+            return w3_gno.from_wei(gno_donut_balance + staked_gno_balance, "ether")
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+            continue
+
+    print("  unable to query calc_gno_donut() at this time, attempt at a later time...")
+    exit(4)
 
 
 def calc_arb_donut(address, lp_providers):
-    arb1_donut_balance = donut_arb1_contract.functions.balanceOf(address).call()
-    sushi_lp_donuts = sum([int(s["tokens"]) for s in lp_providers if s["owner"].lower() == address.lower()])
-    return w3_arb.from_wei(arb1_donut_balance, "ether") + sushi_lp_donuts
+    for j in range(1, 8):
+        try:
+            arb1_donut_balance = donut_arb1_contract.functions.balanceOf(address).call()
+            sushi_lp_donuts = sum([int(s["tokens"]) for s in lp_providers if s["owner"].lower() == address.lower()])
+            return w3_arb.from_wei(arb1_donut_balance, "ether") + sushi_lp_donuts
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+            continue
+
+    print("  unable to query calc_arb_donut() at this time, attempt at a later time...")
+    exit(4)
 
 
 def get_sushi_providers():
@@ -65,6 +92,7 @@ def calculate_staking_mulitpliers():
             break
         except Exception as e:
             print(e)
+            time.sleep(5)
             continue
     if not was_success:
         print("  unable to query at this time, attempt at a later time...")
