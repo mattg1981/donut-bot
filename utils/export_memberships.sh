@@ -11,7 +11,7 @@ TIMESTAMP=$( date +%H:%M )
 echo "get memberships ..."
 python3.11 ../ad_hoc/get_memberships.py
 
-echo "export membersip data ..."
+echo "export membership data ..."
 python3.11 ../ad_hoc/export_memberships.py
 
 cd ../out

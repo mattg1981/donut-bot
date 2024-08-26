@@ -5,6 +5,8 @@ import sqlite3
 
 from datetime import datetime
 
+### DEPRECATED ###
+
 if __name__ == '__main__':
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")

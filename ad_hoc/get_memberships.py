@@ -11,6 +11,10 @@ from datetime import datetime, timedelta
 
 from web3 import Web3
 
+
+### DEPRECATED ###
+### SEE build_special_memberships.py FOR THE ACTIVE FILE ###
+
 if __name__ == '__main__':
     # load environment variables
     load_dotenv()
