@@ -151,10 +151,6 @@ def get_onchain_amounts(user_address):
 
 
 def set_flair_for_user(user, community):
-
-    if not user.lower() == "mattg1981":
-        return
-
     logger.debug(f"processing [user]: {user}...")
     logger.debug("  get user from sql...")
 
