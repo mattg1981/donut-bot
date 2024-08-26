@@ -393,7 +393,7 @@ if __name__ == '__main__':
 
                 set_flair_for_user(comment.author.name, comment.subreddit.display_name.lower())
 
-            time.sleep(180)
+            time.sleep(60)
 
         except Exception as e:
             logger.error(e)
