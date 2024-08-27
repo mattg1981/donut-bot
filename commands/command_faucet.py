@@ -71,7 +71,7 @@ class FaucetCommand(Command):
                     user_address = Web3.to_checksum_address(user_address)
 
 
-                w3_arb1 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
+                w3_arb1 = Web3(Web3.HTTPProvider(os.getenv('CHAINSTACK_ARB1_PROVIDER')))
                 if not w3_arb1.is_connected():
                     continue
 

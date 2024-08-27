@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     ignored_addresses = [account["address"] for account in config["funded_accounts_to_ignore"]]
 
-    w3 = Web3(Web3.HTTPProvider(os.getenv("INFURA_ARB1_PROVIDER")))
+    w3 = Web3(Web3.HTTPProvider(os.getenv("CHAINSTACK_ARB1_PROVIDER")))
 
     if not w3.is_connected():
         logger.warning("  failed to connect, try next...")

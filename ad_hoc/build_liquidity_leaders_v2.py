@@ -36,7 +36,7 @@ if __name__ == '__main__':
         cursor.execute(sql)
         registered_users = cursor.fetchall()
 
-    w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
+    w3 = Web3(Web3.HTTPProvider(os.getenv('CHAINSTACK_ARB1_PROVIDER')))
     if not w3.is_connected():
         exit(4)
 
