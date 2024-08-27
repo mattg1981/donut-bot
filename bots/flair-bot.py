@@ -96,12 +96,12 @@ def get_onchain_amounts(user_address):
         # stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
 
         # ---- get arb 1 balances ----------------------
-        logger.info(f"  connecting to INFURA_ARB1_PROVIDER")
-        arb1_w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
+        logger.info(f"  connecting to CHAINSTACK_ARB1_PROVIDER")
+        arb1_w3 = Web3(Web3.HTTPProvider(os.getenv('CHAINSTACK_ARB1_PROVIDER')))
 
         if not arb1_w3.is_connected():
-            logger.error("failed to connect to INFURA_ARB1_PROVIDER")
-            raise Exception("failed to connect to INFURA_ARB1_PROVIDER")
+            logger.error("failed to connect to CHAINSTACK_ARB1_PROVIDER")
+            raise Exception("failed to connect to CHAINSTACK_ARB1_PROVIDER")
 
         # donut token on ARB1
         donut_address_arb1 = '0xF42e2B8bc2aF8B110b65be98dB1321B1ab8D44f5'
