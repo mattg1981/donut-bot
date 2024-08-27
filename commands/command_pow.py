@@ -10,12 +10,13 @@ GOVERNANCE_WEIGHT = {}
 MIN_WEIGHT_REQUIRED_TO_PARTICIPATE = 20_000
 MAX_WEIGHT_PER_VOTE = 500_000
 
-class PotdCommand(Command):
-    VERSION = 'v0.1.20240508-potd'
+
+class PostOfTheWeekCommand(Command):
+    VERSION = 'v0.1.20240827-pow'
     SIGNATURE = f'\n\n^(donut-bot {VERSION})'
 
     def __init__(self, config, reddit):
-        super(PotdCommand, self).__init__(config, reddit)
+        super(PostOfTheWeekCommand, self).__init__(config, reddit)
         self.command_text = "!pow"
 
     def is_eligible(self, name, post_id, community):
@@ -76,7 +77,6 @@ class PotdCommand(Command):
             # update governance weight (if needed)
             if ("last_update" not in GOVERNANCE_WEIGHT or
                     datetime.now() - timedelta(minutes=60) >= GOVERNANCE_WEIGHT["last_update"]):
-
                 GOVERNANCE_WEIGHT['users'] = json.load(urllib.request.urlopen(self.config["users_location"]))
                 GOVERNANCE_WEIGHT['last_update'] = datetime.now()
 
@@ -92,8 +92,8 @@ class PotdCommand(Command):
                                       min(eligibility_check['weight'], MAX_WEIGHT_PER_VOTE),
                                       community)
 
-            self.leave_comment_reply(comment, f"Thank you u/{user}, your post-of-the-week nomination has been recorded!")
+            self.leave_comment_reply(comment,
+                                     f"Thank you u/{user}, your post-of-the-week nomination has been recorded!")
         except Exception as e:
             self.logger.error(e)
             self.leave_comment_reply(comment, f"An error occurred processing your action.  Please try again later.")
-
