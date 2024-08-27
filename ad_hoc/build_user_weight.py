@@ -1,19 +1,14 @@
 import json
 import os.path
-import random
-import sys
 import time
 import urllib.request
-import sqlite3
 
 from dotenv import load_dotenv
-from gql import Client, gql
-from gql.transport.requests import RequestsHTTPTransport
 from web3 import Web3
 
 
 def calc_mainnet_donut(address):
-    for j in range(1, 8):
+    for j in range(1, 10):
         try:
             eth_donut_balance = donut_eth_contract.functions.balanceOf(address).call()
             staked_mainnet_balance = staking_eth_contract.functions.balanceOf(
@@ -21,7 +16,8 @@ def calc_mainnet_donut(address):
             return w3_eth.from_wei(eth_donut_balance + staked_mainnet_balance, "ether")
         except Exception as e:
             print(e)
-            time.sleep(5)
+            print(f'sleep {j * 60}...')
+            time.sleep(j * 60)
             continue
 
     print("  unable to query calc_mainnet_donut() at this time, attempt at a later time...")
@@ -29,14 +25,15 @@ def calc_mainnet_donut(address):
 
 
 def calc_gno_donut(address):
-    for j in range(1, 8):
+    for j in range(1, 10):
         try:
             gno_donut_balance = donut_gno_contract.functions.balanceOf(address).call()
             staked_gno_balance = staking_gno_contract.functions.balanceOf(address).call() * gno_multiplier
             return w3_gno.from_wei(gno_donut_balance + staked_gno_balance, "ether")
         except Exception as e:
             print(e)
-            time.sleep(5)
+            print(f'sleep {j * 60}...')
+            time.sleep(j * 60)
             continue
 
     print("  unable to query calc_gno_donut() at this time, attempt at a later time...")
@@ -44,14 +41,15 @@ def calc_gno_donut(address):
 
 
 def calc_arb_donut(address, lp_providers):
-    for j in range(1, 8):
+    for j in range(1, 10):
         try:
             arb1_donut_balance = donut_arb1_contract.functions.balanceOf(address).call()
             sushi_lp_donuts = sum([int(s["tokens"]) for s in lp_providers if s["owner"].lower() == address.lower()])
             return w3_arb.from_wei(arb1_donut_balance, "ether") + sushi_lp_donuts
         except Exception as e:
             print(e)
-            time.sleep(5)
+            print(f'sleep {j * 60}...')
+            time.sleep(j * 60)
             continue
 
     print("  unable to query calc_arb_donut() at this time, attempt at a later time...")
@@ -77,7 +75,7 @@ def calculate_staking_mulitpliers():
     global mainnet_multiplier, gno_multiplier
 
     was_success = False
-    for j in range(1, 8):
+    for j in range(1, 10):
         try:
             eth_lp_supply = lp_eth_contract.functions.totalSupply().call()
             gno_lp_supply = lp_gno_contract.functions.totalSupply().call()
@@ -92,7 +90,8 @@ def calculate_staking_mulitpliers():
             break
         except Exception as e:
             print(e)
-            time.sleep(5)
+            print(f'sleep {j * 60}...')
+            time.sleep(j * 60)
             continue
     if not was_success:
         print("  unable to query at this time, attempt at a later time...")
@@ -113,9 +112,9 @@ def setup_abi_and_contracts():
         print('ANKR_API_PROVIDER failed to connect...')
         exit(4)
 
-    w3_arb = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
+    w3_arb = Web3(Web3.HTTPProvider(os.getenv('CHAINSTACK_ARB1_PROVIDER')))
     if not w3_gno.is_connected():
-        print('INFURA_ARB1_PROVIDER failed to connect...')
+        print('CHAINSTACK_ARB1_PROVIDER failed to connect...')
         exit(4)
 
     # load abi's
@@ -172,15 +171,6 @@ if __name__ == '__main__':
     print('finding all sushi lp providers')
     sushi_lp = get_sushi_providers()
 
-    # used for debugging
-    # user_json = [{
-    #     "username": "DBRiMatt",
-    #     "address": "0xFEdD14d3a32FaAbfbd6E290fAA73Aec58e894650",
-    #     "contrib": 110710,
-    #     "donut": 24079,
-    #     "weight": 24079
-    # }]
-
     print('process users')
     count = 0
     for u in user_json:
@@ -207,7 +197,7 @@ if __name__ == '__main__':
         print(f" contrib: [{contrib}] - donut: [{total_donut}] (eth: {eth_donuts}, gno: {gno_donuts}, arb1: {arb_donuts}) - weight: [{weight}]")
 
         # getting a http 429 code, so we need to self throttle
-        time.sleep(.75)
+        # time.sleep(.75)
 
     if os.path.exists(out_file):
         os.remove(out_file)
