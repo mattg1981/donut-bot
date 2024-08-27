@@ -197,7 +197,7 @@ if __name__ == '__main__':
         print(f" contrib: [{contrib}] - donut: [{total_donut}] (eth: {eth_donuts}, gno: {gno_donuts}, arb1: {arb_donuts}) - weight: [{weight}]")
 
         # getting a http 429 code, so we need to self throttle
-        # time.sleep(.75)
+        time.sleep(.25)
 
     if os.path.exists(out_file):
         os.remove(out_file)
