@@ -12,7 +12,7 @@ echo "git pull"
 git pull
 
 echo "git commit..."
-git commit -m "updated memberships.json ${TIMESTAMP_DAY} ${TIMESTAMP}" ./members.json
+git commit -m "updated members.json ${TIMESTAMP_DAY} ${TIMESTAMP}" ./members.json
 
 echo "git push..."
 git push
