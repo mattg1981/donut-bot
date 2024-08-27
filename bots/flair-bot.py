@@ -57,18 +57,6 @@ def get_onchain_amounts(user_address):
         eth_token_balance = eth_donut_contract.functions.balanceOf(user_address).call()
         eth_balance = eth_w3.from_wei(eth_token_balance, "ether")
 
-        # lp information
-        # lp_address_eth = '0x718Dd8B743ea19d71BDb4Cb48BB984b73a65cE06'
-        # lp_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(lp_address_eth), abi=lp_mainnet_abi)
-        # lp_token_balance = lp_eth_contract.functions.balanceOf(user_address).call()
-        # lp_eth = Decimal(lp_token_balance) / Decimal(10 ** 18)
-
-        # stake information
-        # stake_address_eth = '0x813fd5A7B6f6d792Bf9c03BBF02Ec3F08C9f98B2'
-        # stake_eth_contract = eth_w3.eth.contract(address=eth_w3.to_checksum_address(stake_address_eth), abi=stake_mainnet_abi)
-        # stake_token_balance = stake_eth_contract.functions.balanceOf(user_address).call()
-        # stake_eth = Decimal(stake_token_balance) / Decimal(10 ** 18)
-
         # ---- get gnosis balance ----------------------
         logger.info(f"  connecting to ANKR_API_PROVIDER")
         gno_w3 = Web3(Web3.HTTPProvider(os.getenv('ANKR_API_PROVIDER')))
@@ -82,18 +70,6 @@ def get_onchain_amounts(user_address):
         donut_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(donut_address_gno), abi=eth_abi)
         gno_token_balance = donut_contract.functions.balanceOf(user_address).call()
         gno_balance = eth_w3.from_wei(gno_token_balance, "ether")
-
-        # lp information
-        # lp_address_gno = '0x077240a400b1740C8cD6f73DEa37DA1F703D8c00'
-        # lp_gno_contract = gno_w3.eth.contract(address=gno_w3.to_checksum_address(lp_address_gno), abi=lp_gno_abi)
-        # lp_token_balance = lp_gno_contract.functions.balanceOf(user_address).call()
-        # lp_gno = Decimal(lp_token_balance) / Decimal(10 ** 18)
-
-        # staking information
-        # stake_address_gno = '0x84b427415A23bFB57Eb94a0dB6a818EB63E2429D'
-        # stake_contract_gno = gno_w3.eth.contract(address=gno_w3.to_checksum_address(stake_address_gno), abi=stake_gno_abi)
-        # gno_stake_balance = stake_contract_gno.functions.balanceOf(user_address).call()
-        # stake_gno = Decimal(gno_stake_balance) / Decimal(10 ** 18)
 
         # ---- get arb 1 balances ----------------------
         logger.info(f"  connecting to CHAINSTACK_ARB1_PROVIDER")
