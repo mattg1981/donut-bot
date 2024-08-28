@@ -5,16 +5,18 @@ import sqlite3
 import time
 import types
 import urllib.request
-from pathlib import Path
-
+import sys
 import praw
 import hashlib
 
+from pathlib import Path
 from web3 import Web3
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 from database import database
 
 UNREGISTERED = []
@@ -346,7 +348,8 @@ if __name__ == '__main__':
                 if submission.author.name.lower() in ignore_list:
                     continue
 
-                set_flair_for_user(submission.fullname, submission.author.name, submission.subreddit.display_name.lower())
+                set_flair_for_user(submission.fullname, submission.author.name,
+                                   submission.subreddit.display_name.lower())
 
             for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
                 if comment is None:
