@@ -196,18 +196,24 @@ def set_flair_for_user(user, community):
             flair_text = flair_text + f" / :sushi: {format(result.lp, '.4f')}%"
 
     if special_member:
+        # remove the special membership icons from the stored text
+        (flair_text
+         .replace(':lp:', '')
+         .replace(':sm:', '')
+         .strip())
+
         if special_member_lp:
             flair_text = f":sm: :lp: {flair_text}"
         else:
             # prevent users from using the :lp: emoji if they are not in the LP
-            flair_text = f":sm: {flair_text.replace(':lp:', '')}"
+            flair_text = f":sm: {flair_text}"
 
     # use md5 hash instead of built-in python hash to have the same hashes between program restarts
     # flair_hash = hash(flair_text)
     flair_hash = hashlib.md5(flair_text.encode('utf-8')).hexdigest()
 
     if flair_hash != user_lookup['hash']:
-        logger.info(f"  hash lookup | [db]: {user_lookup['hash']} -- [current]: {flair_hash}")
+        logger.info(f"  hash lookup -> [db]: {user_lookup['hash']} -- [current]: {flair_hash}")
         logger.info("  setting flair...")
         reddit.subreddit(subs).flair.set(user,
                                          text=flair_text,
@@ -292,39 +298,6 @@ if __name__ == '__main__':
     with open(os.path.normpath("../contracts/uniswap_v2_pair_gnosis_abi.json"), 'r') as f:
         lp_gno_abi = json.load(f)
 
-    with sqlite3.connect(db_path) as db:
-        build_table_and_index = """
-            CREATE TABLE IF NOT EXISTS
-              `flair` (
-                `id` integer not null primary key autoincrement,
-                `user_id` int not null,
-                `last_update` DATETIME not null,
-                `created_at` datetime not null default CURRENT_TIMESTAMP
-              );
-              
-            CREATE UNIQUE INDEX IF NOT EXISTS
-               flair_user_id_idx on flair(user_id);
-               
-            CREATE VIEW IF NOT EXISTS view_flair_can_update (
-                username,
-                address,
-                hash,
-                last_update
-            )
-            AS
-                SELECT u.username,
-                       u.address,
-                       f.hash,
-                       f.last_update
-                  FROM users u
-                       LEFT JOIN
-                       flair f ON u.id = f.user_id
-                 WHERE f.last_update IS NULL OR 
-                       f.last_update <= Datetime('now', '-60 minutes', 'localtime');
-        """
-        cur = db.cursor()
-        cur.executescript(build_table_and_index)
-
     # set flair for community bots once
     reddit.subreddit(subs).flair.update([x for x in config['flair']['ignore']], text='bot',
                                         css_class="flair-default")
@@ -369,7 +342,7 @@ if __name__ == '__main__':
 
                 set_flair_for_user(comment.author.name, comment.subreddit.display_name.lower())
 
-            time.sleep(60)
+            time.sleep(10)
 
         except Exception as e:
             logger.error(e)
