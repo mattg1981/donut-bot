@@ -132,11 +132,11 @@ def get_onchain_amounts(user_address):
 
 def set_flair_for_user(fullname, user, community):
     if database.has_processed_content(fullname, Path(__file__).stem) is not None:
-        logger.debug("  previously processed...")
+        logger.info("  previously processed...")
         return
 
-    logger.debug(f"processing [user]: {user}...")
-    logger.debug("  get user from sql...")
+    logger.info(f"processing [user]: {user}...")
+    logger.info("  get user from sql...")
 
     # get address for user
     with sqlite3.connect(db_path) as db:
@@ -163,7 +163,7 @@ def set_flair_for_user(fullname, user, community):
             user_lookup = cur.fetchone()
 
     if not registered_lookup:
-        logger.debug(f"  not registered.")
+        logger.info(f"  not registered.")
         if user in UNREGISTERED:
             return
 
@@ -184,8 +184,11 @@ def set_flair_for_user(fullname, user, community):
         special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
                                and m['community'].lower() == community), None)
 
+    if special_member:
+        logger.info("  special member...")
+
     if not user_lookup['eligible'] and not special_member:
-        logger.debug(f"  not eligible to have their flair updated at this time.")
+        logger.info(f"  not eligible to have their flair updated at this time.")
         return
 
     if special_member and user_lookup['custom_flair']:
@@ -204,11 +207,15 @@ def set_flair_for_user(fullname, user, community):
             flair_text = flair_text + f" / :sushi: {format(result.lp, '.4f')}%"
 
     if special_member:
+        logger.info("  special member, get flair text from db")
+
         # remove the special membership icons from the stored text
         flair_text = (flair_text
                       .replace(':lp:', '')
                       .replace(':sm:', '')
                       .strip())
+
+        logger.info(f"  custom_flair -> {flair_text}")
 
         if special_member_lp:
             flair_text = f":sm: :lp: {flair_text}"
@@ -229,7 +236,7 @@ def set_flair_for_user(fullname, user, community):
     else:
         logger.info("  flair unchanged since last update...")
 
-    logger.debug("  update last_update for flair")
+    logger.info("  update last_update for flair")
     with sqlite3.connect(db_path) as db:
         update_sql = """       
             INSERT OR REPLACE INTO flair (user_id, hash, last_update, custom_flair) 
