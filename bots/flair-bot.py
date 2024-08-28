@@ -137,7 +137,7 @@ def set_flair_for_user(fullname, user, community):
         logger.debug("  previously processed...")
         return
 
-    logger.debug(f"processing [user]: {user}...")
+    logger.info(f"processing [user]: {user}...")
     logger.debug("  get user from sql...")
 
     # get address for user
