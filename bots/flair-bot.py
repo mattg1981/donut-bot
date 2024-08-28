@@ -5,6 +5,8 @@ import sqlite3
 import time
 import types
 import urllib.request
+from pathlib import Path
+
 import praw
 import hashlib
 
@@ -12,6 +14,8 @@ from web3 import Web3
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
+
+from database import database
 
 UNREGISTERED = []
 LP_PROVIDERS = {}
@@ -126,7 +130,11 @@ def get_onchain_amounts(user_address):
     return ret_val
 
 
-def set_flair_for_user(user, community):
+def set_flair_for_user(fullname, user, community):
+    if database.has_processed_content(fullname, Path(__file__).stem) is not None:
+        logger.debug("  previously processed...")
+        return
+
     logger.debug(f"processing [user]: {user}...")
     logger.debug("  get user from sql...")
 
@@ -174,7 +182,7 @@ def set_flair_for_user(user, community):
         special_member_lp = True
     if not special_member:
         special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
-                           and m['community'].lower() == community), None)
+                               and m['community'].lower() == community), None)
 
     if not user_lookup['eligible'] and not special_member:
         logger.debug(f"  not eligible to have their flair updated at this time.")
@@ -197,10 +205,10 @@ def set_flair_for_user(user, community):
 
     if special_member:
         # remove the special membership icons from the stored text
-        (flair_text
-         .replace(':lp:', '')
-         .replace(':sm:', '')
-         .strip())
+        flair_text = (flair_text
+                      .replace(':lp:', '')
+                      .replace(':sm:', '')
+                      .strip())
 
         if special_member_lp:
             flair_text = f":sm: :lp: {flair_text}"
@@ -229,6 +237,8 @@ def set_flair_for_user(user, community):
         """
         cur = db.cursor()
         cur.execute(update_sql, [user, flair_hash, datetime.now(), flair_text])
+
+    database.set_processed_content(fullname, Path(__file__).stem)
 
     logger.info("  success.")
 
@@ -314,7 +324,8 @@ if __name__ == '__main__':
 
     while True:
         try:
-            if "last_update" not in SPECIAL_MEMBERS or datetime.now() - timedelta(minutes=12) >= SPECIAL_MEMBERS["last_update"]:
+            if "last_update" not in SPECIAL_MEMBERS or datetime.now() - timedelta(minutes=12) >= SPECIAL_MEMBERS[
+                "last_update"]:
                 SPECIAL_MEMBERS['last_update'] = datetime.now()
                 SPECIAL_MEMBERS['members'] = json.load(urllib.request.urlopen(config['membership']['members']))
 
@@ -328,7 +339,7 @@ if __name__ == '__main__':
                 if submission.author.name.lower() in ignore_list:
                     continue
 
-                set_flair_for_user(submission.author.name, submission.subreddit.display_name.lower())
+                set_flair_for_user(submission.fullname, submission.author.name, submission.subreddit.display_name.lower())
 
             for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
                 if comment is None:
@@ -340,7 +351,7 @@ if __name__ == '__main__':
                 if comment.author.name.lower() in ignore_list:
                     continue
 
-                set_flair_for_user(comment.author.name, comment.subreddit.display_name.lower())
+                set_flair_for_user(comment.fullname, comment.author.name, comment.subreddit.display_name.lower())
 
             time.sleep(10)
 
