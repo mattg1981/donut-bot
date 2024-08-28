@@ -58,6 +58,8 @@ class FlairCommand(Command):
         # otherwise handle changing the flair text
         new_flair = comment.body.replace(self.command_text, "").strip()
 
+        self.logger.info(f"  setting flair to [{new_flair}]")
+
         self.reddit.subreddit(comment.subreddit.display_name).flair.set(user,
                                                                         text=new_flair,
                                                                         css_class="flair-default")
