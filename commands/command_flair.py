@@ -31,7 +31,8 @@ class FlairCommand(Command):
         if "last_update" not in self.special_membership or datetime.now() - timedelta(minutes=12) >= \
                 self.special_membership["last_update"]:
             self.special_membership['last_update'] = datetime.now()
-            self.special_membership['members'] = (json.load(urllib.request.urlopen(self.config["membership"]["members"])))
+            self.special_membership['members'] = (
+                json.load(urllib.request.urlopen(self.config["membership"]["members"])))
 
         # handle the command not starting with `!flair`
         if not comment.body.lower().startswith(self.command_text):
@@ -55,5 +56,11 @@ class FlairCommand(Command):
             return
 
         # otherwise handle changing the flair text
-        database.set_custom_flair(user, comment.body.replace(self.command_text, "").strip())
+        new_flair = comment.body.replace(self.command_text, "").strip()
+
+        self.reddit.subreddit(comment.subreddit.display_name).flair.set(user,
+                                                                        text=new_flair,
+                                                                        css_class="flair-default")
+
+        database.set_custom_flair(user, new_flair)
         self.leave_comment_reply(comment, "Successfully set custom flair.")
