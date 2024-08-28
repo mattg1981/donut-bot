@@ -134,11 +134,11 @@ def get_onchain_amounts(user_address):
 
 def set_flair_for_user(fullname, user, community):
     if database.has_processed_content(fullname, Path(__file__).stem) is not None:
-        logger.info("  previously processed...")
+        logger.debug("  previously processed...")
         return
 
-    logger.info(f"processing [user]: {user}...")
-    logger.info("  get user from sql...")
+    logger.debug(f"processing [user]: {user}...")
+    logger.debug("  get user from sql...")
 
     # get address for user
     with sqlite3.connect(db_path) as db:
@@ -174,6 +174,7 @@ def set_flair_for_user(fullname, user, community):
         reddit.subreddit(subs).flair.set(user,
                                          text=flair_text,
                                          css_class="flair-default")
+        database.set_processed_content(fullname, Path(__file__).stem)
         return
 
     special_member_lp = False
@@ -191,6 +192,7 @@ def set_flair_for_user(fullname, user, community):
 
     if not user_lookup['eligible'] and not special_member:
         logger.info(f"  not eligible to have their flair updated at this time.")
+        database.set_processed_content(fullname, Path(__file__).stem)
         return
 
     if special_member and user_lookup['custom_flair']:
