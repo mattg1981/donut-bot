@@ -171,7 +171,7 @@ def set_flair_for_user(fullname, user, community):
 
         flair_text = "Not Registered"
         UNREGISTERED.append(user)
-        reddit.subreddit(subs).flair.set(user,
+        reddit.subreddit(community).flair.set(user,
                                          text=flair_text,
                                          css_class="flair-default")
         database.set_processed_content(fullname, Path(__file__).stem)
@@ -234,7 +234,7 @@ def set_flair_for_user(fullname, user, community):
     if flair_hash != user_lookup['hash']:
         logger.info(f"  hash lookup -> [db]: {user_lookup['hash']} -- [current]: {flair_hash}")
         logger.info("  setting flair...")
-        reddit.subreddit(subs).flair.set(user,
+        reddit.subreddit(community).flair.set(user,
                                          text=flair_text,
                                          css_class="flair-default")
     else:
