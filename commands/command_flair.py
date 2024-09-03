@@ -56,7 +56,7 @@ class FlairCommand(Command):
             return
 
         # otherwise handle changing the flair text
-        new_flair = comment.body.replace(self.command_text, "").strip()
+        new_flair = f':sm: {comment.body.replace(self.command_text, "").strip()}'
 
         self.logger.info(f"  setting flair to [{new_flair}]")
 
