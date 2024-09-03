@@ -62,7 +62,10 @@ class FlairCommand(Command):
 
         self.reddit.subreddit(comment.subreddit.display_name).flair.set(user,
                                                                         text=new_flair,
-                                                                        css_class="flair-default")
+                                                                        flair_template_id ="da1b88dc-8e17-11ee-8d85-86deef0eb333")
+
+        # todo save the subreddit so that a user can have different flairs in different subreddits
+        # todo note: will need to update sqlite schema for flair table
 
         database.set_custom_flair(user, new_flair)
         self.leave_comment_reply(comment, "Successfully set custom flair.")
