@@ -173,7 +173,7 @@ def set_flair_for_user(fullname, user, community):
         UNREGISTERED.append(user)
         reddit.subreddit(community).flair.set(user,
                                          text=flair_text,
-                                         css_class="flair-default")
+                                         flair_template_id ="da1b88dc-8e17-11ee-8d85-86deef0eb333")
         database.set_processed_content(fullname, Path(__file__).stem)
         return
 
