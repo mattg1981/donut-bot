@@ -320,8 +320,7 @@ if __name__ == '__main__':
         lp_gno_abi = json.load(f)
 
     # set flair for community bots once
-    reddit.subreddit(subs).flair.update([x for x in config['flair']['ignore']], text='bot',
-                                        flair_template_id ="da1b88dc-8e17-11ee-8d85-86deef0eb333")
+    reddit.subreddit(subs).flair.update([x for x in config['flair']['ignore']], text='bot', css_class='default')
     # set verified addresses
     for v in config['flair']['verified']:
         reddit.subreddit(subs).flair.update(v["user"], text=v["text"], css_class=[v["css_class"]])
