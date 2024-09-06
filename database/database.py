@@ -320,6 +320,40 @@ def get_post_status(user):
         return cur.fetchall()
 
 
+def get_post_cooldown(user, minutes):
+    # this query is repeated in post-bot.py if needing refactoring
+    sql = f"""
+        select post.created_date <= datetime('now', '-{minutes} minute') as eligible_to_post_cooldown,
+           datetime('now') as now,
+           datetime(created_date, '+{minutes} minute') as next_post
+        from post
+        where author = ?
+        order by created_date desc
+        limit 1;
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(sql, [user])
+        return cur.fetchone()
+
+
+def get_post_count_in_last_24h(user):
+    sql = """
+        select count(*) as 'count'
+        from post
+        where author = ?
+         and created_date >= datetime('now', '-24 hour')
+            """
+
+    with sqlite3.connect(get_db_path()) as db:
+        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+        cur = db.cursor()
+        cur.execute(sql, [user])
+        return cur.fetchone()
+
+
 def get_potd_eligible(user, post_id, community):
     sql = """
         -- have they posted today?
@@ -400,6 +434,7 @@ def get_active_membership_seasons():
 
         cursor.execute(query).execute(query)
         return cursor.fetchall()
+
 
 def set_custom_flair(user, custom_flair):
     sql = """

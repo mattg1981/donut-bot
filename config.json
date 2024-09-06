@@ -93,7 +93,8 @@
   "posts": {
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
     "max_per_24_hours": 3,
-    "approve_weight": 60000
+    "approve_weight": 60000,
+    "post_cooldown_in_minutes": 180
   },
   "comment2vote": {
     "max_weight": 20000,

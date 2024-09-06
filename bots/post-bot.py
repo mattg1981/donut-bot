@@ -3,84 +3,83 @@ import logging
 import os
 import sqlite3
 import time
-from datetime import datetime
-
+import re
+import urllib.request
 import praw
 
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
-
 from dotenv import load_dotenv
 
 
-def create_post_meta(submission):
+def get_submission_topic(submission, topics, community):
+    # test if this submission hits any topics that are limited
+    for topic in [t for t in topics if t["community"].lower() == community.lower()]:
+        for t in topic["patterns"]:
+            submission_match = re.search(t, submission.title.lower())
+            if submission_match:
+                return topic
+
+
+def is_daily(submission):
+    return "daily general discussion - " in submission.title.lower() and "(utc+0)" in submission.title.lower()
+
+
+def build_sticky_comment(submission, topic):
     logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
 
-    is_daily = False
-    # determine if it is the daily
-    if "daily general discussion - " in submission.title.lower() and "(utc+0)" in submission.title.lower():
-        is_daily = True
+    reply_message = ""
 
-    # this check is now handled with previously_processed()
-
-    # with sqlite3.connect(db_path) as db:
-    #     sql = """
-    #         SELECT id from post where submission_id = ?;
-    #     """
-    #     cursor = db.cursor()
-    #     cursor.execute(sql, [submission.fullname])
-    #     exists = cursor.fetchone()
-    #
-    # if exists:
-    #     logger.info(f"  submission meta exists - return.")
-    #     return
-
-    # logger.info(f"  submission does not exist...")
-
-    comment_thread_id = None
-
-    if not is_daily:
+    if is_daily(submission):
         onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
-        reply_message = f"[Tip this post.]({onchain_link})\n\n"
+        if topic:
+            reply_message += f"This post had the **{topic['display_name']}** topic assigned.\n\n"
+            reply_message += "----------"
+
+        reply_message += f"[Tip this post.]({onchain_link})\n\n"
         reply_message += "On-chain and off-chain tip confirmations below.\n\n"
 
-        reply_message += """----------\n\n
+        reply_message += """----------
+            \n\n
 
-**New Voting and Reward System**
- 
-To promote quality content and reduce spam, we've implemented a new tip-voting system! Here's how it works:
- 
-1. **Upvoting with Tips:**
-   * Use the `!tip` command to upvote comments/posts. These are special upvotes that determine a user's DONUT reward at the end of the month.
-   * Example: `!tip 5` to tip 5 DONUTS.
-   * Any tip of 1 or more DONUTS counts as 1 vote.
-2. **Weighted Votes:**
-   * Vote weight is based on your [governance score](https://donut-dashboard.com/#/governance).
-   * A governance score of 20K or more has a full vote weight (1.0).
-   * Scores below 20K have a proportional weight (e.g., 1K score = 0.05 weight).
-3. **Anti-Spam Measures:**
-   * Comments with tips below 5 DONUTS and less than 12 characters will be removed, but the vote will still count.
-   * All tips are recorded under a stickied comment for transparency, including tips included in removed comments.
-4. **Transparency:**
-   * Tip records will look like this:
- 
-      `u/[username] tipped u/[anotheruser] 1.0 DONUT (weight: 0.4) [ARCHIVE](link to snapshot)`
- 
-**Guidelines:**
- 
-* Tip votes should be based solely on the quality of the content, not on the author or expectations of reciprocation.
-* As a tipper, you are acting as a judge, ensuring that valuable contributions are rewarded impartially.
-* Quid pro quo tipping behavior will be penalized. Moderators will monitor tips for misuse and take appropriate action.
- 
-Let's make EthTrader a better place by contributing valuable content and rewarding it fairly! 🚀
-        """
+    **New Voting and Reward System**
+
+    To promote quality content and reduce spam, we've implemented a new tip-voting system! Here's how it works:
+
+    1. **Upvoting with Tips:**
+       * Use the `!tip` command to upvote comments/posts. These are special upvotes that determine a user's DONUT reward at the end of the month.
+       * Example: `!tip 5` to tip 5 DONUTS.
+       * Any tip of 1 or more DONUTS counts as 1 vote.
+    2. **Weighted Votes:**
+       * Vote weight is based on your [governance score](https://donut-dashboard.com/#/governance).
+       * A governance score of 20K or more has a full vote weight (1.0).
+       * Scores below 20K have a proportional weight (e.g., 1K score = 0.05 weight).
+    3. **Anti-Spam Measures:**
+       * Comments with tips below 5 DONUTS and less than 12 characters will be removed, but the vote will still count.
+       * All tips are recorded under a stickied comment for transparency, including tips included in removed comments.
+    4. **Transparency:**
+       * Tip records will look like this:
+
+          `u/[username] tipped u/[anotheruser] 1.0 DONUT (weight: 0.4) [ARCHIVE](link to snapshot)`
+
+    **Guidelines:**
+
+    * Tip votes should be based solely on the quality of the content, not on the author or expectations of reciprocation.
+    * As a tipper, you are acting as a judge, ensuring that valuable contributions are rewarded impartially.
+    * Quid pro quo tipping behavior will be penalized. Moderators will monitor tips for misuse and take appropriate action.
+
+    Let's make EthTrader a better place by contributing valuable content and rewarding it fairly! 🚀
+            """
 
         logger.info(f"  send reply...")
         reply = submission.reply(reply_message)
 
         logger.info(f"  distinguish comment...")
         reply.mod.distinguish(sticky=True)
-        comment_thread_id = reply.fullname
+        return reply.fullname
 
+
+def create_post_meta(submission, comment_thread_id):
     logger.info(f"  store meta in db...")
 
     author = submission.author
@@ -96,7 +95,7 @@ Let's make EthTrader a better place by contributing valuable content and rewardi
         cursor.execute(sql, [submission.fullname,
                              comment_thread_id,
                              author,
-                             is_daily,
+                             is_daily(submission),
                              datetime.utcfromtimestamp(submission.created_utc),
                              submission.subreddit.display_name.lower()])
 
@@ -105,24 +104,47 @@ Let's make EthTrader a better place by contributing valuable content and rewardi
 
 def eligible_to_submit(submission):
     max_posts_per_24_hours = int(config['posts']['max_per_24_hours'])
+    post_cooldown_in_minutes = int(config['posts']['post_cooldown_in_minutes'])
 
-    post_sql = f"""
+    post_per_day_sql = f"""
         select count(*) < {max_posts_per_24_hours} as eligible_to_post
         from post
         where author = ?
           and created_date >= datetime('now','-24 hour');
     """
 
+    post_cooldown_sql = f"""
+        select post.created_date <= datetime('now', '-{post_cooldown_in_minutes} minute') as eligible_to_post_cooldown 
+        from post
+        where author = ?
+        order by created_date desc
+        limit 1;
+    """
+
     with sqlite3.connect(db_path) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
-        cursor.execute(post_sql, [submission.author.name])
+        cursor.execute(post_per_day_sql, [submission.author.name])
         eligibility_check = cursor.fetchone()
 
+        cursor.execute(post_cooldown_sql, [submission.author.name])
+        post_cooldown_check = cursor.fetchone()
+
+    can_post = True
+
     if not eligibility_check['eligible_to_post']:
+        can_post = False
         submission.reply(
-            f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a 24-hour window. "
+            f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a 24-hour window.  "
             f"Please try again later.\n\nYou may also use the `!post status` command to check your posting eligibility.")
+
+    if not post_cooldown_check['eligible_to_post_cooldown']:
+        can_post = False
+        submission.reply(
+            f"Sorry u/{submission.author.name}, you may only submit a new post every {post_cooldown_in_minutes} minutes!  "
+            f"Please try again later.\n\nYou may also use the `!post status` command to check your posting eligibility.")
+
+    if not can_post:
         submission.mod.lock()
         submission.mod.remove(spam=False)
         return False
@@ -185,38 +207,16 @@ if __name__ == '__main__':
         if idx < len(config["community_tokens"]) - 1:
             subs += '+'
 
-    with sqlite3.connect(db_path) as db:
-        build_table_and_index = """
-            CREATE TABLE IF NOT EXISTS
-              post (
-                id             INTEGER   NOT NULL
-                                         PRIMARY KEY AUTOINCREMENT,
-                community       TEXT     COLLATE NOCASE,
-                submission_id  NVARCHAR2 NOT NULL
-                                         COLLATE NOCASE,
-                tip_comment_id NVARCHAR2 COLLATE NOCASE,
-                author         NVARCHAR2 COLLATE NOCASE,
-                is_daily       BOOLEAN   DEFAULT (0),
-                created_date   DATETIME  NOT NULL
-                                         DEFAULT CURRENT_TIMESTAMP
-            );
-
-            CREATE UNIQUE INDEX IF NOT EXISTS
-              idx_unique_post_submission_id ON post (
-                    submission_id
-                );
-        """
-        cur = db.cursor()
-        cur.executescript(build_table_and_index)
-
     # users listed in ignore_list are not restricted to a limited number of posts
     # be sure to user lowercase when adding to this list
     ignore_list = ["ethtrader_reposter", "automoderator"]
 
+    TOPIC_LIMITS = {}
+
     while True:
         try:
-            for submission in reddit.subreddit(subs).stream.submissions():
-            # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
+            # for submission in reddit.subreddit(subs).stream.submissions():
+            for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
@@ -227,11 +227,40 @@ if __name__ == '__main__':
                     logger.info(f"  {submission.fullname} already processed.")
                     continue
 
-                if submission.author.name.lower() in ignore_list:
-                    create_post_meta(submission)
-                else:
-                    if eligible_to_submit(submission):
-                        create_post_meta(submission)
+                # refresh topic limits
+                # if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=5) >=
+                #         TOPIC_LIMITS["last_update"]):
+                #     TOPIC_LIMITS['last_update'] = datetime.now()
+                #     TOPIC_LIMITS['topics'] = json.load(urllib.request.urlopen(
+                #         "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"))
+                #     TOPIC_LIMITS['limits'] = json.load(urllib.request.urlopen(
+                #         "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"))
+                #
+                # topics = TOPIC_LIMITS['topics']
+                # limits = TOPIC_LIMITS['limits']['data']
+                #
+                # # topic limiting is performed before create_post_meta - so if a post is removed for
+                # # being limited, it will not count against the XX posts per day limit
+                # community = submission.subreddit.display_name.lower()
+                # post_topic = get_submission_topic(submission, topics, community)
+                #
+                # if post_topic:
+                #     current_topic = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
+                #                          t['community'] == community)
+                #     if current_topic["current"] >= current_topic["limit"]:
+                #         submission.reply(
+                #             f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
+                #             f"{current_topic['allowance']} posts about **{current_topic['display_name']}** "
+                #             f"to be in the Hot50. Please try again later.")
+                #         submission.mod.lock()
+                #         submission.mod.remove(spam=False)
+
+                # todo: currently, eligible_to_submit will remove the post but would read better if
+                #  that logic was performed here
+                if submission.author.name.lower() in ignore_list or eligible_to_submit(submission):
+                    # comment_thread_id = build_sticky_comment(submission, post_topic)
+                    comment_thread_id = build_sticky_comment(submission, None)
+                    create_post_meta(submission, comment_thread_id)
 
         except Exception as e:
             logger.error(e)
