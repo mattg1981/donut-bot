@@ -30,7 +30,7 @@ def build_sticky_comment(submission, topic):
 
     reply_message = ""
 
-    if is_daily(submission):
+    if not is_daily(submission):
         onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
         if topic:
             reply_message += f"This post had the **{topic['display_name']}** topic assigned.\n\n"
