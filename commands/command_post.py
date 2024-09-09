@@ -35,20 +35,21 @@ class PostCommand(Command):
         # handle `!post status` command
         if f'{self.command_text} status' in comment.body.lower():
             self.logger.info("  checking status")
+
+            cooldown_check = database.get_post_cooldown(user, int(self.config["posts"]["post_cooldown_in_minutes"]))
+            if not cooldown_check['eligible_to_post_cooldown']:
+                self.logger.info(
+                    f"  not currently eligible to post ({self.config['posts']['post_cooldown_in_minutes']} minute cooldown)")
+                self.leave_comment_reply(comment,
+                                         f'**Status**: u/{user} is not currently eligible to post. ({self.config["posts"]["post_cooldown_in_minutes"]} minute cooldown)'
+                                         f'\n\n**Current Time**: `{cooldown_check["now"]} UTC`'
+                                         f'\n\n**Eligible to Post**: `{cooldown_check["next_post"]} UTC`')
+                return
+
             result = database.get_post_status(user)
 
             if result is None or len(result) == 0:
                 count_result = database.get_post_count_in_last_24h(user)
-
-                cooldown_check = database.get_post_cooldown(user, int(self.config["posts"]["post_cooldown_in_minutes"]))
-                if not cooldown_check['eligible_to_post_cooldown']:
-                    self.logger.info(f"  not currently eligible to post ({self.config['posts']['post_cooldown_in_minutes']} minute cooldown)")
-                    self.leave_comment_reply(comment,
-                                             f'**Status**: u/{user} is not currently eligible to post. ({self.config["posts"]["post_cooldown_in_minutes"]} minute cooldown)'
-                                             f'\n\n**Current Time**: `{cooldown_check["now"]} UTC`'
-                                             f'\n\n**Eligible to Post**: `{cooldown_check["next_post"]} UTC`')
-                    return
-
                 self.logger.info("  eligible to post")
                 self.leave_comment_reply(comment,
                                          f'**Status**: u/{user} is eligible to post. ({int(self.config["posts"]["max_per_24_hours"]) - int(count_result["count"])} / {int(self.config["posts"]["max_per_24_hours"])} remaining)')
