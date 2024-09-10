@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from pathlib import Path
 
 from web3 import Web3
@@ -39,27 +40,33 @@ class PostCommand(Command):
 
         self.logger.info("  checking status")
 
+        # todo: pass in community
+
         cooldown_check = database.get_post_cooldown(user, int(self.config["posts"]["post_cooldown_in_minutes"]))
+        post_per_day_check = database.get_post_status(user)
+
+        eligible_to_post = True
+        next_post_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        if post_per_day_check:
+            # both cooldown and post per day are in effect, find the max next post to display to the user
+            eligible_to_post = False
+            next_post_time = post_per_day_check[0]["next_post"]
+
         if not cooldown_check['eligible_to_post_cooldown']:
-            self.logger.info(
-                f"  not currently eligible to post ({self.config['posts']['post_cooldown_in_minutes']} minute cooldown)")
-            self.leave_comment_reply(comment,
-                                     f'**Status**: u/{user} is not currently eligible to post. ({self.config["posts"]["post_cooldown_in_minutes"]} minute cooldown)'
-                                     f'\n\n**Current Time**: `{cooldown_check["now"]} UTC`'
-                                     f'\n\n**Eligible to Post**: `{cooldown_check["next_post"]} UTC`')
-            return
+            eligible_to_post = False
+            next_post_time = max(cooldown_check["next_post"], next_post_time)
 
-        result = database.get_post_status(user)
-
-        if result is None or len(result) == 0:
-            count_result = database.get_post_count_in_last_24h(user)
-            self.logger.info("  eligible to post")
-            self.leave_comment_reply(comment,
-                                     f'**Status**: u/{user} is eligible to post. ({int(self.config["posts"]["max_per_24_hours"]) - int(count_result["count"])} / {int(self.config["posts"]["max_per_24_hours"])} remaining)')
-        else:
-            self.logger.info("  not currently eligible to post (max per 24h)")
+        if not eligible_to_post:
+            self.logger.info(f"  not currently eligible to post")
             self.leave_comment_reply(comment,
                                      f'**Status**: u/{user} is not currently eligible to post.'
-                                     f'\n\n**Current Time**: `{result[0]["now"]} UTC`'
-                                     f'\n\n**Eligible to Post**: `{result[0]["next_post"]} UTC`')
-        return
+                                     f'\n\n**Current Time**: `{cooldown_check["now"]} UTC`'
+                                     f'\n\n**Eligible to Post**: `{next_post_time} UTC`')
+            return
+
+        count_result = database.get_post_count_in_last_24h(user)
+        self.logger.info("  eligible to post")
+        self.leave_comment_reply(comment,
+                                 f'**Status**: u/{user} is eligible to post. ({int(self.config["posts"]["max_per_24_hours"]) - int(count_result["count"])} / {int(self.config["posts"]["max_per_24_hours"])} remaining)')
+
