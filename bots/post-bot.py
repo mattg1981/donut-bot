@@ -132,32 +132,23 @@ def eligible_to_submit(submission):
 
     can_post = True
 
-    logger.info("test1")
-
-    if not eligibility_check['eligible_to_post']:
-        logger.info("test2")
+    if eligibility_check and not eligibility_check['eligible_to_post']:
         can_post = False
         submission.reply(f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a "
                          f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
                          f"check your posting eligibility.")
 
     if can_post and not post_cooldown_check['eligible_to_post_cooldown']:
-        logger.info("test3")
         can_post = False
         submission.reply(f"Sorry u/{submission.author.name}, you may only submit a new post every "
                          f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
                          f"`!post status` command to check your posting eligibility.")
 
-
-    logger.info("test4")
     if not can_post:
-        logger.info("test5")
         submission.mod.lock()
         submission.mod.remove(spam=False)
         return False
 
-
-    logger.info("test6")
     return True
 
 
@@ -225,7 +216,7 @@ if __name__ == '__main__':
     while True:
         try:
             for submission in reddit.subreddit(subs).stream.submissions():
-            # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
+                # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
@@ -244,7 +235,8 @@ if __name__ == '__main__':
                         is_an_excluded_flair = True
                         break
 
-                if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < config["posts"]["minimum_word_count"]:
+                if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < \
+                        config["posts"]["minimum_word_count"]:
                     submission.reply(
                         f"Your post was removed from r/{community} because it's too short (minimum of "
                         f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
