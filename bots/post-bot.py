@@ -131,7 +131,8 @@ def eligible_to_submit(submission):
         post_cooldown_check = cursor.fetchone()
 
     can_post = True
-    reply = None
+
+    logger.info("test1")
 
     if not eligibility_check['eligible_to_post']:
         can_post = False
@@ -146,7 +147,6 @@ def eligible_to_submit(submission):
                          f"`!post status` command to check your posting eligibility.")
 
     if not can_post:
-        submission.reply(reply)
         submission.mod.lock()
         submission.mod.remove(spam=False)
         return False
@@ -230,16 +230,12 @@ if __name__ == '__main__':
                     continue
 
                 community = submission.subreddit.display_name.lower()
-                logger.info(f"test1")
 
                 is_an_excluded_flair = False
                 for excluded_flair in config["posts"]["minimum_word_count_excluded_flairs"]:
                     if '[' + excluded_flair.lower() + ']' in submission.title.lower():
                         is_an_excluded_flair = True
                         break
-
-
-                logger.info(f"test2")
 
                 if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < config["posts"]["minimum_word_count"]:
                     submission.reply(
@@ -251,8 +247,6 @@ if __name__ == '__main__':
                     submission.mod.remove(spam=False)
                     continue
 
-
-                logger.info(f"test3")
                 post_topic = None
 
                 # refresh topic limits
@@ -287,7 +281,6 @@ if __name__ == '__main__':
                 # todo: currently, eligible_to_submit will remove the post but would read better if
                 #  that logic was performed here
                 if submission.author.name.lower() in ignore_list or eligible_to_submit(submission):
-                    logger.info(f"test4")
                     comment_thread_id = build_sticky_comment(submission, post_topic)
                     create_post_meta(submission, comment_thread_id)
 
