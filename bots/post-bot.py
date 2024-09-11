@@ -135,22 +135,29 @@ def eligible_to_submit(submission):
     logger.info("test1")
 
     if not eligibility_check['eligible_to_post']:
+        logger.info("test2")
         can_post = False
         submission.reply(f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a "
                          f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
                          f"check your posting eligibility.")
 
     if can_post and not post_cooldown_check['eligible_to_post_cooldown']:
+        logger.info("test3")
         can_post = False
         submission.reply(f"Sorry u/{submission.author.name}, you may only submit a new post every "
                          f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
                          f"`!post status` command to check your posting eligibility.")
 
+
+    logger.info("test4")
     if not can_post:
+        logger.info("test5")
         submission.mod.lock()
         submission.mod.remove(spam=False)
         return False
 
+
+    logger.info("test6")
     return True
 
 
