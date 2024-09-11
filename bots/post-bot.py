@@ -138,7 +138,7 @@ def eligible_to_submit(submission):
                          f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
                          f"check your posting eligibility.")
 
-    if can_post and not post_cooldown_check['eligible_to_post_cooldown']:
+    if can_post and post_cooldown_check and not post_cooldown_check['eligible_to_post_cooldown']:
         can_post = False
         submission.reply(f"Sorry u/{submission.author.name}, you may only submit a new post every "
                          f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
