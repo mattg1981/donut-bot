@@ -94,7 +94,9 @@
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
     "max_per_24_hours": 3,
     "approve_weight": 60000,
-    "post_cooldown_in_minutes": 180
+    "post_cooldown_in_minutes": 180,
+    "minimum_word_count": 200,
+    "minimum_word_count_excluded_flairs": ["Question"]
   },
   "comment2vote": {
     "max_weight": 20000,
@@ -140,7 +142,8 @@
         "archive": true,
         "max_posts_per_24h": true,
         "post_of_the_week": true,
-        "topic_limiting": true
+        "topic_limiting": true,
+        "minimum_word_count": true
       },
       "tokens": [
         {

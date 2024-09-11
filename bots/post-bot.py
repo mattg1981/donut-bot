@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 
 def get_submission_topic(submission, topics, community):
-    # test if this submission hits any topics that are limited
+    # test if this submission hits any topics that are limited in this community
     for topic in [t for t in topics if t["community"].lower() == community.lower()]:
         for t in topic["patterns"]:
             submission_match = re.search(t, submission.title.lower())
@@ -32,6 +32,7 @@ def build_sticky_comment(submission, topic):
 
     if not is_daily(submission):
         onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
+
         if topic:
             reply_message += f"This post had the **{topic['display_name']}** topic assigned.\n\n"
             reply_message += "----------"
@@ -39,8 +40,7 @@ def build_sticky_comment(submission, topic):
         reply_message += f"[Tip this post.]({onchain_link})\n\n"
         reply_message += "On-chain and off-chain tip confirmations below.\n\n"
 
-        reply_message += """----------
-            \n\n
+        reply_message += """----------\n\n
 
     **New Voting and Reward System**
 
@@ -131,20 +131,22 @@ def eligible_to_submit(submission):
         post_cooldown_check = cursor.fetchone()
 
     can_post = True
+    reply = None
 
     if not eligibility_check['eligible_to_post']:
         can_post = False
-        submission.reply(
-            f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a 24-hour window.  "
-            f"Please try again later.\n\nYou may also use the `!post status` command to check your posting eligibility.")
+        submission.reply(f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a "
+                         f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
+                         f"check your posting eligibility.")
 
-    if not post_cooldown_check['eligible_to_post_cooldown']:
+    if can_post and not post_cooldown_check['eligible_to_post_cooldown']:
         can_post = False
-        submission.reply(
-            f"Sorry u/{submission.author.name}, you may only submit a new post every {post_cooldown_in_minutes} minutes!  "
-            f"Please try again later.\n\nYou may also use the `!post status` command to check your posting eligibility.")
+        submission.reply(f"Sorry u/{submission.author.name}, you may only submit a new post every "
+                         f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
+                         f"`!post status` command to check your posting eligibility.")
 
     if not can_post:
+        submission.reply(reply)
         submission.mod.lock()
         submission.mod.remove(spam=False)
         return False
@@ -215,8 +217,8 @@ if __name__ == '__main__':
 
     while True:
         try:
-            # for submission in reddit.subreddit(subs).stream.submissions():
-            for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
+            for submission in reddit.subreddit(subs).stream.submissions():
+            # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
@@ -225,6 +227,24 @@ if __name__ == '__main__':
 
                 if previously_processed(submission):
                     logger.info(f"  {submission.fullname} already processed.")
+                    continue
+
+                community = submission.subreddit.display_name.lower()
+
+                is_an_excluded_flair = False
+                for excluded_flair in config["posts"]["minimum_word_count_excluded_flairs"]:
+                    if '[' + excluded_flair.lower() + ']' in submission.title.lower():
+                        is_an_excluded_flair = True
+                        break
+
+                if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < config["posts"]["minimum_word_count"]:
+                    submission.reply(
+                        f"Your post was removed from r/{community} because it's too short (minimum of "
+                        f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
+                        f"can. Feel free to resubmit your post with more text in the body to help direct the "
+                        f"discussion. Thanks!")
+                    submission.mod.lock()
+                    submission.mod.remove(spam=False)
                     continue
 
                 # refresh topic limits
@@ -241,19 +261,20 @@ if __name__ == '__main__':
                 #
                 # # topic limiting is performed before create_post_meta - so if a post is removed for
                 # # being limited, it will not count against the XX posts per day limit
-                # community = submission.subreddit.display_name.lower()
                 # post_topic = get_submission_topic(submission, topics, community)
                 #
                 # if post_topic:
-                #     current_topic = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
-                #                          t['community'] == community)
-                #     if current_topic["current"] >= current_topic["limit"]:
+                #     topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
+                #                       t['community'] == community)
+                #
+                #     if topic_meta["current"] >= topic_meta["limit"]:
                 #         submission.reply(
                 #             f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
-                #             f"{current_topic['allowance']} posts about **{current_topic['display_name']}** "
+                #             f"{topic_meta['allowance']} posts about **{topic_meta['display_name']}** "
                 #             f"to be in the Hot50. Please try again later.")
                 #         submission.mod.lock()
                 #         submission.mod.remove(spam=False)
+                #         continue
 
                 # todo: currently, eligible_to_submit will remove the post but would read better if
                 #  that logic was performed here
