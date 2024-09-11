@@ -247,6 +247,8 @@ if __name__ == '__main__':
                     submission.mod.remove(spam=False)
                     continue
 
+                post_topic = None
+
                 # refresh topic limits
                 # if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=5) >=
                 #         TOPIC_LIMITS["last_update"]):
@@ -279,8 +281,7 @@ if __name__ == '__main__':
                 # todo: currently, eligible_to_submit will remove the post but would read better if
                 #  that logic was performed here
                 if submission.author.name.lower() in ignore_list or eligible_to_submit(submission):
-                    # comment_thread_id = build_sticky_comment(submission, post_topic)
-                    comment_thread_id = build_sticky_comment(submission, None)
+                    comment_thread_id = build_sticky_comment(submission, post_topic)
                     create_post_meta(submission, comment_thread_id)
 
         except Exception as e:
