@@ -235,16 +235,18 @@ if __name__ == '__main__':
                         is_an_excluded_flair = True
                         break
 
-                if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < \
-                        config["posts"]["minimum_word_count"]:
-                    submission.reply(
-                        f"Your post was removed from r/{community} because it's too short (minimum of "
-                        f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
-                        f"can. Feel free to resubmit your post with more text in the body to help direct the "
-                        f"discussion. Thanks!")
-                    submission.mod.lock()
-                    submission.mod.remove(spam=False)
-                    continue
+                if not submission.author.name.lower() in ignore_list:
+                    if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < \
+                            config["posts"]["minimum_word_count"]:
+
+                        submission.reply(
+                            f"Your post was removed from r/{community} because it's too short (minimum of "
+                            f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
+                            f"can. Feel free to resubmit your post with more text in the body to help direct the "
+                            f"discussion. Thanks!")
+                        submission.mod.lock()
+                        submission.mod.remove(spam=False)
+                        continue
 
                 post_topic = None
 
