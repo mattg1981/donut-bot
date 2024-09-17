@@ -98,7 +98,9 @@
     "minimum_word_count": 200,
     "minimum_word_count_excluded_flairs": ["Question"],
     "bypass_word_count_by_title": [
-      "[EthTrader Contest]"
+      "[EthTrader Contest]",
+      "[Official]",
+      "[Announcement]"
     ]
   },
   "comment2vote": {
