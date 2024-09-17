@@ -229,14 +229,21 @@ if __name__ == '__main__':
 
                 community = submission.subreddit.display_name.lower()
 
-                is_an_excluded_flair = False
+                excluded = False
                 for excluded_flair in config["posts"]["minimum_word_count_excluded_flairs"]:
                     if '[' + excluded_flair.lower() + ']' in submission.title.lower():
-                        is_an_excluded_flair = True
+                        excluded = True
                         break
 
+                # exclude word count minimum for users in ignore_list
                 if not submission.author.name.lower() in ignore_list:
-                    if not is_an_excluded_flair and submission.is_self and len(submission.selftext.split()) < \
+
+                    # exclude word count minimum if using a standardized title
+                    for title in config['posts']['bypass_word_count_by_title']:
+                        if title.lower() in submission.title.lower():
+                            excluded = True
+
+                    if not excluded and submission.is_self and len(submission.selftext.split()) < \
                             config["posts"]["minimum_word_count"]:
 
                         submission.reply(

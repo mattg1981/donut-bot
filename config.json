@@ -96,7 +96,10 @@
     "approve_weight": 60000,
     "post_cooldown_in_minutes": 180,
     "minimum_word_count": 200,
-    "minimum_word_count_excluded_flairs": ["Question"]
+    "minimum_word_count_excluded_flairs": ["Question"],
+    "bypass_word_count_by_title": [
+      "[EthTrader Contest]"
+    ]
   },
   "comment2vote": {
     "max_weight": 20000,
