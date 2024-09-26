@@ -26,17 +26,17 @@ if __name__ == '__main__':
         and bonus_eligible = 1 
         and date_assigned <= (select to_date from distribution_rounds where distribution_round = ?)
         
-    UNION
+    --UNION
     
-    select 
-       name,
-       date_assigned,
-       community,
-       bonus_eligible 
-    from moderators
-        where is_active = 0 
-        and bonus_eligible = 1 
-        and last_update >= (select from_date from distribution_rounds where distribution_round = ?)
+    --select 
+    --   name,
+    --   date_assigned,
+    --   community,
+    --   bonus_eligible 
+    --from moderators
+    --    where is_active = 0 
+    --    and bonus_eligible = 1 
+    --    and last_update >= (select from_date from distribution_rounds where distribution_round = ?)
     
     """
 

@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
             with sqlite3.connect(db_path) as db:
                 select_sql = """
-                    select * from moderators where name = ? and date_assigned = ? and community = ?;
+                    select * from moderators where name = ? and community = ?;
                 """
 
                 insert_sql = """
@@ -68,17 +68,17 @@ if __name__ == '__main__':
 
                 update_sql = """
                     update moderators 
-                    set last_update = ? 
-                    where community = ? and name = ? and date_assigned = ?; 
+                    set last_update = ?, is_active = 1 
+                    where community = ? and name = ?; 
                 """
                 cursor = db.cursor()
-                cursor.execute(select_sql, [user, assigned_date, community])
+                cursor.execute(select_sql, [user, community])
                 select_result = cursor.fetchone()
 
                 if not select_result:
                     cursor.execute(insert_sql, [user, assigned_date, update_date, community])
                 else:
-                    cursor.execute(update_sql, [update_date, community, user, assigned_date])
+                    cursor.execute(update_sql, [update_date, community, user])
 
         with sqlite3.connect(db_path) as db:
             update_sql = """
