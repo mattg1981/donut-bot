@@ -86,7 +86,7 @@ if __name__ == '__main__':
                 "limit": t["limit"],
                 "current": t["current"],
                 "submissions": t["submissions"],
-                "community": community
+                "community": t["community"],
             } for t in topics])
 
         out_file = f"../temp/topic_limits.json"
