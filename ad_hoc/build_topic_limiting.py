@@ -35,6 +35,10 @@ if __name__ == '__main__':
 
         for post in reddit.subreddit(community).hot(limit=50):
             for topic in topics:
+                # add 'current' field to the topic meta
+                # this will be incremented as we come across submissions that hit on that topic
+                if "current" not in topic:
+                    topic["current"] = 0
 
                 if topic["community"] != community:
                     continue
@@ -56,11 +60,6 @@ if __name__ == '__main__':
                 if post.fullname in topic_ignore:
                     # skip to the next topic
                     continue
-
-                # add 'current' field to the topic meta
-                # this will be incremented as we come across submissions that hit on that topic
-                if "current" not in topic:
-                    topic["current"] = 0
 
                 if "submissions" not in topic:
                     topic["submissions"] = []
