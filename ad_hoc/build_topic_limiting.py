@@ -36,6 +36,9 @@ if __name__ == '__main__':
         for post in reddit.subreddit(community).hot(limit=50):
             for topic in topics:
 
+                if topic["community"] != community:
+                    continue
+
                 topic_ignore = []
                 for ignore in topic["overrides"]["ignore"]:
                     if not ignore.startswith("t3_"):
