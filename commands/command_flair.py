@@ -46,7 +46,9 @@ class FlairCommand(Command):
 
         if not special_member:
             self.leave_comment_reply(comment, f"Sorry u/{user}, "
-                                              f"this command can only be used by users with a special membership.")
+                                              f"this command can only be used by users with a special membership.\n\n"
+                                              f"[Click here](https://donut-dashboard.com/#/membership) to learn more or to purchase a "
+                                              f"membership!")
             return
 
         # handle reset command

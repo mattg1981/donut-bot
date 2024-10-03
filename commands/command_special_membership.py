@@ -52,5 +52,7 @@ class GifCommand(Command):
                            and (m['community'] == community or m['community'] == 'all')), None)
 
             if not member:
-                self.leave_comment_reply(comment, f"Sorry u/{user}, only special members can use GIFs.")
+                self.leave_comment_reply(comment, f"Sorry u/{user}, only special members can use GIFs.\n\n"
+                                                  f"[Click here](https://donut-dashboard.com/#/membership) to learn more"
+                                                  f" or to purchase a membership!")
                 comment.mod.remove()
