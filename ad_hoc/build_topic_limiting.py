@@ -86,13 +86,13 @@ if __name__ == '__main__':
                 "limit": t["limit"],
                 "current": t["current"],
                 "submissions": t["submissions"],
-                "community": t["community"],
+                "community": t["community"]
             } for t in topics])
 
-        out_file = f"../temp/topic_limits.json"
+    out_file = f"../temp/topic_limits.json"
 
-        if os.path.exists(out_file):
-            os.remove(out_file)
+    if os.path.exists(out_file):
+        os.remove(out_file)
 
-        with open(out_file, 'w') as f:
-            json.dump({'last_update': int(time.time()), 'data': topic_results}, f, indent=4)
+    with open(out_file, 'w') as f:
+        json.dump({'last_update': int(time.time()), 'data': topic_results}, f, indent=4)
