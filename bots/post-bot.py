@@ -290,7 +290,7 @@ if __name__ == '__main__':
                         logger.info(f"removed due to topic limiting: {topic_meta}")
                         submission.reply(
                             f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
-                            f"{topic_meta['allowance']} posts about **{topic_meta['display_name']}** "
+                            f"{topic_meta['limit']} posts about **{topic_meta['display_name']}** "
                             f"in the Hot 50 at a given time. Please try again later...")
                         submission.mod.lock()
                         submission.mod.remove(spam=False)
