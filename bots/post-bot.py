@@ -15,8 +15,29 @@ from dotenv import load_dotenv
 def get_submission_topic(submission, topics, community):
     # test if this submission hits any topics that are limited in this community
     for topic in [t for t in topics if t["community"].lower() == community.lower()]:
-        for t in topic["patterns"]:
-            submission_match = re.search(t, submission.title.lower())
+        topic_ignore = []
+        for ignore in topic["overrides"]["ignore"]:
+            if not ignore.startswith("t3_"):
+                topic_ignore.append("t3_" + ignore)
+            else:
+                topic_ignore.append(ignore)
+
+        topic_include = []
+        for include in topic["overrides"]["include"]:
+            if not include.startswith("t3_"):
+                topic_include.append("t3_" + include)
+            else:
+                topic_include.append(include)
+
+        if submission.fullname in topic_ignore:
+            continue
+
+        if submission.fullname in topic_include:
+            return topic
+
+        # otherwise test the title against the patterns
+        for pattern in topic["patterns"]:
+            submission_match = re.search(pattern, submission.title.lower())
             if submission_match:
                 return topic
 
@@ -28,48 +49,27 @@ def is_daily(submission):
 def build_sticky_comment(submission, topic):
     logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
 
-    reply_message = ""
+    reply_message = (f"{submission.author.name}, this comment  logs the Pay2Post fee, an anti-spam mechanism where a "
+                     f"DONUT 'tax' is deducted from your distribution share for each post submitted. Learn more ["
+                     f"here](https://www.reddit.com/r/ethtrader/comments/199ht5i"
+                     f"/governance_poll_dynamic_pay2post_fee_target/)."
+    
+                     f"\n\ncc: u/pay2post-ethtrader\n\n"
+                     f"----------\n\n")
 
     if not is_daily(submission):
         onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
 
         if topic:
-            reply_message += f"This post had the **{topic['display_name']}** topic assigned.\n\n"
-            reply_message += "----------"
+            reply_message += f"Topic: {topic['display_name']}\n\n"
+            reply_message += ("Learn more about topics limits [here](https://www.reddit.com/r/ethtrader/comments/1fyb8rv/rethtrader_automated_topic_limiter_topics_allowed/).\n\n")
+            reply_message += "----------\n\n"
 
-        reply_message += f"[Tip this post.]({onchain_link})\n\n"
-        reply_message += "On-chain and off-chain tip confirmations below.\n\n"
+        reply_message += f"Understand how Donuts and tips work by reading the [beginners guide](https://www.reddit.com/r/ethtrader/comments/1ftnx4t/megathread_comprehensive_guide_to_rethtrader/).\n\n"
+        reply_message += "----------\n\n"
 
-        reply_message += """----------\n\n
-
-    **New Voting and Reward System**
-
-    To promote quality content and reduce spam, we've implemented a new tip-voting system! Here's how it works:
-
-    1. **Upvoting with Tips:**
-       * Use the `!tip` command to upvote comments/posts. These are special upvotes that determine a user's DONUT reward at the end of the month.
-       * Example: `!tip 5` to tip 5 DONUTS.
-       * Any tip of 1 or more DONUTS counts as 1 vote.
-    2. **Weighted Votes:**
-       * Vote weight is based on your [governance score](https://donut-dashboard.com/#/governance).
-       * A governance score of 20K or more has a full vote weight (1.0).
-       * Scores below 20K have a proportional weight (e.g., 1K score = 0.05 weight).
-    3. **Anti-Spam Measures:**
-       * Comments with tips below 5 DONUTS and less than 12 characters will be removed, but the vote will still count.
-       * All tips are recorded under a stickied comment for transparency, including tips included in removed comments.
-    4. **Transparency:**
-       * Tip records will look like this:
-
-          `u/[username] tipped u/[anotheruser] 1.0 DONUT (weight: 0.4) [ARCHIVE](link to snapshot)`
-
-    **Guidelines:**
-
-    * Tip votes should be based solely on the quality of the content, not on the author or expectations of reciprocation.
-    * As a tipper, you are acting as a judge, ensuring that valuable contributions are rewarded impartially.
-    * Quid pro quo tipping behavior will be penalized. Moderators will monitor tips for misuse and take appropriate action.
-
-    Let's make EthTrader a better place by contributing valuable content and rewarding it fairly! 🚀
-            """
+        reply_message += f"[Click here to tip this post on-chain]({onchain_link})\n\n"
+        # reply_message += "Tip confirmations below.\n\n"
 
         logger.info(f"  send reply...")
         reply = submission.reply(reply_message)
@@ -215,8 +215,8 @@ if __name__ == '__main__':
 
     while True:
         try:
-            for submission in reddit.subreddit(subs).stream.submissions():
-                # for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
+            # for submission in reddit.subreddit(subs).stream.submissions():
+            for submission in reddit.subreddit(subs).stream.submissions(skip_existing=True):
                 if submission is None:
                     continue
 
@@ -246,6 +246,8 @@ if __name__ == '__main__':
                     if not excluded and submission.is_self and len(submission.selftext.split()) < \
                             config["posts"]["minimum_word_count"]:
 
+                        logger.info("removed due to minimum_word_count")
+
                         submission.reply(
                             f"Your post was removed from r/{community} because it's too short (minimum of "
                             f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
@@ -258,33 +260,41 @@ if __name__ == '__main__':
                 post_topic = None
 
                 # refresh topic limits
-                # if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=5) >=
-                #         TOPIC_LIMITS["last_update"]):
-                #     TOPIC_LIMITS['last_update'] = datetime.now()
-                #     TOPIC_LIMITS['topics'] = json.load(urllib.request.urlopen(
-                #         "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"))
-                #     TOPIC_LIMITS['limits'] = json.load(urllib.request.urlopen(
-                #         "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"))
-                #
-                # topics = TOPIC_LIMITS['topics']
-                # limits = TOPIC_LIMITS['limits']['data']
-                #
-                # # topic limiting is performed before create_post_meta - so if a post is removed for
-                # # being limited, it will not count against the XX posts per day limit
-                # post_topic = get_submission_topic(submission, topics, community)
-                #
-                # if post_topic:
-                #     topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
-                #                       t['community'] == community)
-                #
-                #     if topic_meta["current"] >= topic_meta["limit"]:
-                #         submission.reply(
-                #             f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
-                #             f"{topic_meta['allowance']} posts about **{topic_meta['display_name']}** "
-                #             f"to be in the Hot50. Please try again later.")
-                #         submission.mod.lock()
-                #         submission.mod.remove(spam=False)
-                #         continue
+                if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=6) >=
+                        TOPIC_LIMITS["last_update"]):
+                    TOPIC_LIMITS['last_update'] = datetime.now()
+                    try:
+                        TOPIC_LIMITS['topics'] = json.load(urllib.request.urlopen(
+                            "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"))
+                    except Exception:
+                        logger.error("Failed to load topic_meta - invalid .json")
+
+                    try:
+                        TOPIC_LIMITS['limits'] = json.load(urllib.request.urlopen(
+                            "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"))
+                    except Exception:
+                        logger.error("Failed to load topic_limits - invalid .json")
+
+                topics = TOPIC_LIMITS['topics']
+                limits = TOPIC_LIMITS['limits']['data']
+
+                # topic limiting is performed before create_post_meta - so if a post is removed for
+                # being limited, it will not count against the XX posts per day limit
+                post_topic = get_submission_topic(submission, topics, community)
+
+                if post_topic:
+                    topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
+                                      t['community'] == community)
+
+                    if topic_meta["current"] >= topic_meta["limit"]:
+                        logger.info(f"removed due to topic limiting: {topic_meta}")
+                        submission.reply(
+                            f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
+                            f"{topic_meta['allowance']} posts about **{topic_meta['display_name']}** "
+                            f"in the Hot 50 at a given time. Please try again later...")
+                        submission.mod.lock()
+                        submission.mod.remove(spam=False)
+                        continue
 
                 # todo: currently, eligible_to_submit will remove the post but would read better if
                 #  that logic was performed here
