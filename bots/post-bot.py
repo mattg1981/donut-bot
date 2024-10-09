@@ -235,7 +235,7 @@ if __name__ == '__main__':
                         excluded = True
                         break
 
-                # exclude word count minimum for users in ignore_list
+                # exclude word count minimum and topic limiting for users in ignore_list
                 post_topic = None
                 if not submission.author.name.lower() in ignore_list:
                     # exclude word count minimum if using a standardized title
@@ -282,6 +282,7 @@ if __name__ == '__main__':
                     post_topic = get_submission_topic(submission, topics, community)
 
                     if post_topic:
+                        logger.info(f"  topic detected: {post_topic['display_name']}")
                         topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
                                           t['community'] == community)
 
