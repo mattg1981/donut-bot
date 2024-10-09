@@ -47,8 +47,6 @@ def is_daily(submission):
 
 
 def build_sticky_comment(submission, topic):
-    logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
-
     reply_message = (f"{submission.author.name}, this comment  logs the Pay2Post fee, an anti-spam mechanism where a "
                      f"DONUT 'tax' is deducted from your distribution share for each post submitted. Learn more ["
                      f"here](https://www.reddit.com/r/ethtrader/comments/199ht5i"
@@ -223,6 +221,8 @@ if __name__ == '__main__':
                 if not submission.author or submission.author.name == username:
                     continue
 
+                logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
+
                 if previously_processed(submission):
                     logger.info(f"  {submission.fullname} already processed.")
                     continue
@@ -236,8 +236,8 @@ if __name__ == '__main__':
                         break
 
                 # exclude word count minimum for users in ignore_list
+                post_topic = None
                 if not submission.author.name.lower() in ignore_list:
-
                     # exclude word count minimum if using a standardized title
                     for title in config['posts']['bypass_word_count_by_title']:
                         if title.lower() in submission.title.lower():
@@ -246,7 +246,7 @@ if __name__ == '__main__':
                     if not excluded and submission.is_self and len(submission.selftext.split()) < \
                             config["posts"]["minimum_word_count"]:
 
-                        logger.info("removed due to minimum_word_count")
+                        logger.info(f"  removed due to minimum_word_count={config['posts']['minimum_word_count']}")
 
                         submission.reply(
                             f"Your post was removed from r/{community} because it's too short (minimum of "
@@ -257,44 +257,43 @@ if __name__ == '__main__':
                         submission.mod.remove(spam=False)
                         continue
 
-                post_topic = None
+                    # refresh topic limits
+                    if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=6) >=
+                            TOPIC_LIMITS["last_update"]):
+                        logger.info("  update TOPIC_LIMITS...")
+                        TOPIC_LIMITS['last_update'] = datetime.now()
+                        try:
+                            TOPIC_LIMITS['topics'] = json.load(urllib.request.urlopen(
+                                "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"))
+                        except Exception:
+                            logger.error("Failed to load topic_meta - invalid .json")
 
-                # refresh topic limits
-                if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=6) >=
-                        TOPIC_LIMITS["last_update"]):
-                    TOPIC_LIMITS['last_update'] = datetime.now()
-                    try:
-                        TOPIC_LIMITS['topics'] = json.load(urllib.request.urlopen(
-                            "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"))
-                    except Exception:
-                        logger.error("Failed to load topic_meta - invalid .json")
+                        try:
+                            TOPIC_LIMITS['limits'] = json.load(urllib.request.urlopen(
+                                "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"))
+                        except Exception:
+                            logger.error("Failed to load topic_limits - invalid .json")
 
-                    try:
-                        TOPIC_LIMITS['limits'] = json.load(urllib.request.urlopen(
-                            "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"))
-                    except Exception:
-                        logger.error("Failed to load topic_limits - invalid .json")
+                    topics = TOPIC_LIMITS['topics']
+                    limits = TOPIC_LIMITS['limits']['data']
 
-                topics = TOPIC_LIMITS['topics']
-                limits = TOPIC_LIMITS['limits']['data']
+                    # topic limiting is performed before create_post_meta - so if a post is removed for
+                    # being limited, it will not count against the XX posts per day limit
+                    post_topic = get_submission_topic(submission, topics, community)
 
-                # topic limiting is performed before create_post_meta - so if a post is removed for
-                # being limited, it will not count against the XX posts per day limit
-                post_topic = get_submission_topic(submission, topics, community)
+                    if post_topic:
+                        topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
+                                          t['community'] == community)
 
-                if post_topic:
-                    topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
-                                      t['community'] == community)
-
-                    if topic_meta["current"] >= topic_meta["limit"]:
-                        logger.info(f"removed due to topic limiting: {topic_meta}")
-                        submission.reply(
-                            f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
-                            f"{topic_meta['limit']} posts about **{topic_meta['display_name']}** "
-                            f"in the Hot 50 at a given time. Please try again later...")
-                        submission.mod.lock()
-                        submission.mod.remove(spam=False)
-                        continue
+                        if topic_meta["current"] >= topic_meta["limit"]:
+                            logger.info(f"  removed due to topic limiting: {topic_meta}")
+                            submission.reply(
+                                f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
+                                f"{topic_meta['limit']} posts about **{topic_meta['display_name']}** "
+                                f"in the Hot 50 at a given time. Please try again later...")
+                            submission.mod.lock()
+                            submission.mod.remove(spam=False)
+                            continue
 
                 # todo: currently, eligible_to_submit will remove the post but would read better if
                 #  that logic was performed here
