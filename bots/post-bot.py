@@ -76,7 +76,6 @@ def build_sticky_comment(submission, topic):
         reply.mod.distinguish(sticky=True)
         return reply.fullname
 
-
 def create_post_meta(submission, comment_thread_id):
     logger.info(f"  store meta in db...")
 
@@ -143,6 +142,7 @@ def eligible_to_submit(submission):
                          f"`!post status` command to check your posting eligibility.")
 
     if not can_post:
+        create_post_meta(submission, None)
         submission.mod.lock()
         submission.mod.remove(spam=False)
         return False
@@ -248,6 +248,8 @@ if __name__ == '__main__':
 
                         logger.info(f"  removed due to minimum_word_count={config['posts']['minimum_word_count']}")
 
+                        create_post_meta(submission, None)
+
                         submission.reply(
                             f"Your post was removed from r/{community} because it's too short (minimum of "
                             f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
@@ -288,6 +290,7 @@ if __name__ == '__main__':
 
                         if topic_meta["current"] >= topic_meta["limit"]:
                             logger.info(f"  removed due to topic limiting: {topic_meta}")
+                            create_post_meta(submission, None)
                             submission.reply(
                                 f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
                                 f"{topic_meta['limit']} posts about **{topic_meta['display_name']}** "
