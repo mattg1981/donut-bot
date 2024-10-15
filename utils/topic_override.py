@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 
 def eligible_to_submit(submission):
 
-    print(f"{submission.author=}")
+    author = submission.author
+    print(f"{author=}")
 
     max_posts_per_24_hours = int(config['posts']['max_per_24_hours'])
     post_cooldown_in_minutes = int(config['posts']['post_cooldown_in_minutes'])
@@ -33,10 +34,10 @@ def eligible_to_submit(submission):
     with sqlite3.connect(db_path) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
-        cursor.execute(post_per_day_sql, [submission.author.name])
+        cursor.execute(post_per_day_sql, [author.name])
         eligibility_check = cursor.fetchone()
 
-        cursor.execute(post_cooldown_sql, [submission.author.name])
+        cursor.execute(post_cooldown_sql, [author.name])
         post_cooldown_check = cursor.fetchone()
 
     can_post = True
@@ -44,14 +45,14 @@ def eligible_to_submit(submission):
     if eligibility_check and not eligibility_check['eligible_to_post']:
         can_post = False
         print("user is in 24-hour window cooldown currently...")
-        submission.reply(f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a "
+        submission.reply(f"Sorry u/{author.name}, you may only submit {max_posts_per_24_hours} posts per a "
                          f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
                          f"check your posting eligibility.")
 
     if can_post and post_cooldown_check and not post_cooldown_check['eligible_to_post_cooldown']:
         can_post = False
         print("user is in post cooldown currently...")
-        submission.reply(f"Sorry u/{submission.author.name}, you may only submit a new post every "
+        submission.reply(f"Sorry u/{author.name}, you may only submit a new post every "
                          f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
                          f"`!post status` command to check your posting eligibility.")
 
