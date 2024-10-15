@@ -132,8 +132,9 @@ def update_post_meta(submission, comment_thread_id, author):
 if __name__ == '__main__':
     print(f"{sys.argv=}")
 
-    if len(sys.argv) != 3:
-        print("Usage: topic_override.py <submission> (example: topic_override.py 1g4b01h Sky-876)")
+    if len(sys.argv) != 2 and len(sys.argv) != 3:
+        print("Usage: topic_override.py <submission> [<author>] (example: topic_override.py 1g4b01h Sky-876)")
+        print("Usage: the author is optional and provides the author name in the event it is not returned by the API")
         exit(4)
 
     # load environment variables
@@ -158,7 +159,7 @@ if __name__ == '__main__':
     submission = reddit.submission(id=sys.argv[1])
     print(f"{submission=}")
 
-    author = sys.argv[2]
+    author = None
 
     # returned as None for some reason
     print(f"{submission.author=}")
@@ -168,6 +169,15 @@ if __name__ == '__main__':
         if submission.author.name:
             print("author returned from submission query, using that value...")
             author = submission.author.name
+
+    if author is None:
+        if len(sys.argv) == 3:
+            print(f"using {sys.argv[2]=} as the author...")
+            author = sys.argv[2]
+        else:
+            print("author information not returned from the API.  Please pass the optional [author] parameter in "
+                  "through the command line.")
+            exit(4)
 
     if eligible_to_submit(submission, author):
         comment_thread_id = build_sticky_comment(submission, author)
