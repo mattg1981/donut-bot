@@ -159,8 +159,6 @@ if __name__ == '__main__':
 
     submission = reddit.submission(id=sys.argv[1])
 
-    # todo: currently, eligible_to_submit will remove the post but would read better if
-    #  that logic was performed here
     if eligible_to_submit(submission):
         comment_thread_id = build_sticky_comment(submission)
         update_post_meta(submission, comment_thread_id)
