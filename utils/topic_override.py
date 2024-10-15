@@ -161,6 +161,7 @@ if __name__ == '__main__':
                          user_agent='post-bot topic override (by u/mattg1981)')
 
     submission = reddit.submission(id=sys.argv[1])
+    print(f"{submission=}")
 
     if eligible_to_submit(submission):
         comment_thread_id = build_sticky_comment(submission)
