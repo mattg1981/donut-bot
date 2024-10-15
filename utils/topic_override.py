@@ -162,5 +162,5 @@ if __name__ == '__main__':
     if eligible_to_submit(submission):
         comment_thread_id = build_sticky_comment(submission)
         update_post_meta(submission, comment_thread_id)
-        submission.mod.unlock()
         submission.mod.approve()
+        submission.mod.unlock()
