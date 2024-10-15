@@ -163,6 +163,7 @@ if __name__ == '__main__':
 
     submission = reddit.submission(id=sys.argv[1])
     print(f"{submission=}")
+    print(f"{submission.author=}")
 
     if eligible_to_submit(submission):
         comment_thread_id = build_sticky_comment(submission)
