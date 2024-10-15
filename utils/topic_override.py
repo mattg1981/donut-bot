@@ -8,9 +8,7 @@ import praw
 from dotenv import load_dotenv
 
 
-def eligible_to_submit(submission):
-
-    author = submission.author
+def eligible_to_submit(submission, author):
     print(f"{author=}")
 
     max_posts_per_24_hours = int(config['posts']['max_per_24_hours'])
@@ -34,10 +32,10 @@ def eligible_to_submit(submission):
     with sqlite3.connect(db_path) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
-        cursor.execute(post_per_day_sql, [author.name])
+        cursor.execute(post_per_day_sql, [author])
         eligibility_check = cursor.fetchone()
 
-        cursor.execute(post_cooldown_sql, [author.name])
+        cursor.execute(post_cooldown_sql, [author])
         post_cooldown_check = cursor.fetchone()
 
     can_post = True
@@ -45,14 +43,14 @@ def eligible_to_submit(submission):
     if eligibility_check and not eligibility_check['eligible_to_post']:
         can_post = False
         print("user is in 24-hour window cooldown currently...")
-        submission.reply(f"Sorry u/{author.name}, you may only submit {max_posts_per_24_hours} posts per a "
+        submission.reply(f"Sorry u/{author}, you may only submit {max_posts_per_24_hours} posts per a "
                          f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
                          f"check your posting eligibility.")
 
     if can_post and post_cooldown_check and not post_cooldown_check['eligible_to_post_cooldown']:
         can_post = False
         print("user is in post cooldown currently...")
-        submission.reply(f"Sorry u/{author.name}, you may only submit a new post every "
+        submission.reply(f"Sorry u/{author}, you may only submit a new post every "
                          f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
                          f"`!post status` command to check your posting eligibility.")
 
@@ -63,8 +61,8 @@ def is_daily(submission):
     return "daily general discussion - " in submission.title.lower() and "(utc+0)" in submission.title.lower()
 
 
-def build_sticky_comment(submission):
-    reply_message = (f"{submission.author.name}, this comment  logs the Pay2Post fee, an anti-spam mechanism where a "
+def build_sticky_comment(submission, author):
+    reply_message = (f"{author}, this comment  logs the Pay2Post fee, an anti-spam mechanism where a "
                      f"DONUT 'tax' is deducted from your distribution share for each post submitted. Learn more ["
                      f"here](https://www.reddit.com/r/ethtrader/comments/199ht5i"
                      f"/governance_poll_dynamic_pay2post_fee_target/)."
@@ -88,7 +86,7 @@ def build_sticky_comment(submission):
         return reply.fullname
 
 
-def update_post_meta(submission, comment_thread_id):
+def update_post_meta(submission, comment_thread_id, author):
     print(f"  update meta...")
 
     db_result = submission.author
@@ -116,10 +114,6 @@ def update_post_meta(submission, comment_thread_id):
 
             cursor.execute(sql, [comment_thread_id, submission.fullname])
         else:
-            author = submission.author
-            if submission.author:
-                author = submission.author.name
-
             insert_sql = """
                         INSERT INTO post (submission_id, tip_comment_id, author, is_daily, created_date, community)
                         VALUES (?, ?, ?, ?, ?, ?);
@@ -138,8 +132,8 @@ def update_post_meta(submission, comment_thread_id):
 if __name__ == '__main__':
     print(f"{sys.argv=}")
 
-    if len(sys.argv) != 2:
-        print("Usage: topic_override.py <submission> (example: topic_override.py 1g4b01h)")
+    if len(sys.argv) != 3:
+        print("Usage: topic_override.py <submission> (example: topic_override.py 1g4b01h Sky-876)")
         exit(4)
 
     # load environment variables
@@ -163,10 +157,12 @@ if __name__ == '__main__':
 
     submission = reddit.submission(id=sys.argv[1])
     print(f"{submission=}")
+
+    # returned as None for some reason
     print(f"{submission.author=}")
 
-    if eligible_to_submit(submission):
-        comment_thread_id = build_sticky_comment(submission)
-        update_post_meta(submission, comment_thread_id)
+    if eligible_to_submit(submission, sys.argv[2]):
+        comment_thread_id = build_sticky_comment(submission, sys.argv[2])
+        update_post_meta(submission, comment_thread_id, sys.argv[2])
         submission.mod.approve()
         submission.mod.unlock()
