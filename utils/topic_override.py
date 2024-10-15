@@ -158,11 +158,19 @@ if __name__ == '__main__':
     submission = reddit.submission(id=sys.argv[1])
     print(f"{submission=}")
 
+    author = sys.argv[2]
+
     # returned as None for some reason
     print(f"{submission.author=}")
+    if submission.author:
+        print(f"{submission.author.name=}")
 
-    if eligible_to_submit(submission, sys.argv[2]):
-        comment_thread_id = build_sticky_comment(submission, sys.argv[2])
-        update_post_meta(submission, comment_thread_id, sys.argv[2])
+        if submission.author.name:
+            print("author returned from submission query, using that value...")
+            author = submission.author.name
+
+    if eligible_to_submit(submission, author):
+        comment_thread_id = build_sticky_comment(submission, author)
+        update_post_meta(submission, comment_thread_id, author)
         submission.mod.approve()
         submission.mod.unlock()
