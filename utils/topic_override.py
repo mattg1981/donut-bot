@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 
 
 def eligible_to_submit(submission):
+
+    print(f"{submission.author=}")
+
     max_posts_per_24_hours = int(config['posts']['max_per_24_hours'])
     post_cooldown_in_minutes = int(config['posts']['post_cooldown_in_minutes'])
 
