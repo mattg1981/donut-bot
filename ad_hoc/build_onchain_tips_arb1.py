@@ -56,44 +56,6 @@ if __name__ == '__main__':
                          password=os.getenv('REDDIT_PASSWORD'),
                          user_agent='donut-bot (by u/mattg1981)')
 
-    with sqlite3.connect(db_path) as db:
-        # build the table and index if it is the first run of this application
-        build_table_and_index = """
-           CREATE TABLE IF NOT EXISTS onchain_tip (
-                id           INTEGER         NOT NULL
-                                             PRIMARY KEY AUTOINCREMENT,
-                from_address NVARCHAR2       NOT NULL
-                                             COLLATE NOCASE,
-                to_address   NVARCHAR2       NOT NULL
-                                             COLLATE NOCASE,
-                chain_id     INTEGER,
-                weight       REAL,
-                tx_hash      NVARCHAR2       NOT NULL
-                                             COLLATE NOCASE,
-                block        BIGINT,
-                amount       DECIMAL (10, 5) NOT NULL,
-                token        NVARCHAR2       NOT NULL,
-                content_id   NVARCHAR2,
-                timestamp    DATETIME        NOT NULL,
-                created_date DATETIME        NOT NULL
-                                             DEFAULT CURRENT_TIMESTAMP
-            );
-
-        CREATE UNIQUE INDEX IF NOT EXISTS chain_id__tx_hash ON onchain_tip (
-                chain_id,
-                tx_hash
-            );
-        """
-
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cursor = db.cursor()
-        cursor.executescript(build_table_and_index)
-        cursor.execute("select max(block) as 'block' from onchain_tip where chain_id = 42161")
-        max_block = cursor.fetchone()['block']
-
-    if not max_block:
-        max_block = 0
-
     with open(os.path.normpath("../contracts/tipping_contract_abi.json"), 'r') as f:
         tip_abi = json.load(f)
 
@@ -103,8 +65,11 @@ if __name__ == '__main__':
     if not w3.is_connected():
         exit(4)
 
+    block = w3.eth.get_block('latest')
+    starting_block = block["number"] - 100
+
     tips = []
-    events = tipping_contract.events.Tip().get_logs(fromBlock=max_block+1)
+    events = tipping_contract.events.Tip().get_logs(fromBlock=starting_block)
 
     if not events:
         exit(0)
