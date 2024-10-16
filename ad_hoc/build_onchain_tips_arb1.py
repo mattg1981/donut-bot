@@ -59,14 +59,14 @@ if __name__ == '__main__':
     with open(os.path.normpath("../contracts/tipping_contract_abi.json"), 'r') as f:
         tip_abi = json.load(f)
 
-    w3 = Web3(Web3.HTTPProvider(os.getenv('CHAINSTACK_ARB1_PROVIDER')))
+    w3 = Web3(Web3.HTTPProvider(os.getenv('INFURA_ARB1_PROVIDER')))
     tipping_contract = w3.eth.contract(address=Web3.to_checksum_address(ARB1_TIPPING_CONTRACT), abi=tip_abi)
 
     if not w3.is_connected():
         exit(4)
 
     block = w3.eth.get_block('latest')
-    starting_block = block["number"] - 100
+    starting_block = block["number"] - 5000
 
     tips = []
     events = tipping_contract.events.Tip().get_logs(fromBlock=starting_block)
