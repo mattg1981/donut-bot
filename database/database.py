@@ -327,7 +327,7 @@ def get_post_cooldown(user, minutes):
            datetime('now') as now,
            datetime(created_date, '+{minutes} minute') as next_post
         from post
-        where author = ?
+        where author = ? and tip_comment_id is not null
         order by created_date desc
         limit 1;
     """
@@ -344,6 +344,7 @@ def get_post_count_in_last_24h(user):
         select count(*) as 'count'
         from post
         where author = ?
+         and tip_comment_id is not null
          and created_date >= datetime('now', '-24 hour')
             """
 

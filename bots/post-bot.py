@@ -106,14 +106,16 @@ def eligible_to_submit(submission):
     post_per_day_sql = f"""
         select count(*) < {max_posts_per_24_hours} as eligible_to_post
         from post
-        where author = ?
-          and created_date >= datetime('now','-24 hour');
+        where 
+            author = ?
+            and tip_comment_id is not null
+            and created_date >= datetime('now','-24 hour');
     """
 
     post_cooldown_sql = f"""
         select post.created_date <= datetime('now', '-{post_cooldown_in_minutes} minute') as eligible_to_post_cooldown 
         from post
-        where author = ?
+        where author = ? and tip_comment_id is not null
         order by created_date desc
         limit 1;
     """
@@ -154,13 +156,13 @@ def previously_processed(submission):
     sql = f"""
             select *
             from post
-            where submission_id = ? and community = ?
+            where submission_id = ?
         """
 
     with sqlite3.connect(db_path) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
-        cursor.execute(sql, [submission.fullname, submission.subreddit.display_name.lower()])
+        cursor.execute(sql, [submission.fullname])
         return cursor.fetchone()
 
 
