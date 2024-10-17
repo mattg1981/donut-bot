@@ -309,6 +309,7 @@ def get_post_status(user):
     from ( select row_number() over (order by created_date desc) row_number, created_date
            from post
            where author = ?
+             and tip_comment_id is not null
              and created_date >= datetime('now', '-24 hour'))
     where row_number = 3;
         """
