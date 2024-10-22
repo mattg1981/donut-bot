@@ -56,8 +56,13 @@ if __name__ == '__main__':
         membership_contract = w3.eth.contract(address=w3.to_checksum_address(season["contract_address"]),
                                               abi=membership_abi)
 
-        logs = membership_contract.events.Transfer().get_logs(fromBlock=int(season['event_block']) + 1)
-        max_event_block = int(season['event_block'])
+        block = w3.eth.get_block('latest')
+        starting_block = block["number"] - 5000
+
+        logs = membership_contract.events.Transfer().get_logs(starting_block)
+        # logs = membership_contract.events.Transfer().get_logs(fromBlock=int(season['event_block']) + 1)
+
+        # max_event_block = int(season['event_block'])
 
         for log in logs:
             owner = log.args['to']
@@ -86,16 +91,16 @@ if __name__ == '__main__':
                 }
                 special_memberships_out.append(membership)
 
-            max_event_block = log.blockNumber
+            # max_event_block = log.blockNumber
 
-        with sqlite3.connect(db_path) as db:
-            update_sql = """
-                update membership_season
-                set event_block = ?
-                where id = ?
-            """
-            cursor = db.cursor()
-            cursor.execute(update_sql, [max_event_block, season["id"]])
+        # with sqlite3.connect(db_path) as db:
+        #     update_sql = """
+        #         update membership_season
+        #         set event_block = ?
+        #         where id = ?
+        #     """
+        #     cursor = db.cursor()
+        #     cursor.execute(update_sql, [max_event_block, season["id"]])
 
     if active_seasons:
         # add in special memberships granted by LP activity
