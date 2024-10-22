@@ -49,15 +49,17 @@ class ApproveCommand(Command):
         #     self.leave_comment_reply(comment, f"Sorry u/{user}, you cannot approve your own submission.")
         #     return
 
-        # get user weight
-        weight = cache.get_user_weight(user)
+        # a perk of special memberships is that you can approve posts even if you don't have enough governance weight
+        if not cache.is_special_member(user, comment.subreddit.display_name):
+            # get user weight
+            weight = cache.get_user_weight(user)
 
-        # ensure they have enough weight to use this command
-        if weight < self.config['posts']['approve_weight']:
-            self.leave_comment_reply(comment,f"Sorry u/{user}, you must have "
-                                     f"{str(self.config['posts']['approve_weight'])} governance weight to "
-                                     f"use this command.")
-            return
+            # ensure they have enough weight to use this command
+            if weight < self.config['posts']['approve_weight']:
+                self.leave_comment_reply(comment,f"Sorry u/{user}, you must have "
+                                         f"{str(self.config['posts']['approve_weight'])} governance weight to "
+                                         f"use this command.")
+                return
 
         # all checks passed, approve the post
         comment.submission.mod.approve()
