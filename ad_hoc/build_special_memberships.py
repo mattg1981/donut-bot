@@ -46,13 +46,15 @@ if __name__ == '__main__':
 
     current_special_memberships = json.load(urllib.request.urlopen(config["membership"]["members"]))
 
-    special_memberships_out = {}
-    if active_seasons:
-        # filter to just type == NFT
-        special_memberships_out = [sm for sm in current_special_memberships if sm['type'] == "nft"]
+    special_memberships_out = []
 
     # update special membership access based on NFT
     for season in active_seasons:
+
+        special_memberships_out.extend([sm for sm in current_special_memberships if sm['type'] == "nft"
+                                        and sm['season'] == season['season_number'] and sm['community'] == season['community']
+                                        ])
+
         membership_contract = w3.eth.contract(address=w3.to_checksum_address(season["contract_address"]),
                                               abi=membership_abi)
 

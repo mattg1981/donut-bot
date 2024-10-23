@@ -88,7 +88,7 @@
   },
   "membership": {
     "members": "https://raw.githubusercontent.com/EthTrader/memberships/main/members.json",
-    "donut_count_in_lp": 25000
+    "donut_count_in_lp": 50000
   },
   "posts": {
     "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
