@@ -59,7 +59,7 @@ if __name__ == '__main__':
         block = w3.eth.get_block('latest')
         starting_block = block["number"] - 5000
 
-        logs = membership_contract.events.Transfer().get_logs(starting_block)
+        logs = membership_contract.events.Transfer().get_logs(fromBlock=starting_block)
         # logs = membership_contract.events.Transfer().get_logs(fromBlock=int(season['event_block']) + 1)
 
         # max_event_block = int(season['event_block'])
