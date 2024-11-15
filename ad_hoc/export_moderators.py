@@ -53,7 +53,7 @@ if __name__ == '__main__':
     for i in range(r_min, r_max + 1):
         with sqlite3.connect(db_path) as db:
             db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-            cursor.execute(mods_query, [i, i])
+            cursor.execute(mods_query, [i])
             mods = cursor.fetchall()
 
         if not mods:
