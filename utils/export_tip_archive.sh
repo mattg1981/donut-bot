@@ -10,7 +10,8 @@ TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
 cd ../temp
-mv -fr * ../../ethtrader-tip-archive
+rsync -a * ../../ethtrader-tip-archive/
+rm -rf *
 
 cd ../../ethtrader-tip-archive
 
