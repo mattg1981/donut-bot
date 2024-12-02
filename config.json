@@ -108,7 +108,7 @@
     "update_interval_hours": 6,
     "min_tip_to_avoid_archive": 5,
     "min_chars_needed_to_avoid_archive": 13,
-    "archive_url": "https://raw.githubusercontent.com/ethtrader-tip-archive/ethtrader-tip-archive/main/#y#/#m#/#d#/#f#"
+    "archive_url": "https://raw.githubusercontent.com/ethtrader/ethtrader-tip-archive/main/#y#/#m#/#d#/#f#"
   },
   "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
   "log_path": "logs/donut-bot.log",
