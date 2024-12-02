@@ -9,7 +9,7 @@ echo "begin exporting tip archives ..."
 TIMESTAMP_DAY=$( date +%Y/%m/%d )
 TIMESTAMP=$( date +%H:%M )
 
-cd ../tip-archive
+cd ../tip_archive/
 rsync -a * ../../ethtrader-tip-archive/
 rm -rf *
 
