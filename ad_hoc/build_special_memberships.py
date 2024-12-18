@@ -44,54 +44,73 @@ if __name__ == '__main__':
     with open('../contracts/membership_abi.json') as abi_file:
         membership_abi = json.load(abi_file)
 
-    current_special_memberships = json.load(urllib.request.urlopen(config["membership"]["members"]))
+    #current_special_memberships = json.load(urllib.request.urlopen(config["membership"]["members"]))
 
     special_memberships_out = []
 
     # update special membership access based on NFT
     for season in active_seasons:
 
-        special_memberships_out.extend([sm for sm in current_special_memberships if sm['type'] == "nft"
-                                        and sm['season'] == season['season_number'] and sm['community'] == season['community']
-                                        ])
+        # special_memberships_out.extend([sm for sm in current_special_memberships if sm['type'] == "nft" and sm[
+        # 'season'] == season['season_number'] and sm['community'] == season['community'] ])
 
-        membership_contract = w3.eth.contract(address=w3.to_checksum_address(season["contract_address"]),
-                                              abi=membership_abi)
+        membership_contract = w3.eth.contract(
+            address=w3.to_checksum_address(season["contract_address"]),
+            abi=membership_abi
+        )
 
-        block = w3.eth.get_block('latest')
-        starting_block = block["number"] - 5000
-
-        logs = membership_contract.events.Transfer().get_logs(fromBlock=starting_block)
+        # block = w3.eth.get_block('latest')
+        # starting_block = block["number"] - 5000
+        #
+        # logs = membership_contract.events.Transfer().get_logs(fromBlock=starting_block)
         # logs = membership_contract.events.Transfer().get_logs(fromBlock=int(season['event_block']) + 1)
 
         # max_event_block = int(season['event_block'])
 
-        for log in logs:
-            owner = log.args['to']
-            redditor = next((x["username"] for x in registered_users if x['address'].lower() == log.args['to'].lower()),
-                            None)
+        owners = membership_contract.functions.owners().call()
+        for owner in owners:
+            redditor = next((x["username"] for x in registered_users if x['address'].lower() == owner.lower()), None)
 
-            record = next((sm for sm in special_memberships_out
-                           if int(sm['token_id']) == int(log.args['tokenId'])
-                           and sm['season'] == season['season_number']
-                           and sm['community'] == season['community']
-                           ), None)
+            if not redditor:
+                continue
 
-            if record:
-                # update meta because of a transfer
-                record['owner'] = owner
-                record['redditor'] = redditor
-            else:
-                # update meta because of a mint
-                membership = {
-                    "token_id": log.args['tokenId'],
-                    "owner": log.args['to'],
+            membership = {
+                    "token_id": 'deprecated',
+                    "owner": owner,
                     "redditor": redditor,
                     "type": "nft",
                     "community": season["community"],
                     "season": season["season_number"],
                 }
-                special_memberships_out.append(membership)
+
+            special_memberships_out.append(membership)
+
+        # for log in logs:
+        #     owner = log.args['to']
+        #     redditor = next((x["username"] for x in registered_users if x['address'].lower() == log.args['to'].lower()),
+        #                     None)
+        #
+        #     record = next((sm for sm in special_memberships_out
+        #                    if int(sm['token_id']) == int(log.args['tokenId'])
+        #                    and sm['season'] == season['season_number']
+        #                    and sm['community'] == season['community']
+        #                    ), None)
+        #
+        #     if record:
+        #         # update meta because of a transfer
+        #         record['owner'] = owner
+        #         record['redditor'] = redditor
+        #     else:
+        #         # update meta because of a mint
+        #         membership = {
+        #             "token_id": log.args['tokenId'],
+        #             "owner": log.args['to'],
+        #             "redditor": redditor,
+        #             "type": "nft",
+        #             "community": season["community"],
+        #             "season": season["season_number"],
+        #         }
+        #         special_memberships_out.append(membership)
 
             # max_event_block = log.blockNumber
 
@@ -104,26 +123,31 @@ if __name__ == '__main__':
         #     cursor = db.cursor()
         #     cursor.execute(update_sql, [max_event_block, season["id"]])
 
-    if active_seasons:
-        # add in special memberships granted by LP activity
-        sm_lp = json.load(urllib.request.urlopen(
-            "https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/liquidity/liquidity_leaders.json"))
-
-        for lp in [x for x in sm_lp if x['donut_in_lp'] >= config['membership']['donut_count_in_lp']]:
-            redditor = next((x["username"] for x in registered_users if x['address'].lower() ==
-                             lp['owner'].lower()), None)
-            if not redditor:
-                continue
-
-            membership = {
-                "owner": lp['owner'],
-                "redditor": redditor,
-                "type": "lp",
-                "community": 'all'
-            }
-
-            # print(json.dumps(membership))
-            special_memberships_out.append(membership)
+    # 20241212 -- start
+    #
+    # removed functionality for those in the LP to receive a free special membership
+    #
+    # if active_seasons:
+    #     # add in special memberships granted by LP activity
+    #     sm_lp = json.load(urllib.request.urlopen(
+    #         "https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/liquidity/liquidity_leaders.json"))
+    #
+    #     for lp in [x for x in sm_lp if x['donut_in_lp'] >= config['membership']['donut_count_in_lp']]:
+    #         redditor = next((x["username"] for x in registered_users if x['address'].lower() ==
+    #                          lp['owner'].lower()), None)
+    #         if not redditor:
+    #             continue
+    #
+    #         membership = {
+    #             "owner": lp['owner'],
+    #             "redditor": redditor,
+    #             "type": "lp",
+    #             "community": 'all'
+    #         }
+    #
+    #         # print(json.dumps(membership))
+    #         special_memberships_out.append(membership)
+    # 20241212 -- end
 
     out_file = "../temp/members.json"
 
