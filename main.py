@@ -1,22 +1,17 @@
-import json
-import os
 import logging
+import os
 import time
+from logging.handlers import RotatingFileHandler
 
 import praw
-
-from commands import *
-from commands.command import Command
-from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
-if __name__ == '__main__':
-    # load environment variables
-    load_dotenv()
+from commands import Command
+from config import Config
 
-    # load config
-    with open(os.path.normpath("config.json"), 'r') as f:
-        config = json.load(f)
+if __name__ == '__main__':
+    # load environment variables from .env file
+    load_dotenv()
 
     # set up logging
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -24,7 +19,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    log_path = os.path.join(base_dir, config["log_path"])
+    log_path = os.path.join(base_dir, "logs/donut-bot.log")
     handler = RotatingFileHandler(os.path.normpath(log_path), maxBytes=2500000, backupCount=4)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -38,24 +33,15 @@ if __name__ == '__main__':
                          password=os.getenv('REDDIT_PASSWORD'),
                          user_agent='donut-bot (by u/mattg1981)')
 
-    subs = ""
-    for idx, community_token in enumerate(config["community_tokens"]):
-        community = community_token["community"]
-        if "r/" in community:
-            community=community[2:]
-        subs += community
-        if idx < len(config["community_tokens"]) - 1:
-            subs += '+'
+    # find all the subs that we are supposed to operate on
+    config = Config()
+    communities = config.communities
+    subs = '+'.join([c.community for c in communities])
 
+    # find all the commands that can process comments
     commands = []
-    global_objs = list(globals().items())
-
-    for obj in global_objs:
-        if obj is not Command and isinstance(obj, type) and issubclass(obj, Command):
-            commands.append(obj())
-
-    for cls in Command.__subclasses__():
-        commands.append(cls(config, reddit))
+    for c in Command.__subclasses__():
+        commands.append(c(config, reddit))
 
     while True:
         try:
@@ -64,13 +50,12 @@ if __name__ == '__main__':
                 if not comment.author or comment.author.name == username or comment.author == "EthTrader_Reposter":
                     continue
 
-                # find any command that can handle this comment and then process that comment
-                for command in commands:
-                    if command.can_handle(comment.body):
-                        try:
-                            command.process_comment(comment)
-                        except Exception as e:
-                            logger.error(f'  Exception: {e}')
+                # find all commands that can process this comment
+                for command in [c for c in commands if c.can_handle(comment)]:
+                    try:
+                        command.process_comment(comment)
+                    except Exception as cmdException:
+                        print(f'cmdException: {cmdException}')
         except Exception as e:
             logger.error(e)
             logger.info('sleeping 30 seconds ...')

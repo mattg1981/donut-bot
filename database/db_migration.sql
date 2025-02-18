@@ -1,0 +1,1 @@
+drop table special_membership;

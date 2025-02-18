@@ -3,9 +3,8 @@ import time
 import urllib.request
 from pathlib import Path
 
-
-from database import database
 from commands.command import Command
+from database import database
 
 
 class DailyPinCommand(Command):
@@ -51,7 +50,10 @@ class DailyPinCommand(Command):
                 was_success = 1
                 break
 
-            # the post-meta has not been created for this daily yet, give post-bot some time to create it
+            # todo - see if post metadata exists in the database
+
+            # there exists a (small) chance that the post-metadata may not have been created for this daily yet
+            # so we'll give `post-bot` some time to create it
             time.sleep(4)
 
         if was_success:

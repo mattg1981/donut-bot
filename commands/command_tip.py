@@ -2,20 +2,40 @@ import json
 import os
 import re
 import urllib.request
-
 from datetime import datetime, timedelta
 from pathlib import Path
-from database import database
-from commands.command import Command
+
+from commands import Command
 from commands.command_register import RegisterCommand
+from database import database
 from models.offchaintip import OffchainTip
 
 USERS = {}
 
 
-class TipCommand(Command):
-    VERSION = 'v0.1.20240111-tip'
+def normalize_amount(amount):
+    """
+    Checks the amount to make sure it is a valid input
+    :param amount: the amount parsed from the regex
+    :return: a float number of the amount, -1 if there was a parsing error
+    """
 
+    try:
+        result = float(amount)
+        result = round(float(result), 5)
+
+        int_value = int(float(result))
+        if len(str(int_value)) > 10:
+            raise Exception("  Number too large")
+
+        return result if result > 0 else -1
+    except Exception:
+        # self.logger.error(f"  invalid amount specified: {amount}")
+        # self.logger.error(f'  {e}')
+        return -1
+
+
+class TipCommand(Command):
     def __init__(self, config, reddit):
         super(TipCommand, self).__init__(config, reddit)
         self.command_text = "!tip"
@@ -40,27 +60,6 @@ class TipCommand(Command):
                 community = community[2:]
 
             self.valid_tokens[community] = ct["tokens"]
-
-    def normalize_amount(self, amount):
-        """
-        Checks the amount to make sure it is a valid input
-        :param amount: the amount parsed from the regex
-        :return: a float number of the amount, -1 if it is not able to be parsed
-        """
-
-        try:
-            result = float(amount)
-            result = round(float(result), 5)
-
-            int_value = int(float(result))
-            if len(str(int_value)) > 10:
-                raise Exception("  Number too large")
-
-            return result if result > 0 else -1
-        except Exception as e:
-            self.logger.error(f"  invalid amount specified: {amount}")
-            self.logger.error(f'  {e}')
-            return -1
 
     def parse_comments_for_tips(self, comment):
         """
@@ -107,7 +106,7 @@ class TipCommand(Command):
                     default_token = next(x for x in self.valid_tokens[community] if x["is_default"])
                     token = default_token["name"].strip()
                 else:
-                    # determine if its a valid token
+                    # determine if it is a valid token
                     token_lookup = next((x for x in self.valid_tokens[community] if x["name"].lower() == token.lower()),
                                         None)
 
@@ -126,15 +125,15 @@ class TipCommand(Command):
 
                 if sender.lower() == recipient.lower():
                     is_valid = False
-                    self.logger.info("  attempted self tipping")
+                    self.logger.warning("  attempted self tipping")
                     message = f"❌ Sorry u/{sender}, you cannot tip yourself!"
 
                 if is_valid:
-                    normalized_amount = self.normalize_amount(amount)
+                    normalized_amount = normalize_amount(amount)
                     if normalized_amount <= 0:
                         is_valid = False
-                        self.logger.error(f"  invalid amount!")
-                        self.logger.error(f"  comment body: {repr(comment.body)}")
+                        self.logger.warning(f"  invalid amount!")
+                        self.logger.warning(f"  comment body: {repr(comment.body)}")
                         message = f"❌ Sorry u/{sender}, that amount is invalid!"
                     else:
                         amount = normalized_amount
@@ -208,7 +207,6 @@ class TipCommand(Command):
                 reply += f"- **SENT:** {amount} {tip['token']} ({tip['count']} tips sent)\n"
 
         if len(received_result) == 0:
-            # reply += f"\n\nu/{comment.author.name} has not **received** any earn2tips this round"
             reply += f"- **RECEIVED:** u/{comment.author.name} 0 donut (0 tips received)\n"
         else:
             # reply += f"\n\nu/{comment.author.name} has **received** the following earn2tips this round:\n\n"
@@ -272,7 +270,7 @@ class TipCommand(Command):
         self.leave_comment_reply(comment, comment_reply)
 
     def leave_comment_reply(self, comment, reply, set_processed=True, use_tip_thread=False, archive_result=None):
-        sig = f'\n\n^(donut-bot {self.VERSION} | Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
+        sig = f'\n\n^(Learn more about [Earn2Tip]({self.config["e2t_post"]}))'
 
         if set_processed:
             database.set_processed_content(comment.fullname, Path(__file__).stem)
@@ -381,7 +379,6 @@ class TipCommand(Command):
         save_dir = f'{tip_directory}/{created_utc.year}/{created_utc.month:02}/{created_utc.day:02}'
         os.makedirs(save_dir, exist_ok=True)
 
-        # archive_text = f'author: {comment.author}\ndate: {created_utc} UTC\n\n{comment.body}'
 
         filename = comment.fullname + ".txt"
         with open(os.path.join(save_dir, filename).replace('\\', '/'), 'w') as f:

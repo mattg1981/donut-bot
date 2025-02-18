@@ -5,13 +5,12 @@ import re
 
 class Command:
     __metaclass__ = abc.ABCMeta
-    command_text = ''
-    logger = logging.getLogger("donut_bot")
-    config = {}
 
     def __init__(self, config, reddit):
         self.config = config
         self.reddit = reddit
+        self.logger = logging.getLogger("donut_bot")
+        self.command_text = ''
 
     def can_handle(self, comment):
         if isinstance(self.command_text, str):
@@ -29,5 +28,5 @@ class Command:
 
     @abc.abstractmethod
     def process_comment(self, comment):
-        """Method documentation"""
+        """Each implementation of Command needs to override this method"""
         return

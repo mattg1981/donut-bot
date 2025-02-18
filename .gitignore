@@ -1,5 +1,6 @@
 /.env
 /venv/
+/.venv*/
 /logs/*.log
 /database/*.db
 /out/
