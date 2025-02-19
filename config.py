@@ -23,9 +23,10 @@ class ContractConfigSection:
 
 @dataclass(frozen=True)
 class CommunityFeatures:
-    flair_bot: bool
+    flair: bool
     post_bot: bool
     post_command: bool
+    post_approve: bool
     faucet: bool
     tips: bool
     archive: bool
@@ -33,6 +34,7 @@ class CommunityFeatures:
     post_of_the_week: bool
     topic_limiting: bool
     minimum_word_count: bool
+    daily_pin: bool
 
 
 @dataclass(frozen=True)
@@ -43,14 +45,6 @@ class CommunityToken:
     chain: str
     chain_id: int
     contract_address: str
-
-
-@dataclass(frozen=True)
-class Community:
-    name: str
-    ignore: list[str]
-    features: CommunityFeatures
-    tokens: list[CommunityToken]
 
 
 @dataclass(frozen=True)
@@ -71,7 +65,18 @@ class PostsConfigSection:
     minimum_word_count: int
     minimum_word_count_excluded_flairs: list[str]
     bypass_word_count_by_title: list[str]
+    pow_min_weight: int
+    pow_max_weight: int
 
+
+@dataclass(frozen=True)
+class Community:
+    name: str
+    posts: PostsConfigSection
+    comment2vote: Comment2VoteConfigSection
+    ignore: list[str]
+    features: CommunityFeatures
+    tokens: list[CommunityToken]
 
 @dataclass(frozen=True)
 class MembershipConfigSection:
@@ -99,48 +104,51 @@ class Config:
             "members_url": "https://raw.githubusercontent.com/EthTrader/memberships/main/members.json",
             "donut_count_in_lp": 50000
         },
-        "posts": {
-            "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
-            "max_per_24_hours": 3,
-            "approve_weight": 60000,
-            "post_cooldown_in_minutes": 180,
-            "minimum_word_count": 200,
-            "minimum_word_count_excluded_flairs": ["Question"],
-            "bypass_word_count_by_title": [
-                "[EthTrader Contest]",
-                "[Official]",
-                "[Announcement]"
-            ]
-        },
-        "comment2vote": {
-            "max_weight": 20000,
-            "update_interval_hours": 6,
-            "min_tip_to_avoid_archive": 5,
-            "min_chars_needed_to_avoid_archive": 13,
-            "archive_url": "https://raw.githubusercontent.com/ethtrader/ethtrader-tip-archive/main/#y#/#m#/#d#/#f#"
-        },
         "users_location": "https://ethtrader.github.io/donut.distribution/users.json",
         "communities": [
             {
                 "name": "ethtrader_test",
                 "ignore": [
                     "AutoModerator",
-                    "CrispyDonutBot",
                     "EthTraderCommunity",
                     "EthTrader_Reposter",
                     "donut-bot"
                 ],
+                "posts": {
+                    "removal_id": "a8b91952-a441-4978-a492-2a31f1e33841",
+                    "max_per_24_hours": 3,
+                    "approve_weight": 60_000,
+                    "post_cooldown_in_minutes": 180,
+                    "minimum_word_count": 200,
+                    "minimum_word_count_excluded_flairs": ["Question"],
+                    "bypass_word_count_by_title": [
+                        "[EthTrader Contest]",
+                        "[Official]",
+                        "[Announcement]"
+                    ],
+                    "pow_min_weight": 20_000,
+                    "pow_max_weight": 500_000
+                },
+                "comment2vote": {
+                    "max_weight": 20000,
+                    "update_interval_hours": 6,
+                    "min_tip_to_avoid_archive": 5,
+                    "min_chars_needed_to_avoid_archive": 13,
+                    "archive_url": "https://raw.githubusercontent.com/ethtrader/ethtrader-tip-archive/main/#y#/#m#/#d#/#f#"
+                },
                 "features": {
-                    "flair_bot": True,
+                    "flair": True,
                     "post_bot": True,
                     "post_command": True,
+                    "post_approve": True,
                     "faucet": True,
                     "tips": True,
                     "archive": True,
                     "max_posts_per_24h": True,
                     "post_of_the_week": True,
                     "topic_limiting": True,
-                    "minimum_word_count": True
+                    "minimum_word_count": True,
+                    "daily_pin": True
                 },
                 "tokens": [
                     {
@@ -201,13 +209,13 @@ class Config:
     def membership(self) -> MembershipConfigSection:
         return MembershipConfigSection(**self._conf['membership'])
 
-    @property
-    def posts(self) -> PostsConfigSection:
-        return PostsConfigSection(**self._conf.get('posts', {}))
+    # @property
+    # def posts(self) -> PostsConfigSection:
+    #     return PostsConfigSection(**self._conf.get('posts', {}))
 
-    @property
-    def comment2vote(self) -> Comment2VoteConfigSection:
-        return Comment2VoteConfigSection(**self._conf.get('comment2vote', {}))
+    # @property
+    # def comment2vote(self) -> Comment2VoteConfigSection:
+    #     return Comment2VoteConfigSection(**self._conf.get('comment2vote', {}))
 
     @property
     def users_location(self):
@@ -220,11 +228,13 @@ class Config:
             name = community["name"]
             ignore = community.get("ignore", [])
             features = CommunityFeatures(**community.get('features', {}))
+            posts = PostsConfigSection(**community.get('posts', {}))
+            comment2vote = Comment2VoteConfigSection(**community.get('comment2vote', {}))
             tokens = []
             for token in community.get('tokens', []):
                 tokens.append(CommunityToken(**token))
 
-            communities.append(Community(name, ignore, features, tokens))
+            communities.append(Community(name, posts, comment2vote, ignore, features, tokens))
 
         return communities
 
