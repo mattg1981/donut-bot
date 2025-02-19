@@ -24,38 +24,45 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    username = os.getenv('REDDIT_USERNAME')
-
-    # creating an authorized reddit instance
     reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
                          client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-                         username=username,
+                         username=os.getenv('REDDIT_USERNAME'),
                          password=os.getenv('REDDIT_PASSWORD'),
                          user_agent='donut-bot (by u/mattg1981)')
 
     # find all the subs that we are supposed to operate on
     config = Config()
-    communities = config.communities
-    subs = '+'.join([c.community for c in communities])
+    subs = '+'.join([c.name for c in config.communities])
 
     # find all the commands that can process comments
     commands = []
-    for c in Command.__subclasses__():
-        commands.append(c(config, reddit))
+    for cls in Command.__subclasses__():
+        commands.append(cls(config, reddit))
 
     while True:
         try:
             # for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
             for comment in reddit.subreddit(subs).stream.comments():
-                if not comment.author or comment.author.name == username or comment.author == "EthTrader_Reposter":
-                    continue
+
+                # find the community config for the community this comment was posted in
+                comment_community = next((c for c in config.communities if c.name.lower() ==
+                                          comment.subreddit.display_name.lower()), None)
+
+                if not comment_community:
+                    continue  # should never happen
+
+                if not comment.author:
+                    continue  # very rare but has previously occurred
+
+                if comment.author in comment_community.ignore:
+                    continue  # ignore comments by certain individuals/bots
 
                 # find all commands that can process this comment
                 for command in [c for c in commands if c.can_handle(comment)]:
                     try:
                         command.process_comment(comment)
                     except Exception as cmdException:
-                        print(f'cmdException: {cmdException}')
+                        logger.error(f'cmdException: {cmdException}')
         except Exception as e:
             logger.error(e)
             logger.info('sleeping 30 seconds ...')
