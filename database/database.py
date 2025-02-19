@@ -150,14 +150,6 @@ def set_processed_content(content_id, command):
         cur.execute('INSERT INTO history (content_id, command) VALUES(?,?) RETURNING *;', [content_id, command])
         return cur.fetchone()
 
-
-# def remove_processed_content(content_id, command):
-#     with sqlite3.connect(get_db_path()) as db:
-#         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-#         cur = db.cursor()
-#         cur.execute("DELETE FROM history_tips WHERE content_id = ? and command = ?;", [content_id, command])
-
-
 def insert_or_update_address(user, address, content_id):
     user_result = get_user_by_name(user)
 
@@ -321,14 +313,14 @@ def get_post_status(user):
         return cur.fetchall()
 
 
-def get_post_cooldown(user, minutes):
+def get_post_cooldown(user, community, minutes):
     # this query is repeated in post-bot.py if needing refactoring
     sql = f"""
         select post.created_date <= datetime('now', '-{minutes} minute') as eligible_to_post_cooldown,
            datetime('now') as now,
            datetime(created_date, '+{minutes} minute') as next_post
         from post
-        where author = ? and tip_comment_id is not null
+        where author = ? and tip_comment_id is not null and community = ?
         order by created_date desc
         limit 1;
     """
@@ -336,29 +328,30 @@ def get_post_cooldown(user, minutes):
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(sql, [user])
+        cur.execute(sql, [user, community])
         return cur.fetchone()
 
 
-def get_post_count_in_last_24h(user):
+def get_post_count_in_last_24h(user, community):
     sql = """
         select count(*) as 'count'
         from post
         where author = ?
          and tip_comment_id is not null
          and created_date >= datetime('now', '-24 hour')
+         and community = ?
             """
 
     with sqlite3.connect(get_db_path()) as db:
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cur = db.cursor()
-        cur.execute(sql, [user])
+        cur.execute(sql, [user, community])
         return cur.fetchone()
 
 
 def get_potd_eligible(user, post_id, community):
     sql = """
-        -- have they posted today?
+        -- have they voted today?
         select count(*) < 1 as potd_eligibile
                 , 'you have already voted today in r/' || community || '.  Your post-of-the-week vote resets at midnight UTC and the current time is: '
                 || datetime() || ' UTC' as reason
@@ -438,17 +431,17 @@ def get_active_membership_seasons():
         return cursor.fetchall()
 
 
-def set_custom_flair(user, custom_flair):
+def set_custom_flair(user, community, custom_flair):
     sql = """
         update flair 
-        set custom_flair = ?
+        set custom_flair = ?, community = ?
         where user_id = (select id from users where username = ?)
         returning *
     """
 
     with sqlite3.connect(get_db_path()) as db:
         cursor = db.cursor()
-        cursor.execute(sql, [custom_flair, user])
+        cursor.execute(sql, [custom_flair, community, user])
         return cursor.fetchone()
 
 
@@ -463,4 +456,16 @@ def reset_custom_flair(user):
     with sqlite3.connect(get_db_path()) as db:
         cursor = db.cursor()
         cursor.execute(sql, [user])
+        return cursor.fetchone()
+
+
+def get_post(post_fullname):
+    sql = """
+        select * from post
+        where submission_id = :submission_id
+    """
+
+    with sqlite3.connect(get_db_path()) as db:
+        cursor = db.cursor()
+        cursor.execute(sql, {'submission_id': post_fullname})
         return cursor.fetchone()
