@@ -1,62 +1,45 @@
-import json
 import time
-import urllib.request
-from pathlib import Path
 
-from commands.command import Command
+from praw.models import Comment
+
+from cache import cache
+from commands import Command
+from config import Config, Community, CommunityFeatures
 from database import database
 
 
 class DailyPinCommand(Command):
 
-    def __init__(self, config, reddit):
-        super(DailyPinCommand, self).__init__(config, reddit)
+    def __init__(self):
+        super(DailyPinCommand, self).__init__()
         self.command_text = "!dailypin"
 
-    def leave_comment_reply(self, comment, reply):
-        database.set_processed_content(comment.fullname, Path(__file__).stem)
-        comment.reply(reply)
+    def is_community_feature_enabled(self, features: CommunityFeatures) -> bool:
+        return features.daily_pin
 
-    def process_comment(self, comment):
-        self.logger.info(f"process dailypin command - content_id: {comment.fullname} | author: {comment.author.name}")
+    def process_comment(self, comment: Comment, author: str, community: Community) -> None:
 
-        if database.has_processed_content(comment.fullname, Path(__file__).stem) is not None:
-            self.logger.info("  previously processed...")
+        # as of this writing, the community.ignore property is a good list of users (outside the mod team)
+        # that can use this command.  If this scenario changes, it would be wise to add config elements at a community
+        # level to determine who can use this command
+
+        community_config = next((c for c in Config().communities if c.name.lower() == community), None)
+
+        if not author in community_config.ignore and not cache.is_moderator(author, community):
+            comment.reply(f'Sorry u/{author}, this command is only for moderators.')
             return
 
-        self.logger.info(f"  comment link: https://reddit.com/comments/{comment.submission.id}/_/{comment.id}")
-
-        user = comment.author.name
-
-        # ensure the author is a moderator or automoderator
-        can_use_command = 0
-        if user.lower() == "automoderator" or user.lower() == "ethtradercommunity":
-            can_use_command = 1
-        else:
-            dist_round = database.get_distribution_round()[0]
-            result = json.load(urllib.request.urlopen(f'https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/moderators/moderators_{dist_round}.json'))
-            mods = [m['name'] for m in result]
-
-            if user in mods:
-                can_use_command = 1
-
-        if not can_use_command:
-            self.leave_comment_reply(comment, f'Sorry u/{user}, this command is only for moderators.')
-            return
-
-        was_success = 0
-        for count in range(0, 5):
-            if database.set_daily_pin(comment.submission.fullname, comment.fullname):
-                was_success = 1
+        # there exists the potential for a race condition where the post-bot may not have processed this post
+        # yet.  If so, we will not be able to set_daily_pin() on it yet. So we check to see if the post exists
+        # in our metadata/database yet, and if not, sleep for some period of time and try again.
+        for count in range(max := 5):
+            if database.get_post(comment.submission.fullname):
                 break
 
-            # todo - see if post metadata exists in the database
+            if count + 1 != max:
+                time.sleep(10)
 
-            # there exists a (small) chance that the post-metadata may not have been created for this daily yet
-            # so we'll give `post-bot` some time to create it
-            time.sleep(4)
-
-        if was_success:
-            self.leave_comment_reply(comment, f'Comment successfully registered as the daily pin.')
+        if database.set_daily_pin(comment.submission.fullname, comment.fullname):
+            comment.reply('Comment successfully registered as the daily pin.')
         else:
-            self.leave_comment_reply(comment, f'An error occured while trying to register the daily pin. Please try again.')
+            comment.reply('An error occurred while trying to register the daily pin. Please try again.')

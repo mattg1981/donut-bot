@@ -1,66 +1,58 @@
-from pathlib import Path
+import html
+
+from praw.models import Comment
+
 from cache import cache
-from database import database
-from commands.command import Command
+from commands import Command
+from config import Config, Community, CommunityFeatures
 
 
 class ApproveCommand(Command):
-    VERSION = 'v0.1.20240603-approve'
-    COMMENT_SIGNATURE = f'\n\n^(donut-bot {VERSION})'
-
-    def __init__(self, config, reddit):
-        super(ApproveCommand, self).__init__(config, reddit)
+    def __init__(self):
+        super(ApproveCommand, self).__init__()
         self.command_text = ["!approve", "[AutoModApprove]"]
 
-    def leave_comment_reply(self, comment, reply):
-        reply += self.COMMENT_SIGNATURE
-        database.set_processed_content(comment.fullname, Path(__file__).stem)
-        comment.reply(reply)
+    def is_community_feature_enabled(self, features: CommunityFeatures) -> bool:
+        return features.post_approve
 
-    def process_comment(self, comment):
-        self.logger.info(f"process post command - content_id: {comment.fullname} | author: {comment.author.name}")
-
-        if database.has_processed_content(comment.fullname, Path(__file__).stem) is not None:
-            self.logger.info("  previously processed...")
-            return
-
-        self.logger.info(f"  comment link: https://reddit.com/comments/{comment.submission.id}/_/{comment.id}")
-
-        user = comment.author.name
-
+    def process_comment(self, comment: Comment, author: str, community: Community) -> None:
         # ensure this comment is a top level comment on a post
         if not comment.parent_id == comment.submission.fullname:
-            self.leave_comment_reply(comment, f"Sorry u/{user}, you can only use this command to approve posts.")
+            comment.reply(f"Sorry u/{author}, you can only use this command to approve posts.")
             return
 
         # ensure the post is in fact removed
         if not comment.submission.removed_by_category:
-            self.leave_comment_reply(comment, f"Sorry u/{user}, this post does not appear to be removed/hidden.")
+            comment.reply(f"Sorry u/{author}, this post does not appear to be removed/hidden.")
             return
 
         # ensure the post was not removed by a moderator
         if comment.submission.removed_by_category and comment.submission.removed_by_category.lower() == "moderator":
-            self.leave_comment_reply(comment, f"Sorry u/{user}, this post was removed by a moderator.  To restore "
-                                              f"this post, please submit a modmail request.")
+            subject = 'Petition to Approve Post'
+            url = f'https://reddit.com/comments/{comment.submission.id}'
+            message = f'The following post was removed by a moderator but I am petitioning to have it restored: {url}'
+
+            modmail = (f"[modmail](https://www.reddit.com/message/compose?to=/r/{community}&subject="
+                       f"{html.escape(subject)}&message={html.escape(message)})")
+
+            comment.reply(f"Sorry u/{author}, this post was removed by a moderator.  To restore "
+                          f"this post, please submit a {modmail} request.")
             return
 
-        # ensure a person cannot approve their own post
-        # if comment.author.name == comment.submission.author.name:
-        #     self.leave_comment_reply(comment, f"Sorry u/{user}, you cannot approve your own submission.")
-        #     return
-
         # a perk of special memberships is that you can approve posts even if you don't have enough governance weight
-        if not cache.is_special_member(user, comment.subreddit.display_name):
+        if not cache.is_special_member(author, comment.subreddit.display_name):
             # get user weight
-            weight = cache.get_user_weight(user)
+            user_weight = cache.get_user_weight(author)
+
+            config = Config()
+            approve_weight = config.posts.approve_weight
 
             # ensure they have enough weight to use this command
-            if weight < self.config['posts']['approve_weight']:
-                self.leave_comment_reply(comment,f"Sorry u/{user}, you must have "
-                                         f"{str(self.config['posts']['approve_weight'])} governance weight to "
-                                         f"use this command.")
+            if user_weight < approve_weight:
+                comment.reply(f"Sorry u/{author}, you must have {str(approve_weight)} governance weight to "
+                              f"use this command.")
                 return
 
         # all checks passed, approve the post
         comment.submission.mod.approve()
-        self.leave_comment_reply(comment, f"u/{user} has approved this post.")
+        comment.reply(f"u/{author} has approved this post.")

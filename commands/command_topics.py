@@ -1,10 +1,13 @@
 import json
 import urllib.request
-
 from datetime import datetime, timedelta
 from pathlib import Path
+
+from praw.models import Comment
+
+from commands import Command
+from config import Community
 from database import database
-from commands.command import Command
 
 
 class TopicCommand(Command):
@@ -17,7 +20,7 @@ class TopicCommand(Command):
         database.set_processed_content(comment.fullname, Path(__file__).stem)
         comment.reply(reply)
 
-    def process_comment(self, comment):
+    def process_comment(self, comment: Comment, author: str, community: Community) -> None:
         self.logger.info(f"process post command - content_id: {comment.fullname} | author: {comment.author.name}")
 
         if database.has_processed_content(comment.fullname, Path(__file__).stem) is not None:

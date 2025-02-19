@@ -5,8 +5,11 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from praw.models import Comment
+
 from commands import Command
 from commands.command_register import RegisterCommand
+from config import Community
 from database import database
 from models.offchaintip import OffchainTip
 
@@ -52,14 +55,14 @@ class TipCommand(Command):
 
         # find all the configured tokens for this sub
         self.valid_tokens = {}
-        self.logger.debug("  getting community tokens")
-        community_tokens = self.config["community_tokens"]
-        for ct in community_tokens:
-            community = ct["community"].lower()
-            if community[:2] == "r/":
-                community = community[2:]
-
-            self.valid_tokens[community] = ct["tokens"]
+        # self.logger.debug("  getting community tokens")
+        # community_tokens = self.config["community_tokens"]
+        # for ct in community_tokens:
+        #     community = ct["community"].lower()
+        #     if community[:2] == "r/":
+        #         community = community[2:]
+        #
+        #     self.valid_tokens[community] = ct["tokens"]
 
     def parse_comments_for_tips(self, comment):
         """
@@ -310,7 +313,7 @@ class TipCommand(Command):
         reply += sig
         comment.reply(reply)
 
-    def process_comment(self, comment):
+    def process_comment(self, comment: Comment, author: str, community: Community) -> None:
         self.logger.info(f"process tip command - content_id: {comment.fullname} | author: {comment.author.name}")
 
         if database.has_processed_content(comment.fullname, Path(__file__).stem) is not None:

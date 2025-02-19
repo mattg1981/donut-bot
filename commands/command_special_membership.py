@@ -1,10 +1,14 @@
 import json
-import sqlite3
 import urllib.request
-from pathlib import Path
-from database import database
 from datetime import datetime, timedelta
-from commands.command import Command
+from pathlib import Path
+
+from praw.models import Comment
+
+from commands import Command
+from config import Community
+from database import database
+
 
 class GifCommand(Command):
 
@@ -24,7 +28,7 @@ class GifCommand(Command):
         database.set_processed_content(comment.fullname, Path(__file__).stem)
         comment.reply(reply)
 
-    def process_comment(self, comment):
+    def process_comment(self, comment: Comment, author: str, community: Community) -> None:
         self.logger.info(f"process post command - content_id: {comment.fullname} | author: {comment.author.name}")
 
         if database.has_processed_content(comment.fullname, Path(__file__).stem) is not None:
