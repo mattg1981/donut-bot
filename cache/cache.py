@@ -2,10 +2,12 @@ import json
 import urllib.request
 from datetime import datetime, timedelta
 
+from database import database
 
 CACHE = {
     'users': {},
-    'special_members': {}
+    'special_members': {},
+    'moderators': {},
 }
 
 
@@ -42,3 +44,18 @@ def is_special_member(user: str, community: str) -> bool:
 
     member = next((smember for smember in sm['members'] if smember['redditor'].lower() == user.lower() and (smember['community'] == community.lower() or smember['community'] == 'all')), None)
     return member is not None
+
+
+def is_moderator(user: str, community: str) -> bool:
+    mod_cache = CACHE['moderators']
+
+    # update user list weight (if needed)
+    if "last_update" not in mod_cache or datetime.now() - timedelta(minutes=10) >= mod_cache["last_update"]:
+        dist_round = database.get_distribution_round()
+        result = json.load(urllib.request.urlopen(
+            f'https://raw.githubusercontent.com/mattg1981/donut-bot-output/main/moderators/moderators_{dist_round}.json'))
+
+        mod_cache['mods'] = result
+        mod_cache['last_update'] = datetime.now()
+
+    return next((m for m in mod_cache['mods'] if m["name"] == user and m['community'] == community), None) is not None
