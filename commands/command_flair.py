@@ -23,7 +23,7 @@ class FlairCommand(Command):
                           f"by the flair you would like to set.")
             return
 
-        if not cache.is_special_member(author, community):
+        if not cache.is_special_member(author, community.name):
             comment.reply(f"Sorry u/{author}, this command can only be used by users with a special membership.\n\n"
                           f"[Click here](https://donut-dashboard.com/#/membership) to learn more or to purchase a membership!")
             return
@@ -40,5 +40,5 @@ class FlairCommand(Command):
         RedditAPI().instance.subreddit(comment.subreddit.display_name).flair.set(author, text=new_flair,
                                                                                  flair_template_id="da1b88dc-8e17-11ee-8d85-86deef0eb333")
 
-        database.set_custom_flair(author, community, new_flair)
+        database.set_custom_flair(author, community.name, new_flair)
         comment.reply("Successfully set custom flair.")

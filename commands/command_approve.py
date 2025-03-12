@@ -32,7 +32,7 @@ class ApproveCommand(Command):
             url = f'https://reddit.com/comments/{comment.submission.id}'
             message = f'The following post was removed by a moderator but I am petitioning to have it restored: {url}'
 
-            modmail = (f"[modmail](https://www.reddit.com/message/compose?to=/r/{community}&subject="
+            modmail = (f"[modmail](https://www.reddit.com/message/compose?to=/r/{community.name}&subject="
                        f"{html.escape(subject)}&message={html.escape(message)})")
 
             comment.reply(f"Sorry u/{author}, this post was removed by a moderator.  To restore "

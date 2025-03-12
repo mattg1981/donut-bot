@@ -4,7 +4,7 @@ from praw.models import Comment
 
 from cache import cache
 from commands import Command
-from config import Config, Community, CommunityFeatures
+from config import Community, CommunityFeatures
 from database import database
 
 
@@ -23,9 +23,9 @@ class DailyPinCommand(Command):
         # that can use this command.  If this scenario changes, it would be wise to add config elements at a community
         # level to determine who can use this command
 
-        community_config = next((c for c in Config().communities if c.name.lower() == community), None)
+        # community_config = next((c for c in Config().communities if c.name.lower() == community.name), None)
 
-        if not author in community_config.ignore and not cache.is_moderator(author, community):
+        if not author in community.ignore and not cache.is_moderator(author, community.name):
             comment.reply(f'Sorry u/{author}, this command is only for moderators.')
             return
 
