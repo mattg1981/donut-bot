@@ -3,11 +3,11 @@ import os
 import time
 from logging.handlers import RotatingFileHandler
 
-import praw
 from dotenv import load_dotenv
 
 from commands import Command
 from config import Config
+from reddit.reddit_api import RedditAPI
 
 if __name__ == '__main__':
     # load environment variables from .env file
@@ -24,12 +24,6 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
-                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-                         username=os.getenv('REDDIT_USERNAME'),
-                         password=os.getenv('REDDIT_PASSWORD'),
-                         user_agent='donut-bot (by u/mattg1981)')
-
     # find all the subs that we are supposed to operate on
     config = Config()
     subs = '+'.join([c.name for c in config.communities])
@@ -37,30 +31,32 @@ if __name__ == '__main__':
     # find all the commands that can process comments
     commands = []
     for cls in Command.__subclasses__():
-        commands.append(cls(config, reddit))
+        commands.append(cls())
+
+    # x = is_eligible_to_cast_vote('mattg1981', 't3_1dsfsaz', 'ethtrader')
 
     while True:
         try:
             # for comment in reddit.subreddit(subs).stream.comments(skip_existing=True):
-            for comment in reddit.subreddit(subs).stream.comments():
+            for comment in RedditAPI().instance.subreddit(subs).stream.comments():
 
                 # find the community config for the community this comment was posted in
-                comment_community = next((c for c in config.communities if c.name.lower() ==
+                community = next((c for c in config.communities if c.name.lower() ==
                                           comment.subreddit.display_name.lower()), None)
 
-                if not comment_community:
+                if not community:
                     continue  # should never happen
 
                 if not comment.author:
                     continue  # very rare but has previously occurred
 
-                if comment.author in comment_community.ignore:
+                if comment.author in community.ignore:
                     continue  # ignore comments by certain individuals/bots
 
                 # find all commands that can process this comment
                 for command in [c for c in commands if c.can_handle(comment)]:
                     try:
-                        command.process_comment(comment)
+                        command.process(comment, community)
                     except Exception as cmdException:
                         logger.error(f'cmdException: {cmdException}')
         except Exception as e:
