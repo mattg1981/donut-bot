@@ -231,6 +231,9 @@ if __name__ == '__main__':
 
                 community = submission.subreddit.display_name.lower()
 
+                ### TODO: add new logic here
+                
+
                 excluded = False
                 for excluded_flair in config["posts"]["minimum_word_count_excluded_flairs"]:
                     if '[' + excluded_flair.lower() + ']' in submission.title.lower():
