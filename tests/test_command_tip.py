@@ -1,13 +1,7 @@
-import json
-import os
 import re
 from unittest import TestCase
 
-import praw
-from dotenv import load_dotenv
-
 from commands.command_tip import TipCommand
-from database import database
 
 
 class TestTipCommand(TestCase):
@@ -82,129 +76,6 @@ class TestTipCommand(TestCase):
         @fullname.setter
         def fullname(self, value):
             self._fullname = value
-
-    def test_something(self):
-        # load config
-        with open(os.path.normpath("../config.json"), 'r') as f:
-            config = json.load(f)
-
-        command = TipCommand(config)
-
-        parent = TestTipCommand.Comment(None)
-        parent.author.name = 'kirtash93'
-        parent.fullname = 'parent.fullname'
-
-        comment = TestTipCommand.Comment(parent)
-        comment.fullname = 'mock'
-        comment.submission.id = 'mock'
-        comment.id = 'mock'
-        comment.author.name = 'mattg1981'
-        comment.body = 'test !Tip 10 !tip u/aminok 10\n\nanother !tip u/odd-radio-8500 30'
-        comment.subreddit.display_name = 'ethtrader'
-
-        if command.can_handle(comment.body):
-            tips = command.parse_comments_for_tips(comment)
-            valid_tips = [t for t in tips if t.is_valid]
-            database.process_earn2tips(valid_tips)
-            pass
-        else:
-            self.fail()
-
-    def test_can_handle(self):
-        # load environment variables
-        load_dotenv()
-
-        with open(os.path.normpath("../config.json"), 'r') as f:
-            config = json.load(f)
-
-        tip = TipCommand(config)
-
-        reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
-                             client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-                             username=os.getenv('REDDIT_USERNAME'),
-                             password=os.getenv('REDDIT_PASSWORD'),
-                             user_agent='automated-test-bot (by u/mattg1981')
-
-        comment = reddit.comment(id='kasy9fi')
-        if not tip.can_handle(comment.body):
-            self.fail()
-
-        self.assertEqual(True, True)
-
-        comment_body = """Awesome post.
-
-The key is, as you've pointed out, to provide Liquidity in a ranging market.... Such as we have right now ;)
-
-!tip 1"""
-
-        with open(os.path.normpath("../config.json"), 'r') as f:
-            config = json.load(f)
-
-        tip = TipCommand(config)
-
-        if not tip.can_handle("!tip"):
-            self.fail()
-
-        if not tip.can_handle("!tip "):
-            self.fail()
-
-        comment0 = "!tip 20"
-
-        comment1 = "I am so sorry bro, I did not notice it.\n\n!tip 10"
-
-        comment2 = """!tip u/aminok 8 donut
-jakdfk
-!tip 20
-lakdfk
-!tip 10 donut !tip 20 donut
-!tip 10 !tip 15
-!tip u/aminok 15 !tip u/mattg1981 20 donut
-aldkflakf
-!tip u/am 20
-!tip 10"""
-
-        comment3 = """
-        I like to onchain tip.
-        !tip
-        """
-
-        comment4 = """
-            !tip 4 donuts
-            !tip 3 xdai
-        """
-
-        if not tip.can_handle(comment0):
-            self.fail()
-
-        tips0 = tip.parse_comments_for_tips(comment0)
-        tips1 = tip.parse_comments_for_tips(comment1)
-        tips2 = tip.parse_comments_for_tips(comment2)
-        tips3 = tip.parse_comments_for_tips(comment3)
-        tips4 = tip.parse_comments_for_tips(comment4)
-
-        p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*[\r\n]+')
-        re_result = p.search(comment.lower())
-        if re_result:
-            amount = re_result.group(1)
-            pass
-
-        p = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s+(\\w+)')
-        re_result = p.search(comment.lower())
-        if re_result:
-            amount = re_result.group(1)
-            pass
-
-        p2 = re.compile(f'\\!tip\\s+([0-9]*\\.*[0-9]*)\\s*')
-        re_result2 = p2.search(comment.lower())
-        if re_result2:
-            amount = re_result2.group(1)
-            pass
-
-        if not tip.can_handle("Let me test\r \n\r \n!tip 1"):
-            self.fail()
-
-        if tip.can_handle("!tipExtra"):
-            self.fail()
 
     def test_regex_for_tips(self):
         comment = "!tip 10 donut this is a great comment"

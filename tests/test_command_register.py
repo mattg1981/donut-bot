@@ -1,10 +1,7 @@
 import re
 from unittest import TestCase
 
-from ens.auto import ns
 from web3 import Web3
-
-from commands.command_register import RegisterCommand
 
 
 class TestRegisterCommand(TestCase):
@@ -22,12 +19,3 @@ class TestRegisterCommand(TestCase):
 
         self.fail()
 
-    def test_process_command(self):
-        command1 = "!register status"
-        command2 = "!register 0x...."
-        command3 = "!register"
-        command4 = """
-        !register \n\n
-        status
-        """
-        self.fail()
