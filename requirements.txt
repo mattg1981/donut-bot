@@ -1,7 +1,7 @@
-praw~=7.7.1
+praw~=7.8.1
 web3~=6.11.2
 python-dotenv~=1.0.0
-requests~=2.31.0
+requests~=2.32.3
 gql~=3.5.0
 setuptools~=69.2.0
 requests-toolbelt~=1.0.0
