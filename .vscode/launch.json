@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "post-bot",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "bots/post-bot.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "donut-bot",
             "type": "debugpy",
             "request": "launch",
