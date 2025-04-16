@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sqlite3
+import sys
 import time
 import urllib.request
 from datetime import datetime, timedelta
@@ -11,7 +12,9 @@ from logging.handlers import RotatingFileHandler
 import praw
 from dotenv import load_dotenv
 
-#from cache import cache
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+from cache import cache
 
 
 def get_submission_topic(submission, topics, community):
@@ -261,17 +264,17 @@ if __name__ == "__main__":
 
                 community = submission.subreddit.display_name.lower()
 
-                # if submission.is_reddit_media_domain:
-                #     if not cache.is_special_member(submission.author.name, community):
-                #         submission.reply(
-                #             f"Your post was removed from r/{community} because media posts are reserved for special "
-                #             f"members. Please visit [this link] (https://donut-dashboard.com/#/membership) to learn "
-                #             f"more or to purchase a membership.  Otherwise, you can re-submit with a link to the "
-                #             f"media in the body of the post."
-                #         )
-                #         submission.mod.lock()
-                #         submission.mod.remove(spam=False)
-                #         continue
+                if submission.is_reddit_media_domain:
+                    if not cache.is_special_member(submission.author.name, community):
+                        submission.reply(
+                            f"Your post was removed from r/{community} because media posts are reserved for special "
+                            f"members. Please visit [this link] (https://donut-dashboard.com/#/membership) to learn "
+                            f"more or to purchase a membership.  Otherwise, you can re-submit with a link to the "
+                            f"media in the body of the post."
+                        )
+                        submission.mod.lock()
+                        submission.mod.remove(spam=False)
+                        continue
 
                 excluded = False
                 for excluded_flair in config["posts"][
