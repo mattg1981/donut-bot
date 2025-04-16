@@ -1,15 +1,17 @@
 import json
 import logging
 import os
+import re
 import sqlite3
 import time
-import re
 import urllib.request
-import praw
-
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
+
+import praw
 from dotenv import load_dotenv
+
+from cache import cache
 
 
 def get_submission_topic(submission, topics, community):
@@ -43,41 +45,48 @@ def get_submission_topic(submission, topics, community):
 
 
 def is_daily(submission):
-    return "daily general discussion - " in submission.title.lower() and "(utc+0)" in submission.title.lower()
+    return (
+        "daily general discussion - " in submission.title.lower()
+        and "(utc+0)" in submission.title.lower()
+    )
 
 
 def build_sticky_comment(submission, topic):
-    reply_message = (f"{submission.author.name}, this comment  logs the Pay2Post fee, an anti-spam mechanism where a "
-                     f"DONUT 'tax' is deducted from your distribution share for each post submitted. Learn more ["
-                     f"here](https://www.reddit.com/r/ethtrader/comments/199ht5i"
-                     f"/governance_poll_dynamic_pay2post_fee_target/)."
-    
-                     f"\n\ncc: u/pay2post-ethtrader\n\n"
-                     f"----------\n\n")
+    reply_message = (
+        f"{submission.author.name}, this comment  logs the Pay2Post fee, an anti-spam mechanism where a "
+        f"DONUT 'tax' is deducted from your distribution share for each post submitted. Learn more ["
+        f"here](https://www.reddit.com/r/ethtrader/comments/199ht5i"
+        f"/governance_poll_dynamic_pay2post_fee_target/)."
+        f"\n\ncc: u/pay2post-ethtrader\n\n"
+        f"----------\n\n"
+    )
 
     if not is_daily(submission):
-        onchain_link = f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
+        onchain_link = (
+            f"https://www.donut.finance/tip/?action=tip&contentId={submission.fullname}"
+        )
 
         if topic:
             reply_message += f"Topic: {topic['display_name']}\n\n"
-            reply_message += ("Learn more about topics limits [here](https://www.reddit.com/r/ethtrader/comments/1fyb8rv/rethtrader_automated_topic_limiter_topics_allowed/).\n\n")
+            reply_message += "Learn more about topics limits [here](https://www.reddit.com/r/ethtrader/comments/1fyb8rv/rethtrader_automated_topic_limiter_topics_allowed/).\n\n"
             reply_message += "----------\n\n"
 
-        reply_message += f"Understand how Donuts and tips work by reading the [beginners guide](https://www.reddit.com/r/ethtrader/comments/1ftnx4t/megathread_comprehensive_guide_to_rethtrader/).\n\n"
+        reply_message += "Understand how Donuts and tips work by reading the [beginners guide](https://www.reddit.com/r/ethtrader/comments/1ftnx4t/megathread_comprehensive_guide_to_rethtrader/).\n\n"
         reply_message += "----------\n\n"
 
         reply_message += f"[Click here to tip this post on-chain]({onchain_link})\n\n"
         # reply_message += "Tip confirmations below.\n\n"
 
-        logger.info(f"  send reply...")
+        logger.info("  send reply...")
         reply = submission.reply(reply_message)
 
-        logger.info(f"  distinguish comment...")
+        logger.info("  distinguish comment...")
         reply.mod.distinguish(sticky=True)
         return reply.fullname
 
+
 def create_post_meta(submission, comment_thread_id):
-    logger.info(f"  store meta in db...")
+    logger.info("  store meta in db...")
 
     author = submission.author
     if submission.author:
@@ -89,19 +98,24 @@ def create_post_meta(submission, comment_thread_id):
             VALUES (?, ?, ?, ?, ?, ?);
         """
         cursor = db.cursor()
-        cursor.execute(sql, [submission.fullname,
-                             comment_thread_id,
-                             author,
-                             is_daily(submission),
-                             datetime.utcfromtimestamp(submission.created_utc),
-                             submission.subreddit.display_name.lower()])
+        cursor.execute(
+            sql,
+            [
+                submission.fullname,
+                comment_thread_id,
+                author,
+                is_daily(submission),
+                datetime.utcfromtimestamp(submission.created_utc),
+                submission.subreddit.display_name.lower(),
+            ],
+        )
 
-    logger.info(f"  done.")
+    logger.info("  done.")
 
 
 def eligible_to_submit(submission):
-    max_posts_per_24_hours = int(config['posts']['max_per_24_hours'])
-    post_cooldown_in_minutes = int(config['posts']['post_cooldown_in_minutes'])
+    max_posts_per_24_hours = int(config["posts"]["max_per_24_hours"])
+    post_cooldown_in_minutes = int(config["posts"]["post_cooldown_in_minutes"])
 
     post_per_day_sql = f"""
         select count(*) < {max_posts_per_24_hours} as eligible_to_post
@@ -131,17 +145,25 @@ def eligible_to_submit(submission):
 
     can_post = True
 
-    if eligibility_check and not eligibility_check['eligible_to_post']:
+    if eligibility_check and not eligibility_check["eligible_to_post"]:
         can_post = False
-        submission.reply(f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a "
-                         f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
-                         f"check your posting eligibility.")
+        submission.reply(
+            f"Sorry u/{submission.author.name}, you may only submit {max_posts_per_24_hours} posts per a "
+            f"24-hour window.  Please try again later.\n\nYou may also use the `!post status` command to "
+            f"check your posting eligibility."
+        )
 
-    if can_post and post_cooldown_check and not post_cooldown_check['eligible_to_post_cooldown']:
+    if (
+        can_post
+        and post_cooldown_check
+        and not post_cooldown_check["eligible_to_post_cooldown"]
+    ):
         can_post = False
-        submission.reply(f"Sorry u/{submission.author.name}, you may only submit a new post every "
-                         f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
-                         f"`!post status` command to check your posting eligibility.")
+        submission.reply(
+            f"Sorry u/{submission.author.name}, you may only submit a new post every "
+            f"{post_cooldown_in_minutes} minutes!  Please try again later.\n\nYou may also use the "
+            f"`!post status` command to check your posting eligibility."
+        )
 
     if not can_post:
         create_post_meta(submission, None)
@@ -153,7 +175,7 @@ def eligible_to_submit(submission):
 
 
 def previously_processed(submission):
-    sql = f"""
+    sql = """
             select *
             from post
             where submission_id = ?
@@ -166,21 +188,25 @@ def previously_processed(submission):
         return cursor.fetchone()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # load environment variables
     load_dotenv()
 
     # load config
-    with open(os.path.normpath("../config.json"), 'r') as f:
+    with open(os.path.normpath("../config.json"), "r") as f:
         config = json.load(f)
 
     # set up logging
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     logger = logging.getLogger("post_bot")
     logger.setLevel(logging.INFO)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     log_path = os.path.join(base_dir, "../logs/post-bot.log")
-    handler = RotatingFileHandler(os.path.normpath(log_path), maxBytes=2500000, backupCount=4)
+    handler = RotatingFileHandler(
+        os.path.normpath(log_path), maxBytes=2500000, backupCount=4
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -189,14 +215,16 @@ if __name__ == '__main__':
     db_path = os.path.join(BASE_DIR, "../database/donut-bot.db")
     db_path = os.path.normpath(db_path)
 
-    username = os.getenv('REDDIT_USERNAME')
+    username = os.getenv("REDDIT_USERNAME")
 
     # creating an authorized reddit instance
-    reddit = praw.Reddit(client_id=os.getenv('REDDIT_CLIENT_ID'),
-                         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-                         username=username,
-                         password=os.getenv('REDDIT_PASSWORD'),
-                         user_agent='post-bot (by u/mattg1981)')
+    reddit = praw.Reddit(
+        client_id=os.getenv("REDDIT_CLIENT_ID"),
+        client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
+        username=username,
+        password=os.getenv("REDDIT_PASSWORD"),
+        user_agent="post-bot (by u/mattg1981)",
+    )
 
     subs = ""
     for idx, community_token in enumerate(config["community_tokens"]):
@@ -205,7 +233,7 @@ if __name__ == '__main__':
             community = community[2:]
         subs += community
         if idx < len(config["community_tokens"]) - 1:
-            subs += '+'
+            subs += "+"
 
     # users listed in ignore_list are not restricted to a limited number of posts
     # be sure to user lowercase when adding to this list
@@ -223,7 +251,9 @@ if __name__ == '__main__':
                 if not submission.author or submission.author.name == username:
                     continue
 
-                logger.info(f"processing submission: {submission.fullname} [{submission.title}]")
+                logger.info(
+                    f"processing submission: {submission.fullname} [{submission.title}]"
+                )
 
                 if previously_processed(submission):
                     logger.info(f"  {submission.fullname} already processed.")
@@ -231,27 +261,43 @@ if __name__ == '__main__':
 
                 community = submission.subreddit.display_name.lower()
 
-                ### TODO: add new logic here
-                
+                if submission.is_reddit_media_domain:
+                    if not cache.is_special_member(submission.author.name, community):
+                        submission.reply(
+                            f"Your post was removed from r/{community} because media posts are reserved for special "
+                            f"members. Please visit [this link] (https://donut-dashboard.com/#/membership) to learn "
+                            f"more or to purchase a membership.  Otherwise, you can re-submit with a link to the "
+                            f"media in the body of the post."
+                        )
+                        submission.mod.lock()
+                        submission.mod.remove(spam=False)
+                        continue
 
                 excluded = False
-                for excluded_flair in config["posts"]["minimum_word_count_excluded_flairs"]:
-                    if '[' + excluded_flair.lower() + ']' in submission.title.lower():
+                for excluded_flair in config["posts"][
+                    "minimum_word_count_excluded_flairs"
+                ]:
+                    if "[" + excluded_flair.lower() + "]" in submission.title.lower():
                         excluded = True
                         break
 
                 # exclude word count minimum and topic limiting for users in ignore_list
                 post_topic = None
-                if not submission.author.name.lower() in ignore_list:
+                if submission.author.name.lower() not in ignore_list:
                     # exclude word count minimum if using a standardized title
-                    for title in config['posts']['bypass_word_count_by_title']:
+                    for title in config["posts"]["bypass_word_count_by_title"]:
                         if title.lower() in submission.title.lower():
                             excluded = True
 
-                    if not excluded and submission.is_self and len(submission.selftext.split()) < \
-                            config["posts"]["minimum_word_count"]:
-
-                        logger.info(f"  removed due to minimum_word_count={config['posts']['minimum_word_count']}")
+                    if (
+                        not excluded
+                        and submission.is_self
+                        and len(submission.selftext.split())
+                        < config["posts"]["minimum_word_count"]
+                    ):
+                        logger.info(
+                            f"  removed due to minimum_word_count={config['posts']['minimum_word_count']}"
+                        )
 
                         create_post_meta(submission, None)
 
@@ -259,30 +305,40 @@ if __name__ == '__main__':
                             f"Your post was removed from r/{community} because it's too short (minimum of "
                             f"{config['posts']['minimum_word_count']} words). You can still see it, but nobody else "
                             f"can. Feel free to resubmit your post with more text in the body to help direct the "
-                            f"discussion. Thanks!")
+                            f"discussion. Thanks!"
+                        )
                         submission.mod.lock()
                         submission.mod.remove(spam=False)
                         continue
 
                     # refresh topic limits
-                    if ("last_update" not in TOPIC_LIMITS or datetime.now() - timedelta(minutes=6) >=
-                            TOPIC_LIMITS["last_update"]):
+                    if (
+                        "last_update" not in TOPIC_LIMITS
+                        or datetime.now() - timedelta(minutes=6)
+                        >= TOPIC_LIMITS["last_update"]
+                    ):
                         logger.info("  update TOPIC_LIMITS...")
-                        TOPIC_LIMITS['last_update'] = datetime.now()
+                        TOPIC_LIMITS["last_update"] = datetime.now()
                         try:
-                            TOPIC_LIMITS['topics'] = json.load(urllib.request.urlopen(
-                                "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"))
+                            TOPIC_LIMITS["topics"] = json.load(
+                                urllib.request.urlopen(
+                                    "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_meta.json"
+                                )
+                            )
                         except Exception:
                             logger.error("Failed to load topic_meta - invalid .json")
 
                         try:
-                            TOPIC_LIMITS['limits'] = json.load(urllib.request.urlopen(
-                                "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"))
+                            TOPIC_LIMITS["limits"] = json.load(
+                                urllib.request.urlopen(
+                                    "https://raw.githubusercontent.com/EthTrader/topic-limiting/main/topic_limits.json"
+                                )
+                            )
                         except Exception:
                             logger.error("Failed to load topic_limits - invalid .json")
 
-                    topics = TOPIC_LIMITS['topics']
-                    limits = TOPIC_LIMITS['limits']['data']
+                    topics = TOPIC_LIMITS["topics"]
+                    limits = TOPIC_LIMITS["limits"]["data"]
 
                     # topic limiting is performed before create_post_meta - so if a post is removed for
                     # being limited, it will not count against the XX posts per day limit
@@ -290,27 +346,36 @@ if __name__ == '__main__':
 
                     if post_topic:
                         logger.info(f"  topic detected: {post_topic['display_name']}")
-                        topic_meta = next(t for t in limits if t['display_name'] == post_topic['display_name'] and
-                                          t['community'] == community)
+                        topic_meta = next(
+                            t
+                            for t in limits
+                            if t["display_name"] == post_topic["display_name"]
+                            and t["community"] == community
+                        )
 
                         if topic_meta["current"] >= topic_meta["limit"]:
-                            logger.info(f"  removed due to topic limiting: {topic_meta}")
+                            logger.info(
+                                f"  removed due to topic limiting: {topic_meta}"
+                            )
                             create_post_meta(submission, None)
                             submission.reply(
                                 f"Sorry u/{submission.author.name}, topic limiting is in effect and only allows "
                                 f"{topic_meta['limit']} posts about **{topic_meta['display_name']}** "
-                                f"in the Hot 50 at a given time. Please try again later...")
+                                f"in the Hot 50 at a given time. Please try again later..."
+                            )
                             submission.mod.lock()
                             submission.mod.remove(spam=False)
                             continue
 
                 # todo: currently, eligible_to_submit will remove the post but would read better if
                 #  that logic was performed here
-                if submission.author.name.lower() in ignore_list or eligible_to_submit(submission):
+                if submission.author.name.lower() in ignore_list or eligible_to_submit(
+                    submission
+                ):
                     comment_thread_id = build_sticky_comment(submission, post_topic)
                     create_post_meta(submission, comment_thread_id)
 
         except Exception as e:
             logger.error(e)
-            logger.info('sleeping 30 seconds ...')
+            logger.info("sleeping 30 seconds ...")
             time.sleep(30)
