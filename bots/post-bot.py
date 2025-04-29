@@ -264,8 +264,21 @@ if __name__ == "__main__":
 
                 community = submission.subreddit.display_name.lower()
 
+                logger.info(
+                    f"checking is_reddit_media_domain: {submission.is_reddit_media_domain}]"
+                )
+
                 if submission.is_reddit_media_domain:
+                    logger.info(
+                        f"is_reddit_media_domain => true]"
+                    )
+
                     if not cache.is_special_member(submission.author.name, community):
+
+                        logger.info(
+                            f"  removed due to is_reddit_media_domain and not special member"
+                        )
+
                         submission.reply(
                             f"Your post was removed from r/{community} because media posts are reserved for special "
                             f"members. Please visit [this link] (https://donut-dashboard.com/#/membership) to learn "
@@ -275,6 +288,11 @@ if __name__ == "__main__":
                         submission.mod.lock()
                         submission.mod.remove(spam=False)
                         continue
+
+                    else:
+                        logger.info(
+                            f"  is_reddit_media_domain => true and special member => true"
+                        )
 
                 excluded = False
                 for excluded_flair in config["posts"][
