@@ -15,12 +15,12 @@ def get_user_weight(user: str) -> int:
     :param user: The user
     :return:  The users governance weight
     """
-    config = json.load(open('config.json'))
+    #config = json.load(open('config.json'))
     u = CACHE['users']
 
     # update user list weight (if needed)
     if "last_update" not in u or datetime.now() - timedelta(minutes=30) >= u["last_update"]:
-        u['users'] = json.load(urllib.request.urlopen(config["users_location"]))
+        u['users'] = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
         u['last_update'] = datetime.now()
 
     return next((u['weight'] for u in u['users'] if u['username'].lower() == user.lower()), 0)
