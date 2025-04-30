@@ -265,18 +265,14 @@ if __name__ == "__main__":
                 community = submission.subreddit.display_name.lower()
 
                 logger.info(
-                    f"checking is_reddit_media_domain: {submission.is_reddit_media_domain}"
+                    f"  is_reddit_media_domain: {submission.is_reddit_media_domain}"
                 )
 
                 if submission.is_reddit_media_domain:
-                    logger.info(
-                        f"  is_reddit_media_domain => true"
-                    )
-
                     if not cache.is_special_member(submission.author.name, community):
 
                         logger.info(
-                            f"  removed due to is_reddit_media_domain and not special member"
+                            f"  is_special_member => false; removed..."
                         )
 
                         submission.reply(
@@ -291,7 +287,7 @@ if __name__ == "__main__":
 
                     else:
                         logger.info(
-                            f"  is_reddit_media_domain => true and special member => true"
+                            f"  is_reddit_media_domain => true and special member => true; allow..."
                         )
 
                 excluded = False
