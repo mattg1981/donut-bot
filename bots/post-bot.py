@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
                 if submission.is_reddit_media_domain:
                     logger.info(
-                        f"is_reddit_media_domain => true]"
+                        f"  is_reddit_media_domain => true"
                     )
 
                     if not cache.is_special_member(submission.author.name, community):
