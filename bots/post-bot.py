@@ -265,7 +265,7 @@ if __name__ == "__main__":
                 community = submission.subreddit.display_name.lower()
 
                 logger.info(
-                    f"checking is_reddit_media_domain: {submission.is_reddit_media_domain}]"
+                    f"checking is_reddit_media_domain: {submission.is_reddit_media_domain}"
                 )
 
                 if submission.is_reddit_media_domain:
