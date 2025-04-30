@@ -32,12 +32,12 @@ def is_special_member(user: str, community: str) -> bool:
     :param community: The community
     :return: True if the user is a special member, False otherwise
     """
-    config = json.load(open('config.json'))
+    #config = json.load(open('config.json'))
     sm = CACHE['special_members']
 
     # update user list weight (if needed)
     if "last_update" not in sm or datetime.now() - timedelta(minutes=10) >= sm["last_update"]:
-        sm['members'] = json.load(urllib.request.urlopen(config["membership"]['members']))
+        sm['members'] = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/EthTrader/memberships/main/members.json"))
         sm['last_update'] = datetime.now()
 
     member = next((smember for smember in sm['members'] if smember['redditor'].lower() == user.lower() and (smember['community'] == community.lower() or smember['community'] == 'all')), None)
