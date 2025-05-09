@@ -290,6 +290,12 @@ if __name__ == "__main__":
                             f"  is_reddit_media_domain => true and special member => true; allow..."
                         )
 
+                if "post_hint" in submission:
+                    logger.info(f"  post_hint: {submission.post_hint}")
+
+                if "domain" in submission:
+                    logger.info(f"  domain: {submission.domain}")
+
                 excluded = False
                 for excluded_flair in config["posts"][
                     "minimum_word_count_excluded_flairs"
