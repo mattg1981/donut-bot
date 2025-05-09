@@ -291,10 +291,14 @@ if __name__ == "__main__":
                         )
 
                 try:
-                    logger.info(f"  post_hint: {submission.post_hint}")
                     logger.info(f"  domain: {submission.domain}")
                 except Exception as e:
-                    logger.info(f"  error getting post_hint/domain: {e}")
+                    logger.info(f"  error getting domain: {e}")
+
+                try:
+                    logger.info(f"  post_hint: {submission.post_hint}")
+                except Exception as e:
+                    logger.info(f"  error getting post_hint: {e}")
 
                 excluded = False
                 for excluded_flair in config["posts"][
