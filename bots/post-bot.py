@@ -268,7 +268,20 @@ if __name__ == "__main__":
                     f"  is_reddit_media_domain: {submission.is_reddit_media_domain}"
                 )
 
-                if submission.is_reddit_media_domain:
+                post_hint = None
+
+                try:
+                    logger.info(f"  post_hint: {submission.post_hint}")
+                    post_hint = submission.post_hint
+                except Exception as e:
+                    logger.info(f"  post_hint is not present...")
+
+                special_membership_required = False
+                if post_hint and not 'self' in post_hint and not 'link' in post_hint:
+                    logger.info('    special membership required for this post_hint...')
+                    special_membership_required = True
+
+                if submission.is_reddit_media_domain or special_membership_required:
                     if not cache.is_special_member(submission.author.name, community):
 
                         logger.info(
@@ -289,16 +302,6 @@ if __name__ == "__main__":
                         logger.info(
                             f"  is_reddit_media_domain => true and special member => true; allow..."
                         )
-
-                try:
-                    logger.info(f"  domain: {submission.domain}")
-                except Exception as e:
-                    logger.info(f"  error getting domain: {e}")
-
-                try:
-                    logger.info(f"  post_hint: {submission.post_hint}")
-                except Exception as e:
-                    logger.info(f"  error getting post_hint: {e}")
 
                 excluded = False
                 for excluded_flair in config["posts"][
