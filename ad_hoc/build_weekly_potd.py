@@ -46,6 +46,7 @@ if __name__ == '__main__':
 
     sql = """
         select week_number,
+               year,
                post_id,
                res.weight,
                votes,
@@ -53,11 +54,13 @@ if __name__ == '__main__':
                sum(e2t.amount) as tips_sum,
                ROW_NUMBER() OVER (ORDER BY res.weight desc) as 'rank'
         from (select strftime('%W', created_date) as 'week_number',
+        					strftime('%Y', created_date) as 'year',
                      post_id,
                      sum(weight)                  as 'weight',
                      count(id)                    as 'votes'
               from potd
               where cast(strftime('%W', created_date) as int) = cast(strftime('%W', datetime()) as int) - 1
+                AND cast(strftime('%Y', created_date) as int) = cast(strftime('%Y', datetime()) as int)
               group by strftime('%W', created_date), post_id
               order by sum(weight) desc) res
         left join earn2tip e2t on e2t.parent_content_id = res.post_id
@@ -116,6 +119,7 @@ if __name__ == '__main__':
             'nominations': post['votes'],
             'weight': post['weight'],
             'week_number': int(post['week_number']),
+            'year': int(post['year']),
             'post': {
                 'post_id': post['post_id'],
                 'author': author,
@@ -131,6 +135,7 @@ if __name__ == '__main__':
 
         potd_winners_this_round.append({
             'week_number': int(post['week_number']),
+            'year': int(post['year']),
             'rank': post['rank'],
             'author': author,
             'post_id': post['post_id'],
