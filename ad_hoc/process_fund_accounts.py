@@ -92,9 +92,14 @@ if __name__ == '__main__':
 
     logger.info(f"querying arbiscan with starting block: {starting_block}...")
 
+    # json_result = json.load(urllib.request.urlopen(
+    #     f"https://api.arbiscan.io/api?module=account&action=tokentx&address={config['contracts']['arb1']['multi-sig']}"
+    #     f"&startblock=0&endblock=99999999&page=1&offset=10000&sort=asc"
+    #     f"&apikey={os.getenv('ARBISCAN_API_KEY')}"))
+
     json_result = json.load(urllib.request.urlopen(
-        f"https://api.arbiscan.io/api?module=account&action=tokentx&address={config['contracts']['arb1']['multi-sig']}"
-        f"&startblock=0&endblock=99999999&page=1&offset=10000&sort=asc"
+        f"https://api.etherscan.io/v2/api?chainid=42161&module=account&action=tokentx&address={config['contracts']['arb1']['multi-sig']}"
+        f"&startblock={starting_block}&page=1&offset=10000&sort=asc"
         f"&apikey={os.getenv('ARBISCAN_API_KEY')}"))
 
     logger.info(f"{len(json_result['result'])} transaction(s) found")
@@ -119,11 +124,11 @@ if __name__ == '__main__':
         exit(4)
 
     for tx in json_result["result"]:
-
+        # this bug has been corrected and this check should no longer be needed
         # there is a bug with the arbiscan api where if you supply any number > 0 as the starting block it will not
         # return results.  So we request all records and then filter here instead.
-        if int(tx['blockNumber']) < starting_block:
-            continue
+        # if int(tx['blockNumber']) < starting_block:
+        #     continue
 
         # only concern ourselves with pre-screened/valid tokens
         # and ensure they are not from addresses that should be ignored
