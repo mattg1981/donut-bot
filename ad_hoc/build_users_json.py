@@ -36,23 +36,25 @@ if __name__ == '__main__':
 
     user_json = json.load(urllib.request.urlopen("https://ethtrader.github.io/donut.distribution/users.json"))
 
-    ### download registration details from the dao website
-    dao_user_json = json.load(urllib.request.urlopen("https://donut-dao-registration-submissions.s3.us-east-2.amazonaws.com/data/new-users.json"))
+    try:
+        ### download registration details from the dao website
+        dao_user_json = json.load(urllib.request.urlopen("https://donut-dao-registration-submissions.s3.us-east-2.amazonaws.com/data/new-users.json"))
 
-    for dao_user in dao_user_json:
-        # check if user exists in the database already
-        db_user_exists = database.get_user_by_name(dao_user["username"])
+        for dao_user in dao_user_json:
+            # check if user exists in the database already
+            db_user_exists = database.get_user_by_name(dao_user["username"])
 
-        if db_user_exists:
-            # do not update the address if they exist.  this is a safety precaution to prevent someone
-            # from trying to maliciously change the wallet address using the dao website.  to prevent this,
-            # the dao website can only be used for NEW registrations.
-            print(f"user from donutdao.org json file already exists [{dao_user['username']}], skipping...")
-            continue
-        else:
-            print(f'add user from donutdao.org json file: [{dao_user["username"]}]')
-            database.insert_or_update_address(dao_user["username"], dao_user["wallet"], 'dao')
-
+            if db_user_exists:
+                # do not update the address if they exist.  this is a safety precaution to prevent someone
+                # from trying to maliciously change the wallet address using the dao website.  to prevent this,
+                # the dao website can only be used for NEW registrations.
+                print(f"user from donutdao.org json file already exists [{dao_user['username']}], skipping...")
+                continue
+            else:
+                print(f'add user from donutdao.org json file: [{dao_user["username"]}]')
+                database.insert_or_update_address(dao_user["username"], dao_user["wallet"], 'dao')
+    except Exception as e:
+        print(e)
 
     out_file = "../temp/users.json"
 
