@@ -254,9 +254,10 @@ if __name__ == "__main__":
                 if not submission.author or submission.author.name == username:
                     continue
 
-                logger.info(
-                    f"processing submission: {submission.fullname} [{submission.title}]"
-                )
+                try:
+                    logger.info(f"processing submission by [{submission.author.name}]: {submission.fullname} [{submission.title}]")
+                except Exception as e:
+                    logger.error("error processing submission: {e})")
 
                 if previously_processed(submission):
                     logger.info(f"  {submission.fullname} already processed.")
