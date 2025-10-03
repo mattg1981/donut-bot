@@ -67,8 +67,10 @@ if __name__ == '__main__':
 
         # max_event_block = int(season['event_block'])
 
-        owners = membership_contract.functions.owners().call()
-        for owner in owners:
+        owners = membership_contract.functions.getActiveMemberships().call()
+
+        for o in owners:
+            owner = o[1]
             redditor = next((x["username"] for x in registered_users if x['address'].lower() == owner.lower()), None)
 
             if not redditor:
