@@ -40,5 +40,6 @@ def is_special_member(user: str, community: str) -> bool:
         sm['members'] = json.load(urllib.request.urlopen("https://raw.githubusercontent.com/EthTrader/memberships/main/members.json"))
         sm['last_update'] = datetime.now()
 
-    member = next((smember for smember in sm['members'] if smember['redditor'].lower() == user.lower() and (smember['community'] == community.lower() or smember['community'] == 'all')), None)
+    member = next((special_member for special_member in sm['members'] if special_member['redditor'].lower() == user.lower() and
+                   (special_member['community'].lower() == community.lower() or special_member['community'].lower() == 'all')), None)
     return member is not None
