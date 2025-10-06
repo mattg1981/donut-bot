@@ -2,7 +2,7 @@ import json
 import os.path
 import sqlite3
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from web3 import Web3
@@ -72,9 +72,9 @@ if __name__ == '__main__':
                 "owner": owner,
                 "redditor": redditor,
                 "created": created,
-                "created_string": datetime.fromtimestamp(created).strftime('%Y-%m-%d %H:%M:%S UTC'),
+                "created_string": datetime.fromtimestamp(created, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
                 "expires": expires,
-                "expires_string": datetime.fromtimestamp(expires).strftime('%Y-%m-%d %H:%M:%S UTC'),
+                "expires_string": datetime.fromtimestamp(expires, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
                 "community": contract["community"],
             }
 
