@@ -159,6 +159,8 @@ def set_flair_for_user(fullname, user, community):
         cur.execute(registered_sql, [user])
         registered_lookup = cur.fetchone()
 
+        logger.info(f"  registered result: {registered_lookup}")
+
         # dont lookup if user can update flair if they arent registered
         if registered_lookup:
             cur.execute(can_update_sql, [user])
@@ -353,19 +355,15 @@ if __name__ == '__main__':
                                    submission.subreddit.display_name.lower())
 
             for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
-                logger.info("debug -> comment check")
                 if comment is None:
                     break
 
-                logger.info("debug -> comment author check")
                 if not comment.author or comment.author.name == username:
                     continue
 
-                logger.info("debug -> ignore_list")
                 if comment.author.name.lower() in ignore_list:
                     continue
 
-                logger.info("debug -> entering set_flair_for_user")
                 set_flair_for_user(comment.fullname, comment.author.name, comment.subreddit.display_name.lower())
 
             time.sleep(10)
