@@ -15,6 +15,8 @@ from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
+import cache.cache
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 from database import database
@@ -165,6 +167,7 @@ def set_flair_for_user(fullname, user, community):
         if registered_lookup:
             cur.execute(can_update_sql, [user])
             user_lookup = cur.fetchone()
+            logger.info(f"  user_lookup result: {user_lookup}")
 
     if not registered_lookup:
         logger.info(f"  not registered.")
@@ -180,14 +183,19 @@ def set_flair_for_user(fullname, user, community):
         return
 
     special_member_lp = False
-    special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
-                           and m['type'] == 'lp'), None)
+    # special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
+    #                        and m['type'] == 'lp'), None)
 
-    if special_member:
-        special_member_lp = True
-    if not special_member:
-        special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
-                               and m['community'].lower() == community), None)
+    logger.info(f"  user: {user}")
+    logger.info(f"  community: {community}")
+
+    special_member = cache.cache.is_special_member(user, community)
+
+    # if special_member:
+    #     special_member_lp = True
+    # if not special_member:
+    #     special_member = next((m for m in SPECIAL_MEMBERS['members'] if m['redditor'].lower() == user.lower()
+    #                            and m['community'].lower() == community), None)
 
     if special_member:
         logger.info("  special member...")
@@ -210,6 +218,7 @@ def set_flair_for_user(fullname, user, community):
         flair_text = f":donut: {display_number(result.donuts)} / ⚖️ {display_number(result.contrib)}"
 
         if result.lp > 0:
+            special_member_lp = True
             flair_text = flair_text + f" / :sushi: {format(result.lp, '.4f')}%"
 
     if special_member:
@@ -336,10 +345,10 @@ if __name__ == '__main__':
 
     while True:
         try:
-            if "last_update" not in SPECIAL_MEMBERS or datetime.now() - timedelta(minutes=12) >= SPECIAL_MEMBERS[
-                "last_update"]:
-                SPECIAL_MEMBERS['last_update'] = datetime.now()
-                SPECIAL_MEMBERS['members'] = json.load(urllib.request.urlopen(config['membership']['members']))
+            # if "last_update" not in SPECIAL_MEMBERS or datetime.now() - timedelta(minutes=12) >= SPECIAL_MEMBERS[
+            #     "last_update"]:
+            #     SPECIAL_MEMBERS['last_update'] = datetime.now()
+            #     SPECIAL_MEMBERS['members'] = json.load(urllib.request.urlopen(config['membership']['members']))
 
             for submission in reddit.subreddit(subs).stream.submissions(pause_after=-1):
                 if submission is None:
