@@ -353,20 +353,24 @@ if __name__ == '__main__':
                                    submission.subreddit.display_name.lower())
 
             for comment in reddit.subreddit(subs).stream.comments(pause_after=-1):
+                logger.info("debug -> comment check")
                 if comment is None:
                     break
 
+                logger.info("debug -> comment author check")
                 if not comment.author or comment.author.name == username:
                     continue
 
+                logger.info("debug -> ignore_list")
                 if comment.author.name.lower() in ignore_list:
                     continue
 
+                logger.info("debug -> entering set_flair_for_user")
                 set_flair_for_user(comment.fullname, comment.author.name, comment.subreddit.display_name.lower())
 
             time.sleep(10)
 
         except Exception as e:
             logger.error(e)
-            logger.info('sleeping 30 seconds ...')
+            logger.error('sleeping 30 seconds ...')
             time.sleep(30)
