@@ -7,6 +7,11 @@ import time
 from dotenv import load_dotenv
 from web3 import Web3
 
+### THIS IS NOT CURRENTLY USED
+### It is kept in the repository as an alternative method to collect liquidity information
+### in case the graph ever stops working, moves, etc. (which it has in the past)
+
+
 TICK_BASE = 1.0001
 
 
