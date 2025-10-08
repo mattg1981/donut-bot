@@ -1,12 +1,15 @@
 import json
 import os.path
 import random
+import sys
 import urllib.request
 import sqlite3
 
 from dotenv import load_dotenv
 from web3 import Web3
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 from database import database
 
 
