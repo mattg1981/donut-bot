@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
         # only concern ourselves with pre-screened/valid tokens
         # and ensure they are not from addresses that should be ignored
-        print(tx)
+        print(json_result)
         if (tx["contractAddress"].lower() in valid_tokens and tx["from"].lower() not in ignored_addresses
                 and tx["to"].lower() == config['contracts']['arb1']['multi-sig'].lower()):
 
