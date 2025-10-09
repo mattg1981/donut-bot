@@ -38,8 +38,9 @@ if __name__ == '__main__':
     if os.path.exists(out_file):
         os.remove(out_file)
 
-    # write new csv
-    with open(out_file, 'w') as output_file:
-        writer = csv.DictWriter(output_file, tips[0].keys(), extrasaction='ignore')
-        writer.writeheader()
-        writer.writerows(tips)
+    # write new csv (if there are tips)
+    if tips:
+        with open(out_file, 'w') as output_file:
+            writer = csv.DictWriter(output_file, tips[0].keys(), extrasaction='ignore')
+            writer.writeheader()
+            writer.writerows(tips)
