@@ -24,11 +24,17 @@ if __name__ == '__main__':
         select username, address from users;
     """
 
-    with sqlite3.connect(db_path) as db:
-        db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-        cursor = db.cursor()
-        cursor.execute(user_sql)
-        registered_users = cursor.fetchall()
+    # get registered users from users.json instead - this is because the user may have
+    # an ENS name in the db but the contract returns 0x addresses.  users.json has already
+    # done the lookup/conversion.
+
+    # with sqlite3.connect(db_path) as db:
+    #     db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+    #     cursor = db.cursor()
+    #     cursor.execute(user_sql)
+    #     registered_users = cursor.fetchall()
+
+    registered_users = json.load(urllib.request.urlopen(config["users_location"]))
 
     # todo add to config
     contract_addresses = [{
