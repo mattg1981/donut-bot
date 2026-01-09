@@ -200,7 +200,7 @@ def previously_processed(submission, bot_name):
     # previously.  If it has, then this post has been previously processed.
 
     submission.comment_sort = "new"
-    submission.comments.replace_more(limit=0)
+    submission.comments.replace_more(limit=None)
 
     for c in submission.comments:  # Top-level only
         # c.author may be None if the user was deleted
