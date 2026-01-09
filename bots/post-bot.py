@@ -177,7 +177,7 @@ def eligible_to_submit(submission):
     return True
 
 
-def previously_processed(submission):
+def previously_processed(submission, bot_name):
     sql = """
             select *
             from post
@@ -188,7 +188,26 @@ def previously_processed(submission):
         db.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
         cursor = db.cursor()
         cursor.execute(sql, [submission.fullname])
-        return cursor.fetchone()
+        db_result = cursor.fetchone()
+
+    if db_result:
+        return db_result
+
+    # to address the reddit API (or praw) returning historically old posts.  Most posts will already
+    # be handled by the database lookup we just performed.  However, if the post was rejected for word count
+    # or other edge cases, no record is recorded in the database.  To handle these, we will search
+    # the comments of this post to see if donut-bot has responded on the top-level
+    # previously.  If it has, then this post has been previously processed.
+
+    submission.comment_sort = "new"
+    submission.comments.replace_more(limit=0)
+
+    for c in submission.comments:  # Top-level only
+        # c.author may be None if the user was deleted
+        if c.author and c.author.name == bot_name:
+            return True
+
+    return False
 
 
 if __name__ == "__main__":
@@ -259,7 +278,7 @@ if __name__ == "__main__":
                 except Exception as e:
                     logger.error("error processing submission: {e})")
 
-                if previously_processed(submission):
+                if previously_processed(submission, username):
                     logger.info(f"  {submission.fullname} already processed.")
                     continue
 
