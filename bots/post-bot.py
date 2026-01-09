@@ -199,7 +199,7 @@ def previously_processed(submission, bot_name):
     # the comments of this post to see if donut-bot has responded on the top-level
     # previously.  If it has, then this post has been previously processed.
 
-    submission.comment_sort = "new"
+    submission.comment_sort = "old"
     submission.comments.replace_more(limit=None)
 
     for c in submission.comments:  # Top-level only
