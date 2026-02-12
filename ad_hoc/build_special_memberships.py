@@ -68,7 +68,7 @@ if __name__ == '__main__':
             created = mintRecord[2]
             expires = mintRecord[3]
 
-            redditor = next((x["username"] for x in registered_users if x['address'].lower() == owner.lower()), None)
+            redditor = next((x["username"] for x in registered_users if (x.get("address") or "").lower() == owner.lower()), None)
 
             if not redditor:
                 continue
