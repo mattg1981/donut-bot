@@ -95,7 +95,7 @@
     "max_per_24_hours": 3,
     "approve_weight": 60000,
     "post_cooldown_in_minutes": 180,
-    "minimum_word_count": 200,
+    "minimum_word_count": 100,
     "minimum_word_count_excluded_flairs": ["Question"],
     "bypass_word_count_by_title": [
       "[EthTrader Contest]",
