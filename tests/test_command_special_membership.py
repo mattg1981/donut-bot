@@ -43,5 +43,5 @@ class TestSpecialMembershipCommand(TestCase):
         inactive_member_comment = FakeComment("t1_lbee7kl", "!membership", "inactive_user", "ethtrader")
         cmd1.process_comment(inactive_member_comment)
         self.assertEqual(inactive_member_comment.reply_message,
-                         'You are not currently a special member in the ethtrader community! [Click here](https://donut-dashboard.com/#/membership) to learn more or to purchase a membership!')
+                         'You are not currently a special member in the ethtrader community! [Click here](https://donut-dashboard.net/#/membership) to learn more or to purchase a membership!')
 

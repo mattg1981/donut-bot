@@ -344,6 +344,8 @@ if __name__ == '__main__':
     # that cannot be changed by users
     # ignore_list.extend([x.lower() for x in config['flair']['arb1-pioneers']])
 
+
+
     while True:
         try:
             # if "last_update" not in SPECIAL_MEMBERS or datetime.now() - timedelta(minutes=12) >= SPECIAL_MEMBERS[

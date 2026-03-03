@@ -44,6 +44,6 @@ class TopicCommand(Command):
         else:
             reply = "No topics are currently being limited."
 
-        reply += "\n\n[Click here](https://www.reddit.com/r/ethtrader/comments/1fyb8rv/rethtrader_automated_topic_limiter_topics_allowed/) for more information on topic limits.  Additionally, you can view the full list [here](https://donut-dashboard.com/#/topiclimits)."
+        reply += "\n\n[Click here](https://www.reddit.com/r/ethtrader/comments/1fyb8rv/rethtrader_automated_topic_limiter_topics_allowed/) for more information on topic limits.  Additionally, you can view the full list [here](https://donut-dashboard.net/#/topiclimits)."
 
         self.leave_comment_reply(comment, reply)

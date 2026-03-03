@@ -310,7 +310,7 @@ if __name__ == "__main__":
 
                         submission.reply(
                             f"Your post was removed from r/{community} because media posts are reserved for special "
-                            f"members. Please visit [this link] (https://donut-dashboard.com/#/membership) to learn "
+                            f"members. Please visit [this link] (https://donut-dashboard.net/#/membership) to learn "
                             f"more or to purchase a membership.  Otherwise, you can re-submit with a link to the "
                             f"media in the body of the post."
                         )

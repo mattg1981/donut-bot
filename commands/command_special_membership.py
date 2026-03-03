@@ -60,7 +60,7 @@ class SpecialMembershipCommand(Command):
             if any(tag in comment.body.lower() for tag in self.gif_tags):
                 contains_gif = True
 
-            bot_response = f"[Click here](https://donut-dashboard.com/#/membership) to learn more or to purchase a membership!"
+            bot_response = f"[Click here](https://donut-dashboard.net/#/membership) to learn more or to purchase a membership!"
 
             if contains_gif:
                 bot_response = f"Sorry u/{user}, only special members can use GIFs. {bot_response}"
